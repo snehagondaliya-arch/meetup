@@ -10,7 +10,7 @@ Route::get('/', function () {
 });
 Route::get('/import',[ImportJsonController::class,'start']);
 
-Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple');
+Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple')->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback']);
 
 Route::view('/login', 'web.login');

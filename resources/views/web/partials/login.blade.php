@@ -17,7 +17,7 @@
                                 Here is How</p>
                         </div>
                         <div class="text-center mb-3">
-                            <button class="btn btn-primary w-100" id="loginBtn">
+                            <a href="auth/google/redirect" type="button" class="btn btn-primary w-100" id="loginBtn">
                                 <span class="bg-white py-1 px-2 rounded-8 me-2">
                                     {{--
                                     // xml version="1.0" encoding="utf-8" --}}
@@ -39,7 +39,7 @@
                                     </svg>
                                 </span>
                                 Connect With Google
-                            </button>
+                            </a>
                         </div>
                         <div class="text-center fs-14px">
                             <p class="mb-0">By signing up, you agree to thea <a href="./term-condition.html"
