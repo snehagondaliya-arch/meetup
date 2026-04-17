@@ -151,7 +151,19 @@
                     dropdownCssClass: "event-select-s1Dropdown",
                 });
                 $('#search').on('input', function() {
-                    console.log('Value changed to: ' + $(this).val());
+                    let value = $(this).val();
+                     $.ajax({
+                            url: `events`,
+                            type: 'GET',
+                            data : {value : value},
+                            dataType: 'json',
+                            success: function(response) {
+                                console.log(response.message);  
+                            },
+                            error: function(xhr) {
+                                console.log(xhr.responseText);
+                            }
+                     });
                 });
             });
 
