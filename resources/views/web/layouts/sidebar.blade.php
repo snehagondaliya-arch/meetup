@@ -9,7 +9,7 @@
                             @foreach ($categories as $category)
                                 <li class="nav-item">
                                     <a class="nav-link {{ request()->segment(2) == $category->slug ? 'active' : '' }}" href="{{ url('/events/' . $category->slug) }}">
-                                        <span class="link-icon"><i class="fa-solid fa-user-group"></i></span>
+                                        <span class="link-icon"><i class="fa fa-{{ $category->icon }}"></i></span>
                                         {{ $category->name }}
                                     </a>
                                 </li>
@@ -23,3 +23,4 @@
     <div class="side-menu-overlay d-lg-none d-block" id="sideMenuOverlay"></div>
 </div>
 <!-- Category-Side-menu-end -->
+
