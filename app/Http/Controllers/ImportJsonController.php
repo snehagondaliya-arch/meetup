@@ -9,7 +9,7 @@ class ImportJsonController extends Controller
 {
     public function start()
     {
-        $files = glob(storage_path('app/json_files1/*.json'));
+        $files = glob(storage_path('app/json_files/*.json'));
         foreach($files as $file){
             ProcessSingleFileJob::dispatch($file);
         }
