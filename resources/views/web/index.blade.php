@@ -27,7 +27,7 @@
                     <div class="col-12">
                         <div class="search-input-content d-flex flex-sm-row flex-column gap-2">
                             <div class="search-input-box position-relative w-100">
-                                <input type="text" class="form-control input-field-s1 canvase-search" id="game-search"
+                                <input type="text" class="form-control input-field-s1 canvase-search" id="search"
                                     placeholder="Search events, categories, or locations...">
                                 <span class="gt-text-theme rounded-pill"><i
                                         class="fa-solid fa-magnifying-glass  fs-18px"></i></span>
@@ -108,7 +108,6 @@
                         </div>
                     @endforeach
                 </div>
-
             </div>
         </section>
         <!-- End Event-Card Section -->
@@ -150,6 +149,9 @@
             $(document).ready(function () {
                 $('.event-select-s1').select2({
                     dropdownCssClass: "event-select-s1Dropdown",
+                });
+                $('#search').on('input', function() {
+                    console.log('Value changed to: ' + $(this).val());
                 });
             });
 
