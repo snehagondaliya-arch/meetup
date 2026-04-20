@@ -89,4 +89,14 @@ class Event extends Model
 
         return self::STATUS_EXPIRED;
     }
+
+    public function getStartDateAttribute()
+    {
+        return $this->start_time?->format('d/m/Y');
+    }
+
+    public function getFormattedStartTimeAttribute()
+    {
+        return $this->start_time?->format('h:i A');
+    }
 }
