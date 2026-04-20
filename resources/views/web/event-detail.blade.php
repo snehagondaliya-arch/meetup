@@ -14,7 +14,7 @@
                                 <div class="breadcrumb-section mb-md-5 mb-4">
                                     <nav aria-label="breadcrumb breadcrumb-s1">
                                         <ol class="breadcrumb breadcrumb-arrow d-flex justify-content-center mb-0">
-                                            <li class="breadcrumb-item"><a href="./index.html">Home</a></li>
+                                            <li class="breadcrumb-item"><a href="{{ route('index') }}">Home</a></li>
                                             <li class="breadcrumb-item active" aria-current="page">Events</li>
                                         </ol>
                                     </nav>
@@ -29,7 +29,7 @@
                                     <div class="row row-gap-3">
                                         <div class="col-xxl-4 col-xl-6">
                                             <div class="event-detail-banner gt-bg-s4 rounder-12 d-flex align-items-center h-100">
-                                                <img src="{{ $event->image_url }}" alt="">
+                                                <img src="{{ $event->image_url }}" onerror="this.onerror=null;this.src='{{ asset(PLACEHOLDER_IMAGE) }}';" alt="">
                                             </div>
                                         </div>
                                         <div class="col-xxl-8 col-xl-6">
@@ -56,14 +56,16 @@
                                                             <h3 class="fs-18px gt-text-title mb-0">{{ $event->datetime_text }}</h3>
                                                         </div>
                                                     </div>
+                                                    @if($event->is_online == 1)
                                                     <div class="d-flex align-items-center gap-2">
                                                         <div class="fs-22px">
                                                             <i class="fa-solid fa-video gt-text-theme"></i>
                                                         </div>
                                                         <div>
-                                                            <h3 class="fs-18px gt-text-title mb-0"> {{ $event->is_online == 1 ? 'Online event' : '' }}</h3>
+                                                            <h3 class="fs-18px gt-text-title mb-0">Online event</h3>
                                                         </div>
                                                     </div>
+                                                    @endif
                                                 </div>  
                                             </div>
                                         </div>
@@ -130,7 +132,7 @@
                                                                             <div class="card gt-bg-s3 border-0">
                                                                                 <div class="card-body d-flex flex-column align-items-center p-md-4 p-3">
                                                                                     <div class="hw-50px rounded-12 gt-bg-s3 mb-2">
-                                                                                        <img width="100%" height="100%" src="{{ $event->host_image}}" alt="Hosted By">
+                                                                                        <img width="100%" height="100%" src="{{ $event->host_image}}" onerror="this.onerror=null;this.src='{{ asset(PLACEHOLDER_IMAGE) }}';"alt="Hosted By">
                                                                                     </div>
                                                                                     <div class="text-center">
                                                                                         <h3 class="fs-16px fw-600 gt-text-title mb-1">{{ $event->host_name }}</h3>
@@ -186,11 +188,9 @@
                                                                             <div class="swiper-wrapper w-auto">
                                                                                 <div class="swiper-slide">
                                                                                     <div class="photo-card-s1" >
-                                                                                    
                                                                                             @foreach ($event->event_photos as $photo)
-                                                                                                <img src="{{$photo->event_photos}}" alt="Photo-Gallery-Image" data-fancybox="gallery">
+                                                                                                <img src="{{$photo->event_photos}}" onerror="this.onerror=null;this.src='{{ asset(PLACEHOLDER_IMAGE) }}';"alt="Photo-Gallery-Image" data-fancybox="gallery">
                                                                                             @endforeach
-                                                                                    
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

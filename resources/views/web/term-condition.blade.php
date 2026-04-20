@@ -20,7 +20,7 @@
                 <div class="breadcrumb-section mb-md-5 mb-4">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-arrow d-flex justify-content-center mb-0">
-                            <li class="breadcrumb-item"><a href="./index.html">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('index') }}">Home</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Term And Conditions</li>
                         </ol>
                     </nav>
