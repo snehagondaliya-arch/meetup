@@ -22,7 +22,7 @@
                         <div class="breadcrumb-section mb-md-5 mb-4">
                             <nav aria-label="breadcrumb breadcrumb-s1">
                                 <ol class="breadcrumb breadcrumb-arrow d-flex justify-content-center mb-0">
-                                    <li class="breadcrumb-item"><a href="./index.html">Home</a></li>
+                                    <li class="breadcrumb-item"><a href="{{ route('index') }}">Home</a></li>
                                     <li class="breadcrumb-item active" aria-current="page">Events</li>
                                 </ol>
                             </nav>
@@ -30,33 +30,10 @@
                     </div>
                 </div>
                 <!-- Events Card -->
-                {{-- @dd($events) --}}
-            <div class="row">
-                @foreach ($events as $event)
-                    <div class="col-xxl-3 col-lg-4 col-md-6">
-                        <a href="{{ route('event-detail',$event->id) }}">
-                            <div class="card event-card-s1">
-                                <div class="card-body p-3">
-                                    <div class="event-banner rounded-12 mb-3">
-                                        <img class="rounded-12" src="{{ $event->image_url }}" alt="Event Banner">
-                                    </div>
-                                    <div class="event-card-content gt-bg-s2 rounded-12 p-3">
-                                        <div class="d-flex flex-wrap justify-content-between gap-2 border-bottom pb-2 mb-2">
-                                            <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                                    class="fa-regular fa-calendar"></i> 19/04/2027</span>
-                                            <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                                    class="fa-regular fa-clock"></i> 12:02 AM</span>
-                                        </div>
-                                        <h3 class="gt-text-title change-fs-18px-16px mb-0">{{ $event->title }}</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    
-                    </div>
-                    @endforeach
+                <div class="row row-gap-3" id="event-container">
+                   @include('web.partials.event-list')
                 </div>
-                
+            </div>
         </section>
         <!-- End Event-Card Section -->
 
@@ -83,62 +60,98 @@
                 </div>
             </div>
         </section>
+        <!-- End CTA Section -->
+    </div>
 @endsection
-    @section('js')
-        <script>
-            // Scrolling-Animation
-            AOS.init();
-            // Side Menu
-            const menuToggle = document.getElementById('categoryButton');
-            const menuClose = document.getElementById('menuClose');
-            const sideMenu = document.getElementById('side-menu-section');
-            const menuOverlay = document.getElementById('sideMenuOverlay');
-            // Open menu
-            function openMenu() {
-                sideMenu.classList.add('categoryOpen');
-                menuOverlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-            // Close menu
-            function closeMenu() {
-                sideMenu.classList.remove('categoryOpen');
-                menuOverlay.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-            // Event listeners
-            if (menuToggle) menuToggle.addEventListener('click', openMenu);
-            if (menuClose) menuClose.addEventListener('click', closeMenu);
-            if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
+@section('js')
+    <script>
 
+        $(document).on('click', '.side-menu-nav .nav-link', function (e) {
+            e.preventDefault();
 
-            $(window).on('scroll', function () {
-                if ($(window).scrollTop() > 320) {
-                    $('.header-s1').addClass('scrolled');
-                } else {
-                    $('.header-s1').removeClass('scrolled');
+            category = $(this).data('slug');
+
+            $('.side-menu-nav .nav-link').removeClass('active');
+            $(this).addClass('active');
+
+            loadData();
+        });
+        function loadData() {
+            $.ajax({
+                url: "{{ route('event-list') }}",
+                type: "GET",
+                data: {
+                    category: category,
+                },
+                success: function (html) {
+                    const container = document.getElementById('event-container');
+                    container.innerHTML = html;
+
+                    // fix animation issue
+                    if (typeof AOS !== 'undefined') {
+                        AOS.refreshHard();
+                    }
+                },
+                error: function (xhr) {
+                    console.log(xhr.responseText);
                 }
             });
+        }
 
-            // Apply start animation to ALL buttons with class "animation-btn"
-            document.querySelectorAll('.animation-btn').forEach(button => {
 
-                button.addEventListener('click', function (e) {
-                    const circle = document.createElement("span");
-                    const diameter = Math.max(this.clientWidth, this.clientHeight);
-                    const radius = diameter / 2;
+        // Scrolling-Animation
+        AOS.init();
+        // Side Menu
+        const menuToggle = document.getElementById('categoryButton');
+        const menuClose = document.getElementById('menuClose');
+        const sideMenu = document.getElementById('side-menu-section');
+        const menuOverlay = document.getElementById('sideMenuOverlay');
+        // Open menu
+        function openMenu() {
+            sideMenu.classList.add('categoryOpen');
+            menuOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        // Close menu
+        function closeMenu() {
+            sideMenu.classList.remove('categoryOpen');
+            menuOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        // Event listeners
+        if (menuToggle) menuToggle.addEventListener('click', openMenu);
+        if (menuClose) menuClose.addEventListener('click', closeMenu);
+        if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
 
-                    circle.style.width = circle.style.height = `${diameter}px`;
-                    circle.style.left = `${e.clientX - this.getBoundingClientRect().left - radius}px`;
-                    circle.style.top = `${e.clientY - this.getBoundingClientRect().top - radius}px`;
-                    circle.classList.add("start");
 
-                    const start = this.getElementsByClassName("start")[0];
-                    if (start) {
-                        start.remove();
-                    }
-                    this.appendChild(circle);
-                });
+        $(window).on('scroll', function () {
+            if ($(window).scrollTop() > 320) {
+                $('.header-s1').addClass('scrolled');
+            } else {
+                $('.header-s1').removeClass('scrolled');
+            }
+        });
 
+        // Apply start animation to ALL buttons with class "animation-btn"
+        document.querySelectorAll('.animation-btn').forEach(button => {
+
+            button.addEventListener('click', function (e) {
+                const circle = document.createElement("span");
+                const diameter = Math.max(this.clientWidth, this.clientHeight);
+                const radius = diameter / 2;
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                circle.style.left = `${e.clientX - this.getBoundingClientRect().left - radius}px`;
+                circle.style.top = `${e.clientY - this.getBoundingClientRect().top - radius}px`;
+                circle.classList.add("start");
+
+                const start = this.getElementsByClassName("start")[0];
+                if (start) {
+                    start.remove();
+                }
+                this.appendChild(circle);
             });
-        </script>
-    @endsection
+
+        });
+    </script>
+@endsection

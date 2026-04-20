@@ -28,16 +28,41 @@
                         <div class="search-input-content d-flex flex-sm-row flex-column gap-2">
                             <div class="search-input-box position-relative w-100">
                                 <input type="text" class="form-control input-field-s1 canvase-search" id="search"
-                                    placeholder="Search events, categories, or locations...">
+                                    name="search" placeholder="Search events, categories, or locations...">
+
+                                <input type="hidden" name="category" value="{{ request('category') }}">
                                 <span class="gt-text-theme rounded-pill"><i
                                         class="fa-solid fa-magnifying-glass  fs-18px"></i></span>
                             </div>
                             <div class="event-filter-content select-content">
-                                <select class="form-control event-select-s1">
-                                    <option>Filter</option>
-                                    <option>Demo 2</option>
-                                    <option>Demo 3</option>
-                                    <option>Demo 4</option>
+                                <select class="form-control event-select-s1" name="date_filter">
+                                    <option value="">Any Day</option>
+                                    <option value="starting_soon">Starting soon</option>
+                                    <option value="today">Today</option>
+                                    <option value="tomorrow">Tomorrow</option>
+                                    <option value="this_week">This week</option>
+                                    <option value="this_weekend">This weekend</option>
+                                    <option value="next_week">Next week</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="event-filter-content select-content">
+                                <select class="form-control event-select-s1" name="event_type">
+                                    <option value="">Any type</option>
+                                    <option value="online">Online</option>
+                                    <option value="offline">Offline</option>
+                                </select>
+                            </div>
+
+                            <div class="event-filter-content select-content">
+                                <select class="form-control event-select-s1" name="distance">
+                                    <option value="30">Within 30 kilometers</option>
+                                    <option value="5">5 kilometers</option>
+                                    <option value="10">10 kilometers</option>
+                                    <option value="25">25 kilometers</option>
+                                    <option value="50">50 kilometers</option>
+                                    <option value="100">100 kilometers</option>
+                                    <option value="150">150 kilometers</option>
                                 </select>
                             </div>
                         </div>
@@ -58,55 +83,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="row row-gap-3">
-                    @foreach ($events as $event)
-                        <div class="col-xxl-3 col-lg-4 col-sm-6">
-                            <a href="{{ route('event-detail', $event->id) }}">
-                                <div class="card event-card-s2" data-aos="zoom-in" data-aos-duration="800">
-                                    <div
-                                        class="event-banner card-header bg-transparent border-0 p-3 position-relative rounded-12">
-                                        <img class="rounded-12" src="{{ $event->image_url }}" alt="Event Banner">
-                                        <div
-                                            class="info-badge d-flex align-items-center fw-500 fs-14px text-muted line-clamp-1 py-1 px-2">
-                                            {{ $event->status}}
-                                        </div>
-                                    </div>
-                                    <div class="card-body p-3 pt-0">
-                                        <div class="d-flex flex-column justify-content-between gap-3 h-100">
-                                            <div>
-                                                <!-- <div class="gt-bg-s2 rounded-12 p-2 d-flex justify-content-between gap-2 mb-3">
-                                                                                <p class="mb-0 d-flex align-items-center fw-500 fs-14px text-muted line-clamp-1"><i class="fa-regular fa-user me-1"></i>Hosted By: <span class="gt-text-title ms-1">Surat</span></p>
-                                                                            </div> -->
-                                                <h3 class="gt-text-title change-fs-18px-16px mb-2">{{ $event->title }}</h3>
-
-                                                <p class="fs-14px text-muted mb-0 line-clamp-2">
-                                                    {!! strip_tags(html_entity_decode($event->description)) !!}
-                                                </p>
-
-                                            </div>
-                                            <div>
-                                                <div class="d-flex justify-content-between gap-2 border-top pt-3 mb-2">
-                                                    <span
-                                                        class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                                            class="fa-regular fa-calendar gt-text-title me-1"></i>
-                                                        {{\Carbon\Carbon::parse($event->start_time)->format('d/m/y')}}</span>
-                                                    <span
-                                                        class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                                            class="fa-regular fa-clock gt-text-title me-1"></i>
-                                                        {{\Carbon\Carbon::parse($event->start_time)->format('h:i A')}}</span>
-                                                </div>
-                                                <div class="text-center">
-                                                    <a href="{{ route('event-detail', $event->id) }}"
-                                                        class="btn btn-outline-primary w-100 py-2">Check Now <i
-                                                            class="fa-solid fa-arrow-right-long ms-2"></i></a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    @endforeach
+                <div class="row row-gap-3" id="event-container">
+                    @include('web.partials.events')
                 </div>
             </div>
         </section>
@@ -147,27 +125,69 @@
 
             // Event-Filter-Select-2
             $(document).ready(function () {
+
+                let category = null;
+                let search = '';
+
                 $('.event-select-s1').select2({
                     dropdownCssClass: "event-select-s1Dropdown",
                 });
-                $('#search').on('input', function() {
-                    let value = $(this).val();
-                     $.ajax({
-                            url: `events`,
-                            type: 'GET',
-                            data : {value : value},
-                            dataType: 'json',
-                            success: function(response) {
-                                console.log(response.message);  
-                            },
-                            error: function(xhr) {
-                                console.log(xhr.responseText);
-                            }
-                     });
+
+                // SEARCH
+                $(document).on('input', '#search', function () {
+                    search = $(this).val();
+                    loadData();
                 });
+
+                // CATEGORY CLICK
+                $(document).on('click', '.side-menu-nav .nav-link', function (e) {
+                    e.preventDefault();
+
+                    category = $(this).data('slug');
+
+                    $('.side-menu-nav .nav-link').removeClass('active');
+                    $(this).addClass('active');
+
+                    loadData();
+                });
+                $('select').on('change', function () {
+                    loadData();
+                });
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    loadData(position.coords.latitude, position.coords.longitude);
+                });
+
+                function loadData(latitude = null, longitude = null) {
+
+                    const date_filter = $('select[name="date_filter"]').val();
+                    const event_type = $('select[name="event_type"]').val();
+                    const distance = $('select[name="distance"]').val();
+
+                    $.ajax({
+                        url: "{{ route('index') }}",
+                        type: "GET",
+                        data: {
+                            category: typeof category !== 'undefined' ? category : '',
+                            search: typeof search !== 'undefined' ? search : '',
+                            latitude: latitude,
+                            longitude: longitude,
+                            date_filter: date_filter,
+                            event_type: event_type,
+                            // distance: distance
+                        },
+                        success: function (html) {
+                            document.getElementById('event-container').innerHTML = html;
+
+                            if (typeof AOS !== 'undefined') {
+                                AOS.refreshHard();
+                            }
+                        },
+                        error: function (xhr) {
+                            console.log(xhr.responseText);
+                        }
+                    });
+                }
             });
-
-
             // Side Menu
             const menuToggle = document.getElementById('categoryButton');
             const menuClose = document.getElementById('menuClose');

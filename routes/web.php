@@ -16,7 +16,7 @@ Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback
 Route::view('/login', 'web.login');
 
 
-Route::get('/events/{category?}', [StaticPageController::class, 'index'])->name('index');
+Route::get('/events', [StaticPageController::class, 'index'])->name('index');
 
 Route::get('/faq', [StaticPageController::class, 'faq'])->name('faq');
 
