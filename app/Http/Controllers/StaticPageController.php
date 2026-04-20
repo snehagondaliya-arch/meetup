@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\EventFilter;
+use App\Http\Controllers\Controller;
 use App\Models\Event;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class StaticPageController extends Controller
 {
-    public function index($category = null)
+    public function index(Request $request, EventFilter $filter)
     {
-        if ($category) {
-            $events = Event::whereHas('category', function ($query) use ($category) {
-                $query->where('slug', $category);
-            })->paginate(100);
-        } else {
-            $events = Event::paginate(100);
-        }
-        return view('web.index',compact('events'));
+        $events = $filter->apply(Event::query(), $request)
+            ->latest()
+            ->paginate(12);
+
+        return $request->ajax()
+            ? view('web.partials.events', compact('events'))->render()
+            : view('web.index', compact('events'));
 
     }
 
@@ -35,18 +38,31 @@ class StaticPageController extends Controller
     }
 
     public function eventDetail($eventID)
-    {   
+    {
         $event = Event::with('event_photos')->findOrFail($eventID);
         $cateID = $event->category_id;
-        $events = Event::where('category_id',$cateID)
-            ->where('id','!=',$event->id)->paginate(10);
-        return view('web.event-detail',compact('event','events'));
+        $events = Event::where('category_id', $cateID)
+            ->where('id', '!=', $event->id)->paginate(10);
+        return view('web.event-detail', compact('event', 'events'));
     }
 
-    public function eventList()
+    public function eventList(Request $request)
     {
-        $events = Event::latest()->paginate(100);
-        return view('web.event-list',compact('events'));
+        $category = $request->category;
+
+        $query = Event::query();
+
+        // Category filter
+        if ($category && $category !== 'all-events') {
+            $query->whereHas('category', function ($q) use ($category) {
+                $q->where('slug', $category);
+            });
+        }
+        $events = $query->latest()->paginate(100);
+        return ($request->ajax())
+            ? view('web.partials.event-list', compact('events'))->render()
+            : view('web.event-list', compact('events'));
+
     }
 
     public function privacyPolicy()
