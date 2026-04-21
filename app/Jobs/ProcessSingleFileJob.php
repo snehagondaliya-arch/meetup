@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Helpers\EventDateParser;
 use App\Helpers\Helpers;
 use App\Jobs\DownloadImageJob;
 use App\Jobs\MarkFileProcessedJob;
@@ -100,10 +101,9 @@ class ProcessSingleFileJob implements ShouldQueue
                             $eventData[$key] = $filename;
                         }
                     }
-
-                    $parsedDateTime = Helpers::parseDatetimeText($eventData['datetime_text'] ?? null);
-                    $startDateTime = Helpers::getStartDateTime($eventData['datetime_text'] ?? null);
-                    $endDateTime = Helpers::getEndDateTime($eventData['datetime_text'] ?? null);
+                    $parsed = EventDateParser::parse($eventData['datetime_text'] ?? null);
+                    $startDateTime = $parsed['start'];
+                    $endDateTime = $parsed['end'];
 
                     $event = Event::updateOrCreate(
                         [
@@ -118,7 +118,7 @@ class ProcessSingleFileJob implements ShouldQueue
                             'datetime_text'  => $eventData['datetime_text'] ?? null,
                             'start_time'     => $startDateTime,
                             'end_time'       => $endDateTime,
-                            'timezone'       => $parsedDateTime['timezone'] ?? null,
+                            'timezone'       => $parsed['timezone'] ?? null,
                             'venue_name'     => $eventData['location']['venue_name'] ?? null,
                             'full_address'   => $eventData['location']['full_address'] ?? null,
                             'latitude'       => $eventData['latitude'] ?? null,

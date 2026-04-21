@@ -22,7 +22,7 @@
     },
     "autoload": {
          "files": [
-                "app/Helpers/helpers.php"
+                "app/Helpers/EventDateParser.php"
             ],
         "psr-4": {
             "App\\": "app/",

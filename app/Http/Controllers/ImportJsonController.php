@@ -19,7 +19,11 @@ class ImportJsonController extends Controller
         $jobs[] = new ProcessSingleFileJob($file);
     }
 
-    //THIS ensures strict order
+    if(empty($jobs)) {
+        return response()->json([
+            'message' => 'No files to process',
+        ]);
+    }
     Bus::chain($jobs)->dispatch();
 
     return response()->json([
