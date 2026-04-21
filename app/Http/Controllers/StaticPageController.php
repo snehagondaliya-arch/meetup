@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Filters\EventFilter;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class StaticPageController extends Controller
@@ -52,7 +51,6 @@ class StaticPageController extends Controller
 
         $query = Event::query();
 
-        // Category filter
         if ($category && $category !== 'all-events') {
             $query->whereHas('category', function ($q) use ($category) {
                 $q->where('slug', $category);

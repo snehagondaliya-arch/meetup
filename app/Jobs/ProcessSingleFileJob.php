@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Helpers\Helpers;    
+use App\Helpers\Helpers;
 use App\Jobs\DownloadImageJob;
 use App\Jobs\MarkFileProcessedJob;
 use App\Models\Category;
@@ -31,6 +31,7 @@ class ProcessSingleFileJob implements ShouldQueue
     public function handle()
     {
         try {
+            if (str_contains($this->file, '_done.json')) return;
 
             DB::disableQueryLog();
 
@@ -46,23 +47,23 @@ class ProcessSingleFileJob implements ShouldQueue
             $categoryCache = [];
             $groupCache = [];
             $imageJobs = [];
+            $dispatchedImages = [];
 
             foreach ($data as $categorydata) {
 
-                if (empty($categorydata['events'])) {
-                    Log::warning('No events found', $categorydata);
-                    continue;
-                }
+                if (empty($categorydata['events'])) continue;
 
                 $categoryName = $categorydata['category_name'] ?? 'Unknown';
                 $categorySlug = Str::slug($categoryName);
 
-                $category = $categoryCache[$categorySlug]??= Category::firstOrCreate(
-                        ['slug' => $categorySlug],
-                        ['name' => $categoryName]
-                    );
+                $category = $categoryCache[$categorySlug] ??= Category::firstOrCreate(
+                    ['slug' => $categorySlug],
+                    ['name' => $categoryName]
+                );
 
                 foreach ($categorydata['events'] as $eventData) {
+
+                    if (empty($eventData['event_url'])) continue;
 
                     $group = null;
 
@@ -73,6 +74,7 @@ class ProcessSingleFileJob implements ShouldQueue
                             ]);
                     }
 
+                    // IMAGE FIELDS
                     $imageFields = [
                         'image_url'   => 'events',
                         'group_image' => 'groups',
@@ -86,11 +88,14 @@ class ProcessSingleFileJob implements ShouldQueue
                             $url = $eventData[$key];
 
                             $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
-                            $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']) ? $extension : 'jpg';
+                            $extension = in_array($extension, ['jpg','jpeg','png','webp']) ? $extension : 'jpg';
 
-                            $filename = Str::uuid() . '.' . $extension;
-    
-                            $imageJobs[] = new DownloadImageJob($url, $folder, $filename);
+                            $filename = md5($url) . '.' . $extension;
+
+                            if (!isset($dispatchedImages[$filename])) {
+                                $imageJobs[] = new DownloadImageJob($url, $folder, $filename);
+                                $dispatchedImages[$filename] = true;
+                            }
 
                             $eventData[$key] = $filename;
                         }
@@ -102,33 +107,34 @@ class ProcessSingleFileJob implements ShouldQueue
 
                     $event = Event::updateOrCreate(
                         [
-                            'event_url' => $eventData['event_url'] ?? Str::random(10),
+                            'event_url' => $eventData['event_url'],
                         ],
                         [
-                            'category_id'   => $category->id,
-                            'group_id'      => $group->id ?? null,
-                            'title'         => $eventData['title'] ?? 'N/A',
-                            'slug'          => Str::slug($eventData['title'] ?? 'event') . '-' . Str::random(5),
+                            'category_id'    => $category->id,
+                            'group_id'       => $group->id ?? null,
+                            'title'          => $eventData['title'] ?? 'N/A',
+                            'slug'           => Str::slug($eventData['title'] ?? 'event'),
                             'date_list_view' => $eventData['date_list_view'] ?? null,
                             'datetime_text'  => $eventData['datetime_text'] ?? null,
-                            'start_time'    => $startDateTime,
-                            'end_time'      => $endDateTime,
-                            'timezone'      => $parsedDateTime['timezone'] ?? null,
-                            'venue_name'    => $eventData['location']['venue_name'] ?? null,
-                            'full_address'  => $eventData['location']['full_address'] ?? null,
-                            'latitude'      => $eventData['latitude'] ?? null,
-                            'longitude'     => $eventData['longitude'] ?? null,
-                            'image_url'     => $eventData['image_url'] ?? null,
-                            'group_image'   => $eventData['group_image'] ?? null,
-                            'host_image'    => $eventData['host_image'] ?? null,
-                            'host_name'     => $eventData['host'] ?? null,
-                            'description'   => $eventData['description'] ?? null,
-                            'attendees'     => $eventData['attendees'] ?? 0,
-                            'price'         => (int) ($eventData['price'] ?? 0),
-                            'is_online'     => (int) ($eventData['is_online'] ?? 0),
+                            'start_time'     => $startDateTime,
+                            'end_time'       => $endDateTime,
+                            'timezone'       => $parsedDateTime['timezone'] ?? null,
+                            'venue_name'     => $eventData['location']['venue_name'] ?? null,
+                            'full_address'   => $eventData['location']['full_address'] ?? null,
+                            'latitude'       => $eventData['latitude'] ?? null,
+                            'longitude'      => $eventData['longitude'] ?? null,
+                            'image_url'      => $eventData['image_url'] ?? null,
+                            'group_image'    => $eventData['group_image'] ?? null,
+                            'host_image'     => $eventData['host_image'] ?? null,
+                            'host_name'      => $eventData['host'] ?? null,
+                            'description'    => $eventData['description'] ?? null,
+                            'attendees'      => $eventData['attendees'] ?? 0,
+                            'price'          => (int) ($eventData['price'] ?? 0),
+                            'is_online'      => (int) ($eventData['is_online'] ?? 0),
                         ]
                     );
 
+                    // EVENT PHOTOS
                     if (!empty($eventData['event_photos'])) {
 
                         foreach ($eventData['event_photos'] as $photo) {
@@ -136,25 +142,34 @@ class ProcessSingleFileJob implements ShouldQueue
                             if (!$photo) continue;
 
                             $extension = pathinfo(parse_url($photo, PHP_URL_PATH), PATHINFO_EXTENSION);
-                            $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']) ? $extension : 'jpg';
+                            $extension = in_array($extension, ['jpg','jpeg','png','webp']) ? $extension : 'jpg';
 
-                            $filename = Str::uuid() . '.' . $extension;
-                             $imageJobs[] = new DownloadImageJob($url, 'event_photos', $filename);
+                            $filename = md5($photo) . '.' . $extension;
 
-                            EventPhotos::firstOrCreate([
-                                'event_id' => $event->id,
-                                'event_photos' => $filename,
-                            ]);
+                            if (!isset($dispatchedImages[$filename])) {
+                                $imageJobs[] = new DownloadImageJob($photo, 'event_photos', $filename);
+                                $dispatchedImages[$filename] = true;
+                            }
+
+                            EventPhotos::updateOrCreate(
+                                [  
+                                    'photo_url' => md5($photo) . '.' . $extension,
+                                ],
+                                [
+                                    'event_id'  => $event->id,
+                                    'event_photos' => $filename,
+                                ]
+                            );
                         }
                     }
                 }
             }
 
-            $imageJobs[] = new MarkFileProcessedJob($this->file);
-
-            Bus::chain($imageJobs)
-            ->onQueue('images')
-            ->dispatch();
+            // HYBRID MAGIC (Sequential file, parallel images)
+            Bus::chain([
+                Bus::batch($imageJobs)->name("Images for {$this->file}")->onQueue('images'),
+                new MarkFileProcessedJob($this->file),
+            ])->dispatch();
 
         } catch (\Exception $e) {
 
