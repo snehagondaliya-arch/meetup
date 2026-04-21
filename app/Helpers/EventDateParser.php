@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Helpers;
-
 use Carbon\Carbon;
 
 class EventDateParser
@@ -10,16 +8,13 @@ class EventDateParser
     {
         $text = self::normalize($text);
 
-        if (!$text) {
-            throw new \Exception('Invalid or empty datetime text');
-        }
-
         $tzAbbr = self::extractTimezone($text);
         $timezone = self::mapTimezone($tzAbbr);
 
-        // Remove timezone from string
-        $text = preg_replace('/\b' . preg_quote($tzAbbr, '/') . '\b$/', '', $text);
+        // Remove timezone from string for clean parsing
+        $text = preg_replace('/\b' . $tzAbbr . '\b$/', '', $text);
 
+        // Detect if range exists
         if (stripos($text, ' to ') !== false) {
             return self::parseRange($text, $timezone);
         }
@@ -31,28 +26,12 @@ class EventDateParser
 
     private static function normalize($text)
     {
-        if (!$text || trim($text) === 'N/A') {
-            return null;
-        }
-
-        // Replace dot separator
         $text = str_replace('·', ' ', $text);
 
-        // Fix timezone sticking (PMCEST → PM CEST)
+        // Fix missing space before timezone
         $text = preg_replace('/([AP]M)([A-Z]{2,5})/', '$1 $2', $text);
 
-        // Add AM/PM if missing (assume PM)
-        $text = preg_replace('/(\d{1,2}:\d{2})(?!\s?[AP]M)/', '$1 PM', $text);
-
-        // Add current year if missing
-        if (!preg_match('/\b\d{4}\b/', $text)) {
-            $text .= ' ' . now()->year;
-        }
-
-        // Normalize commas
-        $text = preg_replace('/,\s*/', ', ', $text);
-
-        // Remove extra spaces
+        // Clean multiple spaces
         $text = preg_replace('/\s+/', ' ', $text);
 
         return trim($text);
@@ -62,7 +41,7 @@ class EventDateParser
 
     private static function extractTimezone($text)
     {
-        preg_match('/\b([A-Z]{2,5})$/', trim($text), $match);
+        preg_match('/\b([A-Z]{2,5})$/', $text, $match);
         return $match[1] ?? 'UTC';
     }
 
@@ -72,12 +51,6 @@ class EventDateParser
     {
         return [
             'IST' => 'Asia/Kolkata',
-
-            // Latin America
-            'ART' => 'America/Argentina/Buenos_Aires',
-            'BRT' => 'America/Sao_Paulo',
-            'COT' => 'America/Bogota',
-
             'UTC' => 'UTC',
             'GMT' => 'Europe/London',
 
@@ -95,18 +68,9 @@ class EventDateParser
             'JST' => 'Asia/Tokyo',
             'SGT' => 'Asia/Singapore',
             'HKT' => 'Asia/Hong_Kong',
+
+            'PYT' => 'America/Asuncion',
         ][$tz] ?? 'UTC';
-    }
-
-    // ----------------------------------------
-
-    private static function safeParse($text, $timezone)
-    {
-        try {
-            return Carbon::parse(trim($text), $timezone);
-        } catch (\Exception $e) {
-            throw new \Exception("Failed to parse: " . $text);
-        }
     }
 
     // ----------------------------------------
@@ -115,33 +79,29 @@ class EventDateParser
     {
         [$startPart, $endPart] = explode(' to ', $text);
 
-        $start = self::safeParse($startPart, $timezone);
-
-        // If end contains full date → cross-day
-        if (preg_match('/[A-Za-z]+,\s*[A-Za-z]+\s+\d+/', $endPart)) {
-
-            $end = self::safeParse($endPart, $timezone);
-
+        // Check if end part contains full date
+        if (preg_match('/[A-Za-z]+,\s+[A-Za-z]+\s+\d+/', $endPart)) {
+            // Cross-day format
+            $start = Carbon::parse($startPart, $timezone);
+            $end = Carbon::parse($endPart, $timezone);
         } else {
-
-            // Same day → attach date
+            // Same-day format
             $startDate = self::extractDate($startPart);
 
-            if (!$startDate) {
-                throw new \Exception('Failed to extract date from: ' . $startPart);
+            $start = Carbon::parse($startPart, $timezone);
+
+            // Attach same date to end time
+            $end = Carbon::parse($startDate . ' ' . trim($endPart), $timezone);
+
+            // Fix midnight crossover (11 PM → 1 AM)
+            if ($end->lt($start)) {
+                $end->addDay();
             }
-
-            $end = self::safeParse($startDate . ' ' . trim($endPart), $timezone);
-        }
-
-        // Fix overnight case (e.g., 10 PM → 2 AM)
-        if ($end->lt($start)) {
-            $end->addDay();
         }
 
         return [
-            'start' => $start->copy()->utc(),
-            'end' => $end->copy()->utc(),
+            'start' => $start->copy(),
+            'end' => $end->copy(),
             'timezone' => $timezone,
         ];
     }
@@ -150,10 +110,10 @@ class EventDateParser
 
     private static function parseSingle($text, $timezone)
     {
-        $date = self::safeParse($text, $timezone);
+        $date = Carbon::parse($text, $timezone);
 
         return [
-            'start' => $date->copy()->utc(),
+            'start' => $date->copy(),
             'end' => null,
             'timezone' => $timezone,
         ];
@@ -163,7 +123,7 @@ class EventDateParser
 
     private static function extractDate($text)
     {
-        preg_match('/([A-Za-z]+,\s*[A-Za-z]+\s+\d+)/', $text, $match);
-        return $match[1] ?? null;
+        preg_match('/([A-Za-z]+,\s+[A-Za-z]+\s+\d+)/', $text, $match);
+        return $match[1] ?? '';
     }
 }
