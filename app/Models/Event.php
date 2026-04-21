@@ -83,7 +83,7 @@ class Event extends Model
             return self::STATUS_UPCOMING;
         }
 
-        if ($this->start_time <= $now && ($this->end_time === null || $this->end_time >= $now)) {
+        if ($this->start_time <= $now && $this->end_time !== null && $this->end_time >= $now) {
             return self::STATUS_LIVE_NOW;
         }
 
