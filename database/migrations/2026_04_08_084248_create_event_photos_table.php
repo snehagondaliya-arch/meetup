@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('event_photos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->string('photo_url')->nullable();
             $table->string('event_photos')->nullable();
             $table->timestamps();
         });

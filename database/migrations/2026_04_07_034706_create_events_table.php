@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('attendees')->nullable();
             $table->decimal('price', 10, 2)->nullable();
             $table->boolean('is_online')->default(false);
-            $table->text('event_url')->nullable();
+            $table->text('event_url')->nullable(); 
             $table->timestamps();
         });
     }
