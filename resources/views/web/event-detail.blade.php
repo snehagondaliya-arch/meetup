@@ -157,7 +157,7 @@
                                                             <div class="col-12">
                                                                 <div class="p-3 gt-bg-s2 rounded-12">
                                                                     <div class="google-map-content rounded-12 mb-3">
-                                                                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3718.958043694313!2d72.86186125040913!3d21.23351227661883!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be04f2652963ac9%3A0x7d9787a5b5c4275d!2sSilver%20Business%20Point!5e0!3m2!1sen!2sin!4v1775794440758!5m2!1sen!2sin" width="100%" height="380" class="rounded-12" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                                                        <iframe src="https://maps.google.com/maps?q={{ $event->latitude ?? 0.000 }},{{ $event->longitude ?? 0.000}}&z=15&output=embed" width="100%" height="380" class="rounded-12" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                                                     </div>
                                                        
                                                                     <div class="d-flex gap-2 align-items-xl-center">
