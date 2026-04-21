@@ -15,15 +15,15 @@ class CategoryIconSeeder extends Seeder
     {
         $icons = [
             'all-events' => 'calendar',
-            'technology' => 'cpu',
+            'technology' => 'computer',
             'social-activities' => 'users',
             'hobbies-and-passions' => 'heart',
-            'sports-and-physical-activity' => 'activity',
+            'sports-and-physical-activity' => 'running',
             'travel-and-outdoor-activities' => 'map',
             'work-and-business' => 'briefcase',
             'identity-and-language' => 'globe',
             'dance' => 'music',
-            'support-and-coaching' => 'life-buoy',
+            'support-and-coaching' => 'hands-helping',
             'music' => 'headphones',
             'health-and-well-being' => 'heart-pulse',
             'art-and-culture' => 'palette',
