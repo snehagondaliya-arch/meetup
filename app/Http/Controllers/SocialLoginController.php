@@ -27,7 +27,18 @@ class SocialLoginController extends Controller
         if (!in_array($provider, $this->allowedProviders)) {
             abort(404);
         }
+
         $socialUser = Socialite::driver($provider)->stateless()->user();
+
+        $existingUser = User::where('provider', $provider)
+            ->where('provider_id', $socialUser->getId())
+            ->orWhere('email', $socialUser->getEmail())
+            ->first();
+
+        if ($existingUser) {
+            return redirect()->route('index')
+            ->with('error', 'Account already exists with this email or social account.');
+        }
 
         $user = User::create([
             'name' => $socialUser->getName() ?? 'User',
@@ -38,9 +49,8 @@ class SocialLoginController extends Controller
             'profile' => $socialUser->getAvatar(),
         ]);
 
-
         Auth::login($user);
 
-        return redirect('/dashboard');
+        return redirect('/index');
     }
 }
