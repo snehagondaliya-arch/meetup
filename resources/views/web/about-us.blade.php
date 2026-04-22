@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title','MeetUp | About')
 @section('no-sidebar', true)
-@section('no-event-blog',true)
 @section('content')
     <!-- Start Contact-Us Section --> 
     <section class="disclaimer-section section-s1padding">

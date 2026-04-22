@@ -14,7 +14,7 @@
             <div class="col-sm-4 col-lg-2 ms-lg-auto">
                 <h5>Discover</h5>
                 <ul class="list-unstyled d-inline-block mb-0">
-                    <li class="py-1"><a href="#" class="nav-link">Events</a></li>
+                    <li class="py-1"><a href="{{ route('event-list') }}" class="nav-link">Events</a></li>
                     <li class="py-1"><a href="javascript:void(0);" class="nav-link">Cities</a></li>
                     <li class="py-1"><a href="javascript:void(0);" class="nav-link">Online Events</a></li>
                 </ul>

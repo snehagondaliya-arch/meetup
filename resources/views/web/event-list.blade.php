@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title', 'MeetUp | Event-Detail')
 @section('no-sidebar', false)
-@section('no-faq-disclaimer', true)
 @section('content')
     <div class="main-page-content">
         <!-- Start Event-Card Section -->

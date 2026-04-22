@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title','MeetUp | Contact-Us')
 @section('no-sidebar', true)
-@section('no-event-blog',true)
 @section('content')
     <!-- Start Contact-Us Section --> 
     <section class="contact-us-section section-s1padding">

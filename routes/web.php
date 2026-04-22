@@ -33,8 +33,3 @@ Route::get('/privacy-policy', [StaticPageController::class, 'privacyPolicy'])->n
 Route::get('/term-condition', [StaticPageController::class, 'termCondition'])->name('term-condition');
 
 Route::get('/disclaimer', [StaticPageController::class, 'disclaimer'])->name('disclaimer');
-
-
-Route::get('/datetimeTest',[StaticPageController::class,'datetimeTest'])->name('datetime-test');
-
-Route::get('/example',[StaticPageController::class,'example'])->name('example');

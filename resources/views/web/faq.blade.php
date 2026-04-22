@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title', 'MeetUp | Index')
 @section('no-sidebar', true)
-@section('no-faq-disclaimer',true)
 @section('content')
     <!-- Start FAQ's Section -->
     <section class="faq-section section-s1padding">

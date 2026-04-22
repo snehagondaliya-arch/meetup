@@ -1,8 +1,6 @@
 @extends('layouts.master')
 @section('title', 'MeetUp | Event-Detail')
 @section('no-sidebar', false)
-@section('no-faq-disclaimer',true)
-
 @section('content')
     <div class="main-page-content">
                 <!-- Start Event-detail-card Section --> 
@@ -201,42 +199,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row row-gap-3">
-                            @foreach ($events as $eventdata)
-                            <div class="col-xxl-3 col-lg-4 col-sm-6">
-                                <a href="javascript:void(0);">
-                                    <div class="card event-card-s2" data-aos="zoom-in" data-aos-duration="800">
-                                        <div class="event-banner card-header bg-transparent border-0 p-3 position-relative rounded-12">
-                                            <img class="rounded-1" src="{{ $eventdata->image_url }}" alt="Event Banner">
-                                            <div class="info-badge d-flex align-items-center fw-500 fs-14px text-muted line-clamp-1 py-1 px-2">Expired</div> 
-                                        </div>
-                                        <div class="card-body p-3 pt-0">
-                                            <div class="d-flex flex-column justify-content-between gap-3 h-100">
-                                                <div>
-                                                    <h3 class="gt-text-title change-fs-18px-16px mb-2">{{ $eventdata->title }}</h3> 
-                                                    <p class="fs-14px text-muted mb-0 line-clamp-2"> {!! strip_tags(html_entity_decode($eventdata->description)) !!}</p>
-                                                </div>
-                                                <div>
-                                                    <div class="d-flex justify-content-between gap-2 border-top pt-3 mb-2">
-                                                        <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i class="fa-regular fa-calendar gt-text-title me-1"></i> 19/04/2027</span>
-                                                        <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i class="fa-regular fa-clock gt-text-title me-1"></i> 12:02 AM</span>
-                                                    </div>
-                                                    <div class="text-center">
-                                                        <a href="{{ route('event-detail', $eventdata->id) }}" class="btn btn-outline-primary w-100 py-2">Check Now <i class="fa-solid fa-arrow-right-long ms-2"></i></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            @endforeach
+                        <div class="row row-gap-3" id="container">
+                            @include('web.partials.events')
                         </div>
                     </div>
                 </section>    
 @endsection
 @section('js')
 <script>
+    
      var swiper = new Swiper(".photoGallerySlider", {
             speed: 400,
             slidesPerView: "auto",

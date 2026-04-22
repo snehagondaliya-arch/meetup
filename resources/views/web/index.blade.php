@@ -1,8 +1,6 @@
 @extends('layouts.master')
 @section('title', 'MeetUp | Index')
 @section('no-sidebar', false)
-@section('no-event-blog', true)
-
 @section('content')
     <!-- Main-Content -->
     <div class="main-page-content">
