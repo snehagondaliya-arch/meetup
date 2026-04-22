@@ -22,7 +22,7 @@ class EventPhotos extends Model
      protected function eventphotos(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => asset('uploads/event_photos/' . $value),
+            get: fn ($value) => asset(EVENT_PHOTOS . $value),
         );
     }
 }

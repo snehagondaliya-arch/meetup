@@ -66,13 +66,13 @@ class Event extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => asset('uploads/events/' . $value),
+            get: fn($value) => asset(EVENT_IMAGES. $value),
         );
     }
     protected function hostImage(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => asset('uploads/hosts/' . $value),
+            get: fn($value) => asset(HOST_IMAGES . $value),
         );
     }
 
