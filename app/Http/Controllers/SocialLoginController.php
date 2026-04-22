@@ -36,8 +36,8 @@ class SocialLoginController extends Controller
             ->first();
 
         if ($existingUser) {
-            return redirect()->route('index')
-            ->with('error', 'Account already exists with this email or social account.');
+           Auth::login($existingUser);
+           return redirect()->route('index');
         }
 
         $user = User::create([
@@ -51,6 +51,6 @@ class SocialLoginController extends Controller
 
         Auth::login($user);
 
-        return redirect('/index');
+         return redirect()->route('index');
     }
 }

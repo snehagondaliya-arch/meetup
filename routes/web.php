@@ -3,6 +3,7 @@
 use App\Http\Controllers\ImportJsonController;
 use App\Http\Controllers\SocialLoginController;
 use App\Http\Controllers\StaticPageController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,7 +14,13 @@ Route::get('/import',[ImportJsonController::class,'start']);
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple')->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback']);
 
-Route::view('/login', 'web.login');
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+
+    return redirect()->route('index');
+})->name('logout');
 
 
 Route::get('/events', [StaticPageController::class, 'index'])->name('index');
