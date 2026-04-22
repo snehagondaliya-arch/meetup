@@ -1,6 +1,6 @@
 @foreach ($events as $event)
     <div class="col-xxl-3 col-lg-4 col-md-6">
-        <a href="{{ route('event-detail', $event->id) }}">
+        <a href="{{ route('event-detail', $event->slug) }}">
             <div class="card event-card-s1">
                 <div class="card-body p-3">
                     <div class="event-banner rounded-12 mb-3">
