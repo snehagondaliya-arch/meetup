@@ -11,7 +11,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js{{ ASSETS_VERSION }}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11{{ ASSETS_VERSION }}"></script>
 <script>
     $.ajaxSetup({
         headers: {

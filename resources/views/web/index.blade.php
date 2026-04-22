@@ -41,7 +41,6 @@
                                     <option value="this_week">This week</option>
                                     <option value="this_weekend">This weekend</option>
                                     <option value="next_week">Next week</option>
-                                    <option value="custom">Custom</option>
                                 </select>
                             </div>
                             <div class="event-filter-content select-content">
@@ -115,24 +114,6 @@
         <!-- End Tm-header-Section -->
 @endsection
     @section('js')
-    @if(session('error'))
-        <script>
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: "{{ session('error') }}",
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                background: '#f8f9fa',
-                color: '#333',
-                customClass: {
-                    popup: 'rounded shadow'
-                }
-             });
-        </script>
-    @endif
         <script>
             // Scrolling-Animation
             if (typeof AOS !== 'undefined') {
