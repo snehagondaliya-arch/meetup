@@ -18,7 +18,7 @@ class StaticPageController extends Controller
                 $query->selectRaw('MIN(id)')
                     ->from('events')->groupBy('slug');
             })
-            ->orderBy('id')->paginate(100);
+            ->orderBy('id')->paginate(200);
 
         return $request->ajax()
             ? view('web.partials.events', compact('events'))->render()
@@ -62,7 +62,7 @@ class StaticPageController extends Controller
                 $q->where('slug', $category);
             });
         }
-        $events = $query->latest()->paginate(100);
+        $events = $query->latest()->paginate(200);
         return ($request->ajax())
             ? view('web.partials.event-list', compact('events'))->render()
             : view('web.event-list', compact('events'));
