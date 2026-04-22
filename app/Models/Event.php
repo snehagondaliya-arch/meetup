@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Category;
 use App\Models\EventPhotos;
 use App\Models\Group;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
@@ -65,19 +66,19 @@ class Event extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => asset('uploads/events/' . $value),
+            get: fn($value) => asset('uploads/events/' . $value),
         );
     }
     protected function hostImage(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => asset('uploads/hosts/' . $value),
+            get: fn($value) => asset('uploads/hosts/' . $value),
         );
     }
 
     public function getStatusAttribute()
     {
-        $now = \Carbon\Carbon::now();
+        $now = Carbon::now();
 
         if ($this->start_time > $now) {
             return self::STATUS_UPCOMING;
@@ -90,13 +91,42 @@ class Event extends Model
         return self::STATUS_EXPIRED;
     }
 
-    public function getStartDateAttribute()
+    public function getStartLocalAttribute()
     {
-        return $this->start_time?->format('d/m/Y');
+        return $this->start_time
+            ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
+            : null;
     }
 
-    public function getFormattedStartTimeAttribute()
+    public function getEndLocalAttribute()
     {
-        return $this->start_time?->format('h:i A');
+        return $this->end_time
+            ? Carbon::parse($this->end_time)->setTimezone($this->timezone ?? 'UTC')
+            : null;
+    }
+    public function getFormattedDateAttribute()
+    {
+        if (!$this->start_local) {
+            return null;
+        }
+
+        return $this->start_local->format('d/m/y');
+    }
+    public function getFormattedTimeAttribute()
+    {
+        if (!$this->start_local) {
+            return null;
+        }
+
+        return $this->start_local->format('h:i A');
+    }
+
+    public function getFormattedDateTimeAttribute()
+    {
+       $start = Carbon::parse($this->start_time)->timezone($this->timezone ?? 'UTC');
+       $end = Carbon::parse($this->end_time)->timezone($this->timezone ?? 'UTC');
+        return $start->format('l, M d, g:i A') . ' to ' .
+            $end->format('g:i A') . ' ' .
+            $start->format('T');
     }
 }

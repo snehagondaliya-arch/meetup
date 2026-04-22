@@ -9,10 +9,10 @@
                     <div class="event-card-content gt-bg-s2 rounded-12 p-3">
                         <div class="d-flex flex-wrap justify-content-between gap-2 border-bottom pb-2 mb-2">
                             <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                    class="fa-regular fa-calendar"></i>{{ $event->start_date }}</span>
+                                    class="fa-regular fa-calendar"></i>  {{ $event->formatted_date }}</span>
                             <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
                                     class="fa-regular fa-clock"></i>
-                                {{ $event->formatted_start_time }}</span>
+                                {{ $event->formatted_time }}</span>
                         </div>
                         <h3 class="gt-text-title change-fs-18px-16px mb-0">{{ $event->title }}</h3>
                     </div>

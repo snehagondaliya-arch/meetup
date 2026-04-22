@@ -53,7 +53,9 @@
                                                             <i class="fa-regular fa-calendar gt-text-theme"></i>
                                                         </div>
                                                         <div>
-                                                            <h3 class="fs-18px gt-text-title mb-0">{{ $event->datetime_text }}</h3>
+                                                           <h3 class="fs-18px gt-text-title mb-0">
+                                                                {{ $event->formatted_date_time }}
+                                                            </h3>
                                                         </div>
                                                     </div>
                                                     @if($event->is_online == 1)
@@ -95,38 +97,6 @@
                                                             </div>
                                                             <div class="col-12">
                                                                 <div class="row row-gap-3">
-                                                                    <div class="col-xxl-2 col-xl-3 col-md-3 col-sm-4 col-6">
-                                                                        <a href="javascript:void(0);">
-                                                                            <div class="card gt-bg-s3 border-0">
-                                                                                <div class="card-body d-flex flex-column align-items-center p-md-4 p-3">
-                                                                                    <div class="hw-50px rounded-12 gt-bg-s3 mb-2">
-                                                                                        <img width="100%" height="100%" src="" alt="Hosted By">
-                                                                                    </div>
-                                                                                    <div class="text-center">
-                                                                                        <h3 class="fs-16px fw-600 gt-text-title mb-1">Aarav Mehta</h3>
-                                                                                        <p class="fs-14px text-muted mb-0">Organizer</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </a>
-                                                                    </div>
-                                                                        
-                                                                        <div class="col-xxl-2 col-xl-3 col-md-3 col-sm-4 col-6">
-                                                                            <a href="javascript:void(0);">
-                                                                                <div class="card gt-bg-s3 border-0">
-                                                                                    <div class="card-body d-flex flex-column align-items-center p-md-4 p-3">
-                                                                                        <div class="hw-50px rounded-12 gt-bg-s3 mb-2">
-                                                                                            <img width="100%" height="100%" src="" alt="Hosted By">
-                                                                                        </div>
-                                                                                        <div class="text-center">
-                                                                                            <h3 class="fs-16px fw-600 gt-text-title mb-1">Priya Shah</h3>
-                                                                                            <p class="fs-14px text-muted mb-0">Co-Organizer</p>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </a>
-                                                                        </div>
-                                                                        
                                                                     <div class="col-xxl-2 col-xl-3 col-md-3 col-sm-4 col-6">
                                                                         <a href="javascript:void(0);">
                                                                             <div class="card gt-bg-s3 border-0">

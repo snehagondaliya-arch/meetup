@@ -23,12 +23,15 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between gap-2 border-top pt-3 mb-2">
-                                <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                        class="fa-regular fa-calendar gt-text-title me-1"></i>
-                                    {{$event->start_date}}</span>
-                                <span class="d-inline-flex d-flex align-items-center fw-500 fs-14px text-muted"><i
-                                        class="fa-regular fa-clock gt-text-title me-1"></i>
-                                    {{$event->formatted_start_time}}</span>
+                                <span class="d-inline-flex align-items-center fw-500 fs-14px text-muted">
+                                    <i class="fa-regular fa-calendar gt-text-title me-1"></i>
+                                    {{ $event->formatted_date }}
+                                </span>
+
+                                <span class="d-inline-flex align-items-center fw-500 fs-14px text-muted">
+                                    <i class="fa-regular fa-clock gt-text-title me-1"></i>
+                                    {{ $event->formatted_time}}
+                                </span>
                             </div>
                             <div class="text-center">
                                 <a href="{{ route('event-detail', $event->id) }}"
