@@ -36,3 +36,5 @@ Route::get('/disclaimer', [StaticPageController::class, 'disclaimer'])->name('di
 
 
 Route::get('/datetimeTest',[StaticPageController::class,'datetimeTest'])->name('datetime-test');
+
+Route::get('/example',[StaticPageController::class,'example'])->name('example');
