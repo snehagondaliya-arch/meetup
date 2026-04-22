@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\ImportJsonController;
 use App\Http\Controllers\SocialLoginController;
-use App\Http\Controllers\StaticPageController;
+use App\Http\Controllers\EventController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -23,20 +23,20 @@ Route::post('/logout', function () {
 })->name('logout');
 
 
-Route::get('/events', [StaticPageController::class, 'index'])->name('index');
+Route::get('/events', [EventController::class, 'index'])->name('index');
 
-Route::get('/faq', [StaticPageController::class, 'faq'])->name('faq');
+Route::get('/faq', [EventController::class, 'faq'])->name('faq');
 
-Route::get('/about', [StaticPageController::class, 'about'])->name('about');
+Route::get('/about', [EventController::class, 'about'])->name('about');
 
-Route::get('/contact', [StaticPageController::class, 'contact'])->name('contact');
+Route::get('/contact', [EventController::class, 'contact'])->name('contact');
 
-Route::get('/event-detail/{id}', [StaticPageController::class, 'eventDetail'])->name('event-detail');
+Route::get('/event-detail/{id}', [EventController::class, 'eventDetail'])->name('event-detail');
 
-Route::get('/event-list', [StaticPageController::class, 'eventList'])->name('event-list');
+Route::get('/event-list', [EventController::class, 'eventList'])->name('event-list');
 
-Route::get('/privacy-policy', [StaticPageController::class, 'privacyPolicy'])->name('privacy-policy');
+Route::get('/privacy-policy', [EventController::class, 'privacyPolicy'])->name('privacy-policy');
 
-Route::get('/term-condition', [StaticPageController::class, 'termCondition'])->name('term-condition');
+Route::get('/term-condition', [EventController::class, 'termCondition'])->name('term-condition');
 
-Route::get('/disclaimer', [StaticPageController::class, 'disclaimer'])->name('disclaimer');
+Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclaimer');
