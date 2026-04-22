@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Helpers\EventDateParser;
-use App\Helpers\Helpers;
 use App\Jobs\DownloadImageJob;
 use App\Jobs\MarkFileProcessedJob;
 use App\Models\Category;
@@ -75,7 +74,6 @@ class ProcessSingleFileJob implements ShouldQueue
                             ]);
                     }
 
-                    // IMAGE FIELDS
                     $imageFields = [
                         'image_url'   => 'events',
                         'group_image' => 'groups',
@@ -134,7 +132,6 @@ class ProcessSingleFileJob implements ShouldQueue
                         ]
                     );
 
-                    // EVENT PHOTOS
                     if (!empty($eventData['event_photos'])) {
 
                         foreach ($eventData['event_photos'] as $photo) {
@@ -165,7 +162,6 @@ class ProcessSingleFileJob implements ShouldQueue
                 }
             }
 
-            // HYBRID MAGIC (Sequential file, parallel images)
             Bus::chain([
                 Bus::batch($imageJobs)->name("Images for {$this->file}")->onQueue('images'),
                 new MarkFileProcessedJob($this->file),

@@ -28,52 +28,77 @@ class EventDateParser
     {
         $text = str_replace('·', ' ', $text);
 
-        // Fix missing space before timezone
+        // space before timezone
         $text = preg_replace('/([AP]M)([A-Z]{2,5})/', '$1 $2', $text);
 
-        // Clean multiple spaces
+        // spaces
         $text = preg_replace('/\s+/', ' ', $text);
 
         return trim($text);
     }
 
-    // ----------------------------------------
 
     private static function extractTimezone($text)
     {
-        preg_match('/\b([A-Z]{2,5})$/', $text, $match);
+        preg_match('/\b([A-Z]{2,5})([+-]\d{1,2}(:\d{2})?)?$/i', $text, $match);
         return $match[1] ?? 'UTC';
     }
 
-    // ----------------------------------------
 
     private static function mapTimezone($tz)
     {
         return [
-            'IST' => 'Asia/Kolkata',
-            'UTC' => 'UTC',
-            'GMT' => 'Europe/London',
+        // Universal
+        'UTC' => 'UTC',
+        'GMT' => 'Europe/London',
 
-            'EST' => 'America/New_York',
-            'EDT' => 'America/New_York',
-            'CST' => 'America/Chicago',
-            'CDT' => 'America/Chicago',
-            'PST' => 'America/Los_Angeles',
-            'PDT' => 'America/Los_Angeles',
+        // India
+        'IST' => 'Asia/Kolkata',
 
-            'CET' => 'Europe/Paris',
-            'CEST' => 'Europe/Paris',
-            'BST' => 'Europe/London',
+        // US Timezones
+        'EST' => 'America/New_York',
+        'EDT' => 'America/New_York',
+        'CST' => 'America/Chicago',
+        'CDT' => 'America/Chicago',
+        'MST' => 'America/Denver',
+        'MDT' => 'America/Denver',
+        'PST' => 'America/Los_Angeles',
+        'PDT' => 'America/Los_Angeles',
 
-            'JST' => 'Asia/Tokyo',
-            'SGT' => 'Asia/Singapore',
-            'HKT' => 'Asia/Hong_Kong',
+        // Europe
+        'CET' => 'Europe/Paris',
+        'CEST' => 'Europe/Paris',
+        'BST' => 'Europe/London',
+        'EET' => 'Europe/Athens',
+        'EEST' => 'Europe/Athens',
 
-            'PYT' => 'America/Asuncion',
-        ][$tz] ?? 'UTC';
+        // Asia
+        'JST' => 'Asia/Tokyo',
+        'KST' => 'Asia/Seoul',
+        'SGT' => 'Asia/Singapore',
+        'HKT' => 'Asia/Hong_Kong',
+        'CST-CHINA' => 'Asia/Shanghai', 
+
+        // Australia
+        'AEST' => 'Australia/Sydney',
+        'AEDT' => 'Australia/Sydney',
+        'ACST' => 'Australia/Adelaide',
+        'ACDT' => 'Australia/Adelaide',
+
+        // Middle East
+        'GST' => 'Asia/Dubai',
+
+        // South America
+        'BRT' => 'America/Sao_Paulo',
+        'ART' => 'America/Argentina/Buenos_Aires',
+        'PYT' => 'America/Asuncion',
+
+        // Africa
+        'SAST' => 'Africa/Johannesburg',
+
+    ][strtoupper($tz)] ?? 'UTC';
     }
 
-    // ----------------------------------------
 
     private static function parseRange($text, $timezone)
     {
@@ -81,7 +106,6 @@ class EventDateParser
 
         // Check if end part contains full date
         if (preg_match('/[A-Za-z]+,\s+[A-Za-z]+\s+\d+/', $endPart)) {
-            // Cross-day format
             $start = Carbon::parse($startPart, $timezone);
             $end = Carbon::parse($endPart, $timezone);
         } else {
@@ -100,20 +124,18 @@ class EventDateParser
         }
 
         return [
-            'start' => $start->copy(),
-            'end' => $end->copy(),
+            'start' => $start->copy()->utc(),
+            'end' => $end->copy()->utc(),
             'timezone' => $timezone,
         ];
     }
-
-    // ----------------------------------------
 
     private static function parseSingle($text, $timezone)
     {
         $date = Carbon::parse($text, $timezone);
 
         return [
-            'start' => $date->copy(),
+            'start' => $date->copy()->utc(),
             'end' => null,
             'timezone' => $timezone,
         ];
