@@ -1,8 +1,7 @@
 @extends('layouts.master')
 @section('title', 'MeetUp | Event-Detail')
-@section('no-sidebar', false)
+@section('no-sidebar', true)
 @section('content')
-    <div class="main-page-content">
                 <!-- Start Event-detail-card Section --> 
                 <section class="event-section section-s1padding">
                     <div class="container">
@@ -37,7 +36,6 @@
                                                 </div>
                                                 <div class="rounded-12 gt-bg-s3 p-3 d-flex gap-2 mb-3">
                                                     <div class="hw-50px d-flex justify-content-center align-items-center bg-white border rounded-12">
-                                                        <!-- <img src="#" alt="Hosted By"> -->
                                                         <i class="fa-solid fa-user-tie fs-22px gt-text-theme"></i>
                                                     </div>
                                                     <div class="d-flex flex-column justify-content-center">
@@ -133,7 +131,7 @@
                                                                             <i class="fa-solid fa-location-dot gt-text-theme"></i>
                                                                         </div>
                                                                        <div>
-                                                                            <h3 class="fs-18px gt-text-title mb-1">{{ $event->datetime_text }}</h3>
+                                                                            <h3 class="fs-18px gt-text-title mb-1">{{ $event->formatted_date_time }}</h3>
                                                                             <p class="mb-0 text-muted">{{ $event->venue_name }}, {{ $event->full_address }}</p>
                                                                        </div>
                                                                     </div>  
@@ -187,7 +185,6 @@
                     </div>
                 </section>
                 <!-- End Event-detail-card Section --> 
-                {{-- @dump($events) --}}
                 <!-- Start Event-Card Section --> 
                 <section class="event-section section-s1padding pt-0">
                     <div class="container">
@@ -207,14 +204,12 @@
 @endsection
 @section('js')
 <script>
-    
      var swiper = new Swiper(".photoGallerySlider", {
             speed: 400,
             slidesPerView: "auto",
             spaceBetween: 20,
             freeMode: true,
             watchOverflow: true,
-
             navigation: {
                 nextEl: ".photo-gallery-next",
                 prevEl: ".photo-gallery-prev",
