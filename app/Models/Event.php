@@ -66,13 +66,17 @@ class Event extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => asset(EVENT_IMAGES. $value),
+            get: fn($value) => $value
+            ? asset(EVENT_IMAGES . $value)
+            : asset(PLACEHOLDER_IMAGE),
         );
     }
     protected function hostImage(): Attribute
     {
-        return Attribute::make(
-            get: fn($value) => asset(HOST_IMAGES . $value),
+          return Attribute::make(
+            get: fn($value) => $value
+                ? asset(HOST_IMAGES . $value)
+                : asset(PLACEHOLDER_IMAGE),
         );
     }
 
@@ -103,6 +107,7 @@ class Event extends Model
         return $this->end_time
             ? Carbon::parse($this->end_time)->setTimezone($this->timezone ?? 'UTC')
             : null;
+
     }
     public function getFormattedDateAttribute()
     {
@@ -123,10 +128,11 @@ class Event extends Model
 
     public function getFormattedDateTimeAttribute()
     {
-       $start = Carbon::parse($this->start_time)->timezone($this->timezone ?? 'UTC');
-       $end = Carbon::parse($this->end_time)->timezone($this->timezone ?? 'UTC');
-        return $start->format('l, M d, g:i A') . ' to ' .
-            $end->format('g:i A') . ' ' .
-            $start->format('T');
+        if (!$this->start_local || !$this->end_local) {
+            return null;
+        }
+        return $this->start_local->format('l, M d, g:i A') . ' to ' .
+            $this->end_local->format('g:i A') . ' ' .
+            $this->start_local->format('T');
     }
 }
