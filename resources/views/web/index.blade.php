@@ -53,10 +53,11 @@
 
                             <div class="event-filter-content select-content">
                                 <select class="form-control event-select-s1" name="distance">
-                                    <option value="30">Within 30 kilometers</option>
+                                    <option value="">All distances</option>
                                     <option value="5">5 kilometers</option>
                                     <option value="10">10 kilometers</option>
                                     <option value="25">25 kilometers</option>
+                                    <option value="30">30 kilometers</option>
                                     <option value="50">50 kilometers</option>
                                     <option value="100">100 kilometers</option>
                                     <option value="150">150 kilometers</option>
@@ -141,7 +142,7 @@
                     e.preventDefault();
 
                     category = $(this).data('slug');
-
+                    console.log(`category: ${category}`)
                     $('.side-menu-nav .nav-link').removeClass('active');
                     $(this).addClass('active');
 
@@ -150,17 +151,25 @@
                 $('select').on('change', function () {
                     loadData();
                 });
+
+                let userLatitude = null;
+                let userLongitude = null;
                 navigator.geolocation.getCurrentPosition(function (position) {
-                    loadData(position.coords.latitude, position.coords.longitude);
+                    userLatitude = position.coords.latitude;
+                    userLongitude = position.coords.longitude;
+
+                    loadData(userLatitude, userLongitude);
                 });
 
-                function loadData(latitude = null, longitude = null) {
+                function loadData(latitude = userLatitude, longitude = userLongitude) {
 
                     const date_filter = $('select[name="date_filter"]').val();
                     const event_type = $('select[name="event_type"]').val();
                     const distance = $('select[name="distance"]').val();
-
-                    $.ajax({
+                    console.log(`distance: ${distance}`);
+                    console.log(`latitude: ${latitude}`);
+                    console.log(`longitude: ${longitude}`);
+                    $.ajax({    
                         url: "{{ route('index') }}",
                         type: "GET",
                         data: {
@@ -170,7 +179,7 @@
                             longitude: longitude,
                             date_filter: date_filter,
                             event_type: event_type,
-                            // distance: distance
+                            distance: distance ? distance : null
                         },
                         success: function (html) {
                             document.getElementById('event-container').innerHTML = html;

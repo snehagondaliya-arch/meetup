@@ -50,9 +50,7 @@
                         <a href="javascript:void(0);" class="nav-link d-flex align-items-center gap-2"
                             id="notification-drop" data-bs-toggle="dropdown">
                             <div class="profile-image">
-                               <img src="{{ Auth::user()->profile 
-                                            ? Auth::user()->profile 
-                                            : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&size=100&rounded=true&bold=true' }}"
+                               <img src="{{ 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&size=100&rounded=true&bold=true&color=25AEA1&background=f8f9fa' }}"
                                         class="rounded-circle"
                                         style="width:50px; height:50px; object-fit:cover;"
                                         alt="user">
@@ -64,9 +62,7 @@
                                 <div class="p-0 card-body">
                                     <a href="javascript:void(0);" class="iq-sub-card">
                                         <div class="d-flex align-items-center p-3 border-bottom">
-                                            <img src="{{ Auth::user()->profile 
-                                                        ? Auth::user()->profile 
-                                                        : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&size=100&rounded=true&bold=true' }}"
+                                            <img src="{{ 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&size=100&rounded=true&bold=true&color=25AEA1&background=f8f9fa' }}"
                                                     class="rounded-circle"
                                                     style="width:50px; height:50px; object-fit:cover;"
                                                     alt="user">

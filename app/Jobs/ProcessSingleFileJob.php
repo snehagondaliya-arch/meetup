@@ -100,6 +100,14 @@ class ProcessSingleFileJob implements ShouldQueue
                         }
                     }
                     $parsed = EventDateParser::parse($eventData['datetime_text'] ?? null);
+                    // if (!$parsed['start']) {
+                    //     Log::warning('Skipping event with invalid or missing datetime_text', [
+                    //         'event_url' => $eventData['event_url'] ?? null,
+                    //         'datetime_text' => $eventData['datetime_text'] ?? null,
+                    //     ]);
+                    //     continue;
+                    // }
+
                     $startDateTime = $parsed['start'];
                     $endDateTime = $parsed['end'];
 
