@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\ImportJsonController;
 use App\Http\Controllers\SocialLoginController;
-use App\Http\Controllers\EventController;
+use App\Http\Controllers\TestingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -40,3 +41,5 @@ Route::get('/privacy-policy', [EventController::class, 'privacyPolicy'])->name('
 Route::get('/term-condition', [EventController::class, 'termCondition'])->name('term-condition');
 
 Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclaimer');
+
+Route::get('/import-json-events', [TestingController::class, 'datetimeTest']);

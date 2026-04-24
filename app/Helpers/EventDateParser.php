@@ -12,7 +12,10 @@ class EventDateParser
         $timezone = self::mapTimezone($tzAbbr);
 
         // Remove timezone from string for clean parsing
-        $text = preg_replace('/\b' . $tzAbbr . '\b$/', '', $text);
+        if ($tzAbbr && preg_match('/\b' . preg_quote($tzAbbr, '/') . '\b$/', $text)) {
+            $text = preg_replace('/\b' . preg_quote($tzAbbr, '/') . '\b$/', '', $text);
+
+        }
 
         // Detect if range exists
         if (stripos($text, ' to ') !== false) {
@@ -22,7 +25,6 @@ class EventDateParser
         return self::parseSingle($text, $timezone);
     }
 
-    // ----------------------------------------
 
     private static function normalize($text)
     {
@@ -40,65 +42,106 @@ class EventDateParser
 
     private static function extractTimezone($text)
     {
-        preg_match('/\b([A-Z]{2,5})([+-]\d{1,2}(:\d{2})?)?$/i', $text, $match);
-        return $match[1] ?? 'UTC';
+        preg_match('/(GMT|UTC)?[+-]\d{1,2}:?\d{0,2}$|[A-Z]{2,5}$/i', trim($text), $match);
+
+        return strtoupper($match[0] ?? 'UTC');
     }
-
-
     private static function mapTimezone($tz)
     {
-        return [
-        // Universal
-        'UTC' => 'UTC',
-        'GMT' => 'Europe/London',
 
-        // India
-        'IST' => 'Asia/Kolkata',
+        if (preg_match('/^(GMT|UTC)([+-]\d{1,2})$/', $tz, $m)) {
+            return sprintf('%+03d:00', $m[2]);
+        }
+        $map = [
 
-        // US Timezones
-        'EST' => 'America/New_York',
-        'EDT' => 'America/New_York',
-        'CST' => 'America/Chicago',
-        'CDT' => 'America/Chicago',
-        'MST' => 'America/Denver',
-        'MDT' => 'America/Denver',
-        'PST' => 'America/Los_Angeles',
-        'PDT' => 'America/Los_Angeles',
+            // Universal
+            'UTC' => 'UTC',
+            'GMT' => 'UTC',
+            'Z' => 'UTC',
 
-        // Europe
-        'CET' => 'Europe/Paris',
-        'CEST' => 'Europe/Paris',
-        'BST' => 'Europe/London',
-        'EET' => 'Europe/Athens',
-        'EEST' => 'Europe/Athens',
+            // India
+            'IST' => 'Asia/Kolkata',
 
-        // Asia
-        'JST' => 'Asia/Tokyo',
-        'KST' => 'Asia/Seoul',
-        'SGT' => 'Asia/Singapore',
-        'HKT' => 'Asia/Hong_Kong',
-        'CST-CHINA' => 'Asia/Shanghai', 
+            // US
+            'EST' => 'America/New_York',
+            'EDT' => 'America/New_York',
+            'CST' => 'America/Chicago',
+            'CDT' => 'America/Chicago',
+            'MST' => 'America/Denver',
+            'MDT' => 'America/Denver',
+            'PST' => 'America/Los_Angeles',
+            'PDT' => 'America/Los_Angeles',
+            'AKST' => 'America/Anchorage',
+            'AKDT' => 'America/Anchorage',
+            'HST' => 'Pacific/Honolulu',
 
-        // Australia
-        'AEST' => 'Australia/Sydney',
-        'AEDT' => 'Australia/Sydney',
-        'ACST' => 'Australia/Adelaide',
-        'ACDT' => 'Australia/Adelaide',
+            // Europe
+            'CET' => 'Europe/Paris',
+            'CEST' => 'Europe/Paris',
+            'BST' => 'Europe/London',
+            'EET' => 'Europe/Athens',
+            'EEST' => 'Europe/Athens',
+            'WET' => 'Europe/Lisbon',
+            'MSK' => 'Europe/Moscow', // Moscow Time
+            'WEST' => 'Europe/Lisbon',
 
-        // Middle East
-        'GST' => 'Asia/Dubai',
+            // Asia
+            'JST' => 'Asia/Tokyo',
+            'KST' => 'Asia/Seoul',
+            'SGT' => 'Asia/Singapore',
+            'HKT' => 'Asia/Hong_Kong',
+            'PKT' => 'Asia/Karachi',
+            'BDT' => 'Asia/Dhaka',
+            'NPT' => 'Asia/Kathmandu',
+            'ICT' => 'Asia/Bangkok',
+            'WIB' => 'Asia/Jakarta',
+            'WITA' => 'Asia/Makassar',
+            'MYT' => 'Asia/Kuala_Lumpur',
 
-        // South America
-        'BRT' => 'America/Sao_Paulo',
-        'ART' => 'America/Argentina/Buenos_Aires',
-        'PYT' => 'America/Asuncion',
+            // Middle East
+            'GET' => 'Asia/Tbilisi',
+            'GST' => 'Asia/Dubai',
+            'AST' => 'Asia/Riyadh',
+            'IRST' => 'Asia/Tehran',
+            'IDT' => 'Asia/Jerusalem',
+            'PHT' => 'Asia/Manila', // Philippines Time
 
-        // Africa
-        'SAST' => 'Africa/Johannesburg',
+            // Africa
+            'SAST' => 'Africa/Johannesburg',
+            'EAT' => 'Africa/Nairobi',
+            'WAT' => 'Africa/Lagos',
+            'WAST' => 'Africa/Windhoek',
+            'MUT' => 'Indian/Mauritius', // Mauritius Time
 
-    ][strtoupper($tz)] ?? 'UTC';
+            // South America
+            'BRT' => 'America/Sao_Paulo',
+            'ART' => 'America/Argentina/Buenos_Aires',
+            'CLT' => 'America/Santiago',
+            'PYT' => 'America/Asuncion',
+            'COT' => 'America/Bogota',
+
+            'AEST' => 'Australia/Sydney',   // Australian Eastern Standard Time
+            'AEDT' => 'Australia/Sydney',   // Daylight version
+            'ACST' => 'Australia/Adelaide', // Central Standard
+            'ACDT' => 'Australia/Adelaide', // Central Daylight
+            // Pacific
+            'SST' => 'Pacific/Apia', // ambiguous
+            'NZST' => 'Pacific/Auckland', // New Zealand Standard Time
+
+            // Offsets
+            'GMT+3' => '+03:00',
+            '+0000' => 'UTC',
+            '+0530' => 'Asia/Kolkata',
+            '+05:30' => 'Asia/Kolkata',
+            '+0800' => 'Asia/Singapore',
+            '+0900' => 'Asia/Tokyo',
+            '-0500' => 'America/New_York',
+            '-0600' => 'America/Chicago',
+            '-0700' => 'America/Denver',
+            '-0800' => 'America/Los_Angeles',
+        ];
+        return $map[strtoupper($tz)] ?? 'UTC';
     }
-
 
     private static function parseRange($text, $timezone)
     {
@@ -141,7 +184,6 @@ class EventDateParser
         ];
     }
 
-    // ----------------------------------------
 
     private static function extractDate($text)
     {

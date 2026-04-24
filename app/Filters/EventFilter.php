@@ -15,7 +15,6 @@ class EventFilter
                     $q->where('slug', $request->category)
                 )
             )
-
             ->when(
                 $request->search,
                 fn($q) =>
@@ -42,19 +41,25 @@ class EventFilter
     private function dateFilter($q, $request)
     {
         $now = now();
-
+       
         return match ($request->date_filter) {
-            'starting_soon' => $q->where('start_time', '>', $now),
-            'today' => $q->whereDate('start_time', $now),
-            'tomorrow' => $q->whereDate('start_time', $now->copy()->addDay()),
-            'this_week' => $q->whereBetween('start_time', [$now->startOfWeek(), $now->endOfWeek()]),
+            'starting_soon' => $q->where('start_time', '>', Carbon::now()),
+            'today' => $q->whereBetween('start_time', [
+                            $now->copy()->startOfDay()->utc(),
+                            $now->copy()->endOfDay()->utc()
+                        ]),
+            'tomorrow' => $q->whereBetween('start_time', [
+                            $now->copy()->addDay()->startOfDay(),
+                            $now->copy()->addDay()->endOfDay()
+                        ]),
+            'this_week' => $q->whereBetween('start_time', [$now->copy()->startOfWeek(),$now->copy()->endOfWeek()]),
             'this_weekend' => $q->whereBetween('start_time', [
-                $now->next(Carbon::SATURDAY)->startOfDay(),
-                $now->next(Carbon::SUNDAY)->endOfDay()
-            ]),
+                                $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
+                                $now->copy()->startOfWeek()->addDays(6)->endOfDay()
+                            ]),
             'next_week' => $q->whereBetween('start_time', [
-                $now->addWeek()->startOfWeek(),
-                $now->addWeek()->endOfWeek()
+                $now->copy()->addWeek()->startOfWeek(),
+                $now->copy()->addWeek()->endOfWeek()
             ]),
             default => $q
         };
@@ -65,7 +70,15 @@ class EventFilter
         $lat = $request->latitude ?? 0;
         $lng = $request->longitude ?? 0;
 
-        return $q->selectRaw("events.*,
+        if (!$request->latitude || !$request->longitude) {
+            return $q; 
+        }
+        return $q
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->selectRaw("events.*,
             (6371 * acos(
                 cos(radians(?)) *
                 cos(radians(latitude)) *

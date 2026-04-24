@@ -73,17 +73,27 @@ class Event extends Model
     }
     protected function hostImage(): Attribute
     {
-          return Attribute::make(
+        return Attribute::make(
             get: fn($value) => $value
-                ? asset(HOST_IMAGES . $value)
-                : asset(PLACEHOLDER_IMAGE),
+            ? asset(HOST_IMAGES . $value)
+            : asset(PLACEHOLDER_IMAGE),
         );
     }
 
     public function getStatusAttribute()
     {
         $now = Carbon::now();
-
+        // logger()->info('current time',['time: ', $now]);
+        // dd($now);
+       
+        // logger()->info('STATUS CHECK', [
+        //     'id' => $this->id,
+        //     'title' => $this->title,
+        //     'now' => $now,
+        //     'start' => $this->start_time,
+        //     'end' => $this->end_time,
+        // ]);
+        
         if ($this->start_time > $now) {
             return self::STATUS_UPCOMING;
         }
@@ -97,6 +107,12 @@ class Event extends Model
 
     public function getStartLocalAttribute()
     {
+        // date: 2026-04-18 08:30:00.0 UTC (+00:00)
+        // dd($this->start_time);
+        //   date: 2026-04-18 14:00:00.0 Asia/Kolkata (+05:30)
+        // dd($this->start_time
+        //     ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
+        //     : null);
         return $this->start_time
             ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
             : null;

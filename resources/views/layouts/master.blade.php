@@ -15,7 +15,7 @@
     <link rel="canonical" href="{{ url()->current() }}" />
 
     <!-- App favicon -->
-    {{--<link rel="shortcut icon" href="{{ asset('public/favicon.ico') }}"> --}}
+    <link rel="shortcut icon" href="{{ asset('uploads/favicon.png') }}">
 
     @include('web.layouts.header-links')
     @yield('site_schema')

@@ -60,7 +60,6 @@
             </div>
         </section>
         <!-- End CTA Section -->
-    </div>
 @endsection
 @section('js')
     <script>
