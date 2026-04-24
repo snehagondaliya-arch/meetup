@@ -19,10 +19,12 @@ class EventPhotos extends Model
         return $this->belongsTo(Event::class);
     }
 
-     protected function eventphotos(): Attribute
+    protected function eventphotos(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => asset(EVENT_PHOTOS . $value),
+            get: fn($value) => $value
+            ? asset(EVENT_PHOTOS . $value)
+            : asset(PLACEHOLDER_IMAGE),
         );
     }
 }
