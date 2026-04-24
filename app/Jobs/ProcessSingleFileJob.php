@@ -100,6 +100,7 @@ class ProcessSingleFileJob implements ShouldQueue
                         }
                     }
                     $parsed = EventDateParser::parse($eventData['datetime_text'] ?? null);
+
                     $startDateTime = $parsed['start'];
                     $endDateTime = $parsed['end'];
 
@@ -150,11 +151,10 @@ class ProcessSingleFileJob implements ShouldQueue
 
                             EventPhotos::updateOrCreate(
                                 [  
-                                    'photo_url' => md5($photo) . '.' . $extension,
+                                    'event_photos' => $filename,
                                 ],
                                 [
                                     'event_id'  => $event->id,
-                                    'event_photos' => $filename,
                                 ]
                             );
                         }
