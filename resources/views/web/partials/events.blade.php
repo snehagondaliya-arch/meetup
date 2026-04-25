@@ -21,10 +21,6 @@
                         <p class="fs-14px text-muted mb-0 line-clamp-2">
                             {!! strip_tags(html_entity_decode($event->description)) !!}
                         </p>
-                        <h4 class="text-primary">
-                            {{ $event->datetime_text }}
-                        </h4>
-                        <h4 class="text-success">{{ $event->formatted_date_time }}</h4>
                     </div>
                     <div>
                         <div class="d-flex justify-content-between gap-2 border-top pt-3 mb-2">
