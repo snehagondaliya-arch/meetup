@@ -1,6 +1,8 @@
 <?php
 namespace App\Helpers;
+use App\Models\Event;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class EventDateParser
 {
@@ -184,10 +186,22 @@ class EventDateParser
         ];
     }
 
-
     private static function extractDate($text)
     {
         preg_match('/([A-Za-z]+,\s+[A-Za-z]+\s+\d+)/', $text, $match);
         return $match[1] ?? '';
     }
+
+
+}
+function createUniqueSlug($title, $base = null, $i = 0)
+{
+    $base = $base ?? Str::slug($title);
+    $final = $i ? "{$base}-{$i}" : $base;
+
+    if (!Event::where('slug', $final)->exists()) {
+        return $final;
+    }
+
+    return createUniqueSlug($title, $base, $i + 1);
 }
