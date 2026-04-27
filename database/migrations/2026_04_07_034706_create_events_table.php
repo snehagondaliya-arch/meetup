@@ -28,10 +28,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('host_name')->nullable();
             $table->string('host_image')->nullable();
-            $table->string('attendees')->nullable();
             $table->decimal('price', 10, 2)->nullable();
             $table->boolean('is_online')->default(false);
-            $table->text('event_url')->nullable(); 
             $table->timestamps();
         });
     }
