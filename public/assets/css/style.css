@@ -891,7 +891,7 @@ a{
 /* ----  */
 .side-menu-list{
     overflow-y: auto;
-    height: 100%;
+    height: calc(100% - 140px);
     padding: 0px 16px;
     scrollbar-color: var(--gt-bg-s2) transparent; 
     scrollbar-width: thin; 
