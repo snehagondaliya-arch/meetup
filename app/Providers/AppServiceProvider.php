@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
             public function boot(): void
             {
                 View::composer('web.layouts.sidebar', function ($view) {
-                    $view->with('categories', Category::all());
+                    $view->with('categories', Category::orderBy('name', 'asc')->get());
                 });
             }
 }
