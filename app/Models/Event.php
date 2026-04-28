@@ -21,13 +21,10 @@ class Event extends Model
     protected $fillable = [
         'category_id',
         'group_id',
-        'location_id',
         'title',
         'slug',
         'host_name',
         'host_image',
-        'date_list_view',
-        'datetime_text',
         'start_time',
         'end_time',
         'timezone',
@@ -38,10 +35,8 @@ class Event extends Model
         'image_url',
         'group_image',
         'description',
-        'attendees',
         'price',
         'is_online',
-        'event_url',
     ];
 
     protected $casts = [
@@ -97,16 +92,6 @@ class Event extends Model
     public function getStatusAttribute()
     {
         $now = Carbon::now();
-        // logger()->info('current time',['time: ', $now]);
-        // dd($now);
-
-        // logger()->info('STATUS CHECK', [
-        //     'id' => $this->id,
-        //     'title' => $this->title,
-        //     'now' => $now,
-        //     'start' => $this->start_time,
-        //     'end' => $this->end_time,
-        // ]);
 
         if ($this->start_time > $now) {
             return self::STATUS_UPCOMING;
@@ -121,12 +106,6 @@ class Event extends Model
 
     public function getStartLocalAttribute()
     {
-        // date: 2026-04-18 08:30:00.0 UTC (+00:00)
-        // dd($this->start_time);
-        //   date: 2026-04-18 14:00:00.0 Asia/Kolkata (+05:30)
-        // dd($this->start_time
-        //     ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
-        //     : null);
         return $this->start_time
             ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
             : null;

@@ -116,8 +116,6 @@ class ProcessSingleFileJob implements ShouldQueue
                             'category_id' => $category->id,
                             'group_id' => $group->id ?? null,
                             'title' => $eventData['title'] ?? 'N/A',
-                            'date_list_view' => $eventData['date_list_view'] ?? null,
-                            'datetime_text' => $eventData['datetime_text'] ?? null,
                             'start_time' => $startDateTime,
                             'end_time' => $endDateTime,
                             'timezone' => $parsed['timezone'] ?? null,
