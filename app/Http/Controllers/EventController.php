@@ -48,12 +48,6 @@ class EventController extends Controller
                     ->from('events')
                     ->groupBy('slug');
             })
-
-            ->when(
-                !($request->distance && $request->latitude && $request->longitude),
-                fn($q) => $q->orderBy('id', 'desc')
-            )
-
             ->paginate(8);
 
         return $request->ajax()
