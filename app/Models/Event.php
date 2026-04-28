@@ -86,6 +86,44 @@ class Event extends Model
             $query->where('is_online', $eventType === 'online');
         });
     }
+    public function scopeDateFilter($q, $dateFilter)
+    {
+        $now = now();
+
+        return match ($dateFilter) {
+            'starting_soon' => $q->whereBetween('start_time', [
+                $now->copy(),
+                $now->copy()->addDays(7),
+            ]),
+
+            'today' => $q->whereBetween('start_time', [
+                $now->copy()->startOfDay(),
+                $now->copy()->endOfDay(),
+            ]),
+
+            'tomorrow' => $q->whereBetween('start_time', [
+                $now->copy()->addDay()->startOfDay(),
+                $now->copy()->addDay()->endOfDay(),
+            ]),
+
+            'this_week' => $q->whereBetween('start_time', [
+                $now->copy()->startOfWeek(),
+                $now->copy()->endOfWeek(),
+            ]),
+
+            'this_weekend' => $q->whereBetween('start_time', [
+                $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
+                $now->copy()->startOfWeek()->addDays(6)->endOfDay(),
+            ]),
+
+            'next_week' => $q->whereBetween('start_time', [
+                $now->copy()->addWeek()->startOfWeek(),
+                $now->copy()->addWeek()->endOfWeek(),
+            ]),
+
+            default => $q,
+        };
+    }
 
     public function scopeDistanceFrom($query, $latitude, $longitude, $distance)
     {

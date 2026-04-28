@@ -16,7 +16,7 @@ class EventController extends Controller
         $events = Event::query()
             ->byCategory($request->category)
             ->search($request->search)
-            ->when($request->date_filter, fn($q) => $this->dateFilter($q, $request))
+            ->when($request->date_filter, fn($q) => $q->dateFilter($request->date_filter))
             ->eventType($request->event_type)
             ->distanceFrom($request->latitude, $request->longitude, $request->distance)
             ->latestBySlug()
@@ -26,34 +26,6 @@ class EventController extends Controller
             ? view('web.partials.events', compact('events'))->render()
             : view('web.index', compact('events'));
     }
-
-    private function dateFilter($q, $request)
-    {
-        $now = now();
-
-        return match ($request->date_filter) {
-            'starting_soon' =>$q->whereBetween('start_time', [ now(),now()->addDays(7)]),
-            'today' => $q->whereBetween('start_time', [
-                $now->copy()->startOfDay()->utc(),
-                $now->copy()->endOfDay()->utc()
-            ]),
-            'tomorrow' => $q->whereBetween('start_time', [
-                $now->copy()->addDay()->startOfDay(),
-                $now->copy()->addDay()->endOfDay()
-            ]),
-            'this_week' => $q->whereBetween('start_time', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]),
-            'this_weekend' => $q->whereBetween('start_time', [
-                $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
-                $now->copy()->startOfWeek()->addDays(6)->endOfDay()
-            ]),
-            'next_week' => $q->whereBetween('start_time', [
-                $now->copy()->addWeek()->startOfWeek(),
-                $now->copy()->addWeek()->endOfWeek()
-            ]),
-            default => $q
-        };
-    }
-
 
     public function faq()
     {
