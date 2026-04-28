@@ -8,6 +8,7 @@ use App\Models\Group;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
 
 
 class Event extends Model
@@ -66,18 +67,31 @@ class Event extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => $value
-            ? asset(EVENT_IMAGES . $value)
-            : asset(PLACEHOLDER_IMAGE),
+            get: function ($value) {
+                $path = public_path(EVENT_IMAGES . $value);
+
+                if ($value && File::exists($path)) {
+                    return asset(EVENT_IMAGES . $value);
+                }
+
+                return asset(PLACEHOLDER_IMAGE);
+            }
         );
     }
     protected function hostImage(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => $value
-            ? asset(HOST_IMAGES . $value)
-            : asset(PLACEHOLDER_IMAGE),
+            get: function ($value) {
+                $path = public_path(HOST_IMAGES . $value);
+
+                if ($value && File::exists($path)) {
+                    return asset(HOST_IMAGES . $value);
+                }
+
+                return asset(PLACEHOLDER_IMAGE);
+            }
         );
+
     }
 
     public function getStatusAttribute()
@@ -85,7 +99,7 @@ class Event extends Model
         $now = Carbon::now();
         // logger()->info('current time',['time: ', $now]);
         // dd($now);
-       
+
         // logger()->info('STATUS CHECK', [
         //     'id' => $this->id,
         //     'title' => $this->title,
@@ -93,7 +107,7 @@ class Event extends Model
         //     'start' => $this->start_time,
         //     'end' => $this->end_time,
         // ]);
-        
+
         if ($this->start_time > $now) {
             return self::STATUS_UPCOMING;
         }
