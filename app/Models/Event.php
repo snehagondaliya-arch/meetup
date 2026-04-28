@@ -59,6 +59,68 @@ class Event extends Model
         return $this->belongsTo(Group::class);
     }
 
+    public function scopeByCategory($query, $categorySlug)
+    {
+        return $query->when($categorySlug && $categorySlug !== 'all-events', function ($query) use ($categorySlug) {
+            $query->whereHas('category', function ($query) use ($categorySlug) {
+                $query->where('slug', $categorySlug);
+            });
+        });
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->when($search, function ($query) use ($search) {
+            $like = '%' . $search . '%';
+
+            $query->where(function ($query) use ($like) {
+                $query->where('title', 'like', $like)
+                    ->orWhere('venue_name', 'like', $like);
+            });
+        });
+    }
+
+    public function scopeEventType($query, $eventType)
+    {
+        return $query->when($eventType, function ($query) use ($eventType) {
+            $query->where('is_online', $eventType === 'online');
+        });
+    }
+
+    public function scopeDistanceFrom($query, $latitude, $longitude, $distance)
+    {
+        if (!$latitude || !$longitude || !$distance) {
+            return $query;
+        }
+
+        $distanceInMiles = $distance * 0.621371;
+
+        return $query
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->selectRaw("events.*,
+            (3959 * acos(
+                cos(radians(?)) *
+                cos(radians(latitude)) *
+                cos(radians(longitude) - radians(?)) +
+                sin(radians(?)) *
+                sin(radians(latitude))
+            )) AS distance", [$latitude, $longitude, $latitude])
+            ->having('distance', '<=', $distanceInMiles)
+            ->orderBy('distance');
+    }
+
+    public function scopeLatestBySlug($query)
+    {
+        return $query->whereIn('id', function ($query) {
+            $query->selectRaw('MIN(id)')
+                ->from('events')
+                ->groupBy('slug');
+        });
+    }
+
     protected function imageUrl(): Attribute
     {
         return Attribute::make(

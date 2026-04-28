@@ -8,46 +8,18 @@ use App\Models\Event;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
+
 class EventController extends Controller
 {
     public function index(Request $request)
     {
         $events = Event::query()
-
-            ->when(
-                $request->category && $request->category !== 'all-events',
-                fn($q) => $q->whereHas(
-                    'category',
-                    fn($q) =>
-                    $q->where('slug', $request->category)
-                )
-            )
-
-            ->when($request->search, function ($q) use ($request) {
-                $search = '%' . $request->search . '%';
-
-                $q->where(function ($q) use ($search) {
-                    $q->where('title', 'like', $search)
-                        ->orWhere('venue_name', 'like', $search);
-                });
-            })
-
+            ->byCategory($request->category)
+            ->search($request->search)
             ->when($request->date_filter, fn($q) => $this->dateFilter($q, $request))
-
-            ->when($request->event_type, function ($q) use ($request) {
-                        $q->where('is_online', $request->event_type === 'online');
-                    })
-
-            ->when(
-                $request->distance && $request->latitude && $request->longitude,
-                fn($q) => $this->distanceFilter($q, $request)
-            )
-
-            ->whereIn('id', function ($query) {
-                $query->selectRaw('MIN(id)')
-                    ->from('events')
-                    ->groupBy('slug');
-            })
+            ->eventType($request->event_type)
+            ->distanceFrom($request->latitude, $request->longitude, $request->distance)
+            ->latestBySlug()
             ->paginate(8);
 
         return $request->ajax()
@@ -83,30 +55,6 @@ class EventController extends Controller
     }
 
 
-    private function distanceFilter($q, $request)
-    {
-        $lat = $request->latitude ?? 0;
-        $lng = $request->longitude ?? 0;
-        $distanceInMiles = $request->distance * 0.621371;
-        if (!$request->latitude || !$request->longitude) {
-            return $q;
-        }
-        return $q
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->where('latitude', '!=', 0)
-            ->where('longitude', '!=', 0)
-            ->selectRaw("events.*,
-            (3959 * acos(
-                cos(radians(?)) *
-                cos(radians(latitude)) *
-                cos(radians(longitude) - radians(?)) +
-                sin(radians(?)) *
-                sin(radians(latitude))
-            )) AS distance", [$lat, $lng, $lat])
-            ->having('distance', '<=', $distanceInMiles)
-            ->orderBy('distance');
-    }
     public function faq()
     {
         return view('web.faq');
@@ -126,28 +74,22 @@ class EventController extends Controller
     {
         $event = Event::with('event_photos')
             ->where('slug', $eventSlug)
-            ->first();
-        $cateID = $event->category_id;
-        $events = Event::where('category_id', $cateID)
-            ->where('id', '!=', $event->id)->paginate(8);
+            ->firstOrFail();
+
+        $events = Event::where('category_id', $event->category_id)
+            ->where('id', '!=', $event->id)
+            ->with('event_photos')
+            ->paginate(8);
+
         return view('web.event-detail', compact('event', 'events'));
     }
 
     public function eventList(Request $request)
     {
-        $category = $request->category;
-
-        $query = Event::query();
-
-        if ($category && $category !== 'all-events') {
-            $query->whereHas('category', function ($q) use ($category) {
-                $q->where('slug', $category);
-            });
-        }
-        $events = $query->whereIn('id', function ($q) {
-            $q->selectRaw('MIN(id)')
-                ->from('events')->groupBy('slug');
-        })->paginate(8);
+        $events = Event::query()
+            ->byCategory($request->category)
+            ->latestBySlug()
+            ->paginate(8);
 
         return ($request->ajax())
             ? view('web.partials.event-list', compact('events'))->render()

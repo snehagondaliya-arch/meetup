@@ -29,20 +29,36 @@ class SocialLoginController extends Controller
         }
 
         $socialUser = Socialite::driver($provider)->stateless()->user();
+        $email = $socialUser->getEmail();
 
-        $existingUser = User::where('provider', $provider)
-            ->where('provider_id', $socialUser->getId())
-            ->orWhere('email', $socialUser->getEmail())
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->route('index')->with('error', 'Unable to obtain a valid email address from provider.');
+        }
+
+        $existingUser = User::where(function ($query) use ($provider, $socialUser) {
+                $query->where('provider', $provider)
+                    ->where('provider_id', $socialUser->getId());
+            })
+            ->orWhere('email', $email)
             ->first();
 
         if ($existingUser) {
-           Auth::login($existingUser);
-           return redirect()->route('index');
+            if (!$existingUser->provider || !$existingUser->provider_id) {
+                $existingUser->update([
+                    'provider' => $provider,
+                    'provider_id' => $socialUser->getId(),
+                    'profile' => $socialUser->getAvatar() ?? $existingUser->profile,
+                ]);
+            }
+
+            Auth::login($existingUser);
+
+            return redirect()->route('index');
         }
 
         $user = User::create([
             'name' => $socialUser->getName() ?? 'User',
-            'email' => $socialUser->getEmail(),
+            'email' => $email,
             'password' => bcrypt(Str::random(16)),
             'provider' => $provider,
             'provider_id' => $socialUser->getId(),
@@ -51,6 +67,6 @@ class SocialLoginController extends Controller
 
         Auth::login($user);
 
-         return redirect()->route('index');
+        return redirect()->route('index');
     }
 }
