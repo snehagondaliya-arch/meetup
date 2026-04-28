@@ -17,6 +17,9 @@ return new class extends Migration
             $table->foreignId('group_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->string('slug'); 
+            $table->dateTime('start_time')->nullable();
+            $table->dateTime('end_time')->nullable();
+            $table->string('timezone')->nullable();
             $table->string('venue_name')->nullable();
             $table->text('full_address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
