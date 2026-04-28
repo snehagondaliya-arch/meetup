@@ -116,14 +116,8 @@
 @endsection
     @section('js')
         <script>
-            // Scrolling-Animation
-            if (typeof AOS !== 'undefined') {
-                AOS.init();
-            }
-
             // Event-Filter-Select-2
             $(document).ready(function () {
-
                 let category = null;
                 let search = '';
 
@@ -137,17 +131,6 @@
                     loadData();
                 });
 
-                // CATEGORY CLICK
-                $(document).on('click', '.side-menu-nav .nav-link', function (e) {
-                    e.preventDefault();
-
-                    category = $(this).data('slug');
-                    console.log(`category: ${category}`)
-                    $('.side-menu-nav .nav-link').removeClass('active');
-                    $(this).addClass('active');
-
-                    loadData();
-                });
                 $('select').on('change', function () {
                     loadData();
                 });
@@ -169,7 +152,7 @@
                     console.log(`distance: ${distance}`);
                     console.log(`latitude: ${latitude}`);
                     console.log(`longitude: ${longitude}`);
-                    $.ajax({    
+                    $.ajax({
                         url: "{{ route('index') }}",
                         type: "GET",
                         data: {
@@ -194,35 +177,6 @@
                     });
                 }
             });
-            // Side Menu
-            const menuToggle = document.getElementById('categoryButton');
-            const menuClose = document.getElementById('menuClose');
-            const sideMenu = document.getElementById('side-menu-section');
-            const menuOverlay = document.getElementById('sideMenuOverlay');
-            // Open menu
-            function openMenu() {
-                sideMenu.classList.add('categoryOpen');
-                menuOverlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-            // Close menu
-            function closeMenu() {
-                sideMenu.classList.remove('categoryOpen');
-                menuOverlay.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-            // Event listeners
-            if (menuToggle) menuToggle.addEventListener('click', openMenu);
-            if (menuClose) menuClose.addEventListener('click', closeMenu);
-            if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
 
-
-            $(window).on('scroll', function () {
-                if ($(window).scrollTop() > 320) {
-                    $('.header-s1').addClass('scrolled');
-                } else {
-                    $('.header-s1').removeClass('scrolled');
-                }
-            });
         </script>
     @endsection
