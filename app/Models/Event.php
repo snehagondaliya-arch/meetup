@@ -6,13 +6,13 @@ use App\Models\Category;
 use App\Models\EventPhotos;
 use App\Models\Group;
 use Carbon\Carbon;
+use App\Traits\HasImageUrl;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\File;
-
 
 class Event extends Model
 {
+    use HasImageUrl;
     protected $table = 'events';
     public const STATUS_UPCOMING = 'Upcoming';
     public const STATUS_LIVE_NOW = 'Live Now';
@@ -162,29 +162,13 @@ class Event extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: function ($value) {
-                $path = public_path(EVENT_IMAGES . $value);
-
-                if ($value && File::exists($path)) {
-                    return asset(EVENT_IMAGES . $value);
-                }
-
-                return asset(PLACEHOLDER_IMAGE);
-            }
+            get: fn ($value) => $this->resolveImageUrl($value,EVENT_IMAGES) 
         );
     }
     protected function hostImage(): Attribute
     {
         return Attribute::make(
-            get: function ($value) {
-                $path = public_path(HOST_IMAGES . $value);
-
-                if ($value && File::exists($path)) {
-                    return asset(HOST_IMAGES . $value);
-                }
-
-                return asset(PLACEHOLDER_IMAGE);
-            }
+          get: fn ($value) => $this->resolveImageUrl($value,HOST_IMAGES) 
         );
 
     }

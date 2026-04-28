@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasImageUrl;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\File;
 
 class EventPhotos extends Model
 {
+    use HasImageUrl;
     protected $table = 'event_photos';
     protected $fillable = [
         'event_id',
@@ -21,16 +22,9 @@ class EventPhotos extends Model
 
     protected function eventphotos(): Attribute
     {
-         return Attribute::make(
-            get: function ($value) {
-                $path = public_path(EVENT_PHOTOS . $value);
-
-                if ($value && File::exists($path)) {
-                    return asset(EVENT_PHOTOS . $value);
-                }
-
-                return asset(PLACEHOLDER_IMAGE);
-            }
+        return Attribute::make(
+            get: fn($value) => $this->resolveImageUrl($value, EVENT_PHOTOS)
         );
+
     }
 }
