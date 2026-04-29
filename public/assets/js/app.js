@@ -129,14 +129,3 @@ var reviewSwiper = new Swiper(".upcomingEvent", {
         }
     }
 });
-
-$(document).on('click', '.side-menu-nav .nav-link', function (e) {
-    e.preventDefault();
-
-    category = $(this).data('slug');
-
-    $('.side-menu-nav .nav-link').removeClass('active');
-    $(this).addClass('active');
-
-    loadData();
-});

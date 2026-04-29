@@ -30,7 +30,7 @@
                 </div>
                 <!-- Events Card -->
                 <div class="row row-gap-3" id="event-container">
-                   @include('web.partials.event-list')
+                    @include('web.partials.event-list')
                 </div>
             </div>
         </section>
@@ -61,27 +61,37 @@
         </section>
         <!-- End CTA Section -->
 @endsection
-@section('js')
-    <script>
-        function loadData() {
-            $.ajax({
-                url: "{{ route('event-list') }}",
-                type: "GET",
-                data: {
-                    category: category,
-                },
-                success: function (html) {
-                    const container = document.getElementById('event-container');
-                    container.innerHTML = html;
+    @section('js')
+        <script>
+            $(document).on('click', '.side-menu-nav .nav-link', function (e) {
+                e.preventDefault();
 
-                    if (typeof AOS !== 'undefined') {
-                        AOS.refreshHard();
-                    }
-                },
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-                }
+                category = $(this).data('slug');
+
+                $('.side-menu-nav .nav-link').removeClass('active');
+                $(this).addClass('active');
+
+                loadData();
             });
-        }
-    </script>
-@endsection
+            function loadData() {
+                $.ajax({
+                    url: "{{ route('event-list') }}",
+                    type: "GET",
+                    data: {
+                        category: category,
+                    },
+                    success: function (html) {
+                        const container = document.getElementById('event-container');
+                        container.innerHTML = html;
+
+                        if (typeof AOS !== 'undefined') {
+                            AOS.refreshHard();
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            }
+        </script>
+    @endsection
