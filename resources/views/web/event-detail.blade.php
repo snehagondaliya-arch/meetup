@@ -1,5 +1,5 @@
 @extends('layouts.master')
-@section('title', 'MeetUp | Event-Detail')
+@section('title',config('app.name'))
 @section('no-sidebar', true)
 @section('content')
                 <!-- Start Event-detail-card Section --> 
@@ -79,7 +79,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="col-12">
-                                                               {!! html_entity_decode($event->description) !!}
+                                                               {!! $event->description !!}
                                                             </div>
                                                         </div>
                                                     </div>

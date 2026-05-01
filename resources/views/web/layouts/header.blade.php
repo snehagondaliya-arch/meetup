@@ -1,9 +1,9 @@
 <nav class="navbar header-s2 navbar-expand-lg navbar-light py-3">
     <div class="container">
-        <a class="navbar-brand fw-600" href="index.html">
+        <a class="navbar-brand fw-600" href="{{ route('index') }}">
             <!-- <img src="#" alt="logo" style="max-width: 200px;" class="d-sm-block d-none">
                     <img src="#" alt="logo" style="max-width: 40px;" class="d-block d-sm-none"> -->
-            <h3 class="fs-24px gt-text-theme fw-600 mb-0">EventTime</h3>
+            <h3 class="fs-24px gt-text-theme fw-600 mb-0">{{ config('app.name') }}</h3>
         </a>
         <div class="d-lg-block d-none mx-auto">
             <ul class="navbar-nav custom-scroll px-lg-0 px-4">

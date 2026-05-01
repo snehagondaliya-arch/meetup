@@ -1,5 +1,5 @@
 @extends('layouts.master')
-@section('title','MeetUp | Contact-Us')
+@section('title',config('app.name'))
 @section('no-sidebar', true)
 @section('content')
     <!-- Start Contact-Us Section --> 

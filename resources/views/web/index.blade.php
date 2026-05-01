@@ -1,5 +1,5 @@
 @extends('layouts.master')
-@section('title', 'MeetUp | Index')
+@section('title', config('app.name'))
 @section('no-sidebar', false)
 @section('content')
     <!-- Main-Content -->
