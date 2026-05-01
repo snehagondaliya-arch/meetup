@@ -2,13 +2,14 @@
 
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ImportJsonController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SocialLoginController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 Route::get('/import',[ImportJsonController::class,'start'])->name('import');
 
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple')->name('social.redirect');
@@ -23,7 +24,7 @@ Route::post('/logout', function () {
 })->name('logout');
 
 
-Route::get('/events', [EventController::class, 'index'])->name('index');
+Route::get('/', [EventController::class, 'index'])->name('index');
 
 Route::get('/faq', [EventController::class, 'faq'])->name('faq');
 
@@ -40,3 +41,7 @@ Route::get('/privacy-policy', [EventController::class, 'privacyPolicy'])->name('
 Route::get('/term-condition', [EventController::class, 'termCondition'])->name('term-condition');
 
 Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclaimer');
+
+
+Route::get('/messages', [MessageController::class, 'fetchMessages']);
+Route::post('/messages', [MessageController::class, 'sendMessage']);

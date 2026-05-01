@@ -7,8 +7,8 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'Laravel'))</title>
-
+    <title>@yield('title', config('app.name', 'MeetUp'))</title>
+    @vite('resources/js/app.js')
     <meta name="title" content="@yield('meta_title')" />
     <meta name="description" content="@yield('meta_description')" />
 

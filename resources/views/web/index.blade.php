@@ -88,31 +88,42 @@
         </section>
         <!-- End Event-Card Section -->
 
-        <!-- Start Tm-header-Section -->
-        <section class="tm-header-section d-lg-none d-block">
-            <div class="tm-header-content h-100 d-flex justify-content-center gap-md-4 gap-2 align-items-center">
-                <a href="./index.html" class="nav-link active">
-                    <i class="fa-solid fa-house fs-24px"></i>
-                    <span class="fs-10px lh-normal">Home</span>
-                </a>
+        <!-- Chat Button -->
+        <button id="chatToggle" class="chat-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="white" viewBox="0 0 16 16">
+                <path
+                    d="M8 2C4.686 2 2 4.239 2 7c0 1.418.74 2.703 1.94 3.633-.088.64-.36 1.366-.87 1.91-.22.235-.03.61.29.57 1.02-.13 1.94-.57 2.53-.95.67.2 1.39.307 2.11.307 3.314 0 6-2.239 6-5s-2.686-5-6-5z" />
+            </svg>
+        </button>
 
-                <a href="./faq.html" class="nav-link">
-                    <i class="fa-solid fa-circle-question fs-24px"></i>
-                    <span class="fs-10px lh-normal">FAQ's</span>
-                </a>
+        <!-- Chat Box -->
+        <div id="chatBox" class="chat-box">
 
-                <a href="./disclaimer.html" class="nav-link">
-                    <i class="fa-solid fa-triangle-exclamation fs-24px"></i>
-                    <span class="fs-10px lh-normal">Disclaimer</span>
-                </a>
-
-                <a href="./contact-us.html" class="nav-link">
-                    <i class="fa-solid fa-envelope fs-24px"></i>
-                    <span class="fs-10px lh-normal">Contact</span>
-                </a>
+            <!-- Header -->
+            <div class="chat-header">
+                <div>
+                    <h6 class="mb-0">Messages</h6>
+                </div>
+                <span id="closeChat" class="close-btn">&times;</span>
             </div>
-        </section>
-        <!-- End Tm-header-Section -->
+
+            <!-- Body -->
+            <div class="chat-body">
+                <p class="welcome-title">Chat with us.</p>
+
+                <div id="messages" class="message bot"></div>
+
+            </div>
+
+            <!-- Footer -->
+            <form id="message-form">
+                <div class="chat-footer">
+                    <input id="message-input" type="text" placeholder="Type your message..." />
+                    <button type='submit' class="send-btn">➤</button>
+                </div>
+            </form>
+
+        </div>
 @endsection
     @section('js')
         <script>
@@ -160,9 +171,6 @@
                     const date_filter = $('select[name="date_filter"]').val();
                     const event_type = $('select[name="event_type"]').val();
                     const distance = $('select[name="distance"]').val();
-                    console.log(`distance: ${distance}`);
-                    console.log(`latitude: ${latitude}`);
-                    console.log(`longitude: ${longitude}`);
                     $.ajax({
                         url: "{{ route('index') }}",
                         type: "GET",

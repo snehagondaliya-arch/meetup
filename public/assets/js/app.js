@@ -129,3 +129,18 @@ var reviewSwiper = new Swiper(".upcomingEvent", {
         }
     }
 });
+
+// comment 
+document.addEventListener("DOMContentLoaded", () => {
+  const chatToggle = document.getElementById("chatToggle");
+  const chatBox = document.getElementById("chatBox");
+  const closeChat = document.getElementById("closeChat");
+
+  chatToggle.addEventListener("click", () => {
+    chatBox.classList.toggle("show");
+  });
+
+  closeChat.addEventListener("click", () => {
+    chatBox.classList.remove("show");
+  });
+});
