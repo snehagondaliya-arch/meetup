@@ -15,8 +15,8 @@
                 <h5>Discover</h5>
                 <ul class="list-unstyled d-inline-block mb-0">
                     <li class="py-1"><a href="{{ route('event-list') }}" class="nav-link">Events</a></li>
-                    <li class="py-1"><a href="javascript:void(0);" class="nav-link">Cities</a></li>
-                    <li class="py-1"><a href="javascript:void(0);" class="nav-link">Online Events</a></li>
+                    {{-- <li class="py-1"><a href="javascript:void(0);" class="nav-link">Cities</a></li>
+                    <li class="py-1"><a href="javascript:void(0);" class="nav-link">Online Events</a></li> --}}
                 </ul>
             </div>
 
@@ -24,7 +24,7 @@
                 <h5>Support</h5>
                 <ul class="list-unstyled d-inline-block mb-0">
                     <li class="py-1"><a href="{{ route('index') }}" class="nav-link">Home</a></li>
-                    <li class="py-1"><a href="javascript:void(0);" class="nav-link">Blogs</a></li>
+                    {{-- <li class="py-1"><a href="javascript:void(0);" class="nav-link">Blogs</a></li> --}}
                     <li class="py-1"><a href="{{ route('faq') }}" class="nav-link">FAQs</a></li>
                 </ul>
             </div>
