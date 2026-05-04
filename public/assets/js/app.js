@@ -1,5 +1,9 @@
+// =====================
 // Scrolling-Animation
-AOS.init();
+// =====================
+if (typeof AOS !== "undefined") {
+    AOS.init();
+}
 
 
 // =====================
@@ -11,15 +15,19 @@ const sideCategoryMenu = document.getElementById('side-menu-section');
 const categoryOverlay = document.getElementById('sideMenuOverlay');
 
 function openCategoryMenu() {
-    sideCategoryMenu.classList.add('categoryOpen');
-    categoryOverlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    if (sideCategoryMenu && categoryOverlay) {
+        sideCategoryMenu.classList.add('categoryOpen');
+        categoryOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeCategoryMenu() {
-    sideCategoryMenu.classList.remove('categoryOpen');
-    categoryOverlay.classList.remove('show');
-    document.body.style.overflow = '';
+    if (sideCategoryMenu && categoryOverlay) {
+        sideCategoryMenu.classList.remove('categoryOpen');
+        categoryOverlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
 }
 
 if (categoryBtn) categoryBtn.addEventListener('click', openCategoryMenu);
@@ -31,38 +39,63 @@ if (categoryOverlay) categoryOverlay.addEventListener('click', closeCategoryMenu
 // Header Side Menu
 // =====================
 const headerMenuBtn = document.getElementById('menuToggle');
-const headerMenuCloseBtn = document.getElementById('menuClose'); // ⚠️ if same ID, consider renaming in HTML
+const headerMenuCloseBtns = document.querySelectorAll('#menuClose');
 const headerSideMenu = document.getElementById('sideMenu');
 const headerOverlay = document.getElementById('menuOverlay');
 
 function openHeaderMenu() {
-    headerSideMenu.classList.add('open');
-    headerOverlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    if (headerSideMenu && headerOverlay) {
+        headerSideMenu.classList.add('open');
+        headerOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeHeaderMenu() {
-    headerSideMenu.classList.remove('open');
-    headerOverlay.classList.remove('show');
-    document.body.style.overflow = '';
+    if (headerSideMenu && headerOverlay) {
+        headerSideMenu.classList.remove('open');
+        headerOverlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
 }
 
 if (headerMenuBtn) headerMenuBtn.addEventListener('click', openHeaderMenu);
-if (headerMenuCloseBtn) headerMenuCloseBtn.addEventListener('click', closeHeaderMenu);
-if (headerOverlay) headerOverlay.addEventListener('click', closeHeaderMenu);
-$(window).on('scroll', function () {
-    if ($(window).scrollTop() > 320) {
-        $('.header-s1').addClass('scrolled');
-    } else {
-        $('.header-s1').removeClass('scrolled');
-    }
-});
 
-// Apply start animation to ALL buttons with class "animation-btn"
+// safe loop (even if empty NodeList)
+if (headerMenuCloseBtns) {
+    headerMenuCloseBtns.forEach(btn => {
+        btn.addEventListener('click', closeHeaderMenu);
+    });
+}
+
+if (headerOverlay) headerOverlay.addEventListener('click', closeHeaderMenu);
+
+
+// =====================
+// Header Scroll Effect
+// =====================
+if (typeof $ !== "undefined") {
+    $(window).on('scroll', function () {
+        if ($(window).scrollTop() > 320) {
+            $('.header-s1').addClass('scrolled');
+        } else {
+            $('.header-s1').removeClass('scrolled');
+        }
+    });
+}
+
+
+// =====================
+// Button Animation
+// =====================
 document.querySelectorAll('.animation-btn').forEach(button => {
 
+    if (!button) return;
+
     button.addEventListener('click', function (e) {
+
         const circle = document.createElement("span");
+
         const diameter = Math.max(this.clientWidth, this.clientHeight);
         const radius = diameter / 2;
 
@@ -72,75 +105,84 @@ document.querySelectorAll('.animation-btn').forEach(button => {
         circle.classList.add("start");
 
         const start = this.getElementsByClassName("start")[0];
-        if (start) {
-            start.remove();
+        if (start) start.remove();
+
+        if (this) {
+            this.appendChild(circle);
         }
-        this.appendChild(circle);
     });
 
 });
 
-// Hero-Slider
-var swiper = new Swiper(".mySwiper", {
-    autoplay: true,
-    loop: true,
-    autoplay: {
-        delay: 1400,
-    },
-});
 
+// =====================
+// Swiper Sliders
+// =====================
+if (typeof Swiper !== "undefined") {
 
-
-// Event Info CTA Slider
-var swiper = new Swiper(".evCTASlider", {
-    loop: true,
-    autoplay: {
-        delay: 2500,
-    },
-    speed: 800,
-    effect: "slide"
-});
-
-// Upcoming-Event Slider 
-var reviewSwiper = new Swiper(".upcomingEvent", {
-    slidesPerView: 1,
-    spaceBetween: 20,
-    loop: true,
-    autoplay: {
-        delay: 2000,
-    },
-
-    pagination: {
-        el: ".upcomingEvent .swiper-pagination",
-        clickable: true
-    },
-
-    navigation: {
-        nextEl: ".upcomingEvent .swiper-button-next",
-        prevEl: ".upcomingEvent .swiper-button-prev"
-    },
-
-    breakpoints: {
-        576: {
-            slidesPerView: 2
-        },
-        992: {
-            slidesPerView: 3
-        }
+    if (document.querySelector(".mySwiper")) {
+        new Swiper(".mySwiper", {
+            autoplay: true,
+            loop: true,
+            autoplay: {
+                delay: 1400,
+            },
+        });
     }
-});
 
-// comment 
+    if (document.querySelector(".evCTASlider")) {
+        new Swiper(".evCTASlider", {
+            loop: true,
+            autoplay: {
+                delay: 2500,
+            },
+            speed: 800,
+            effect: "slide"
+        });
+    }
+
+    if (document.querySelector(".upcomingEvent")) {
+        new Swiper(".upcomingEvent", {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: true,
+            autoplay: {
+                delay: 2000,
+            },
+            pagination: {
+                el: ".upcomingEvent .swiper-pagination",
+                clickable: true
+            },
+            navigation: {
+                nextEl: ".upcomingEvent .swiper-button-next",
+                prevEl: ".upcomingEvent .swiper-button-prev"
+            },
+            breakpoints: {
+                576: { slidesPerView: 2 },
+                992: { slidesPerView: 3 }
+            }
+        });
+    }
+}
+
+
+// =====================
+// Chat
+// =====================
 document.addEventListener("DOMContentLoaded", () => {
-  const chatToggle = document.getElementById("chatToggle");
-  const chatBox = document.getElementById("chatBox");
-  const closeChat = document.getElementById("closeChat");
+    const chatToggle = document.getElementById("chatToggle");
+    const chatBox = document.getElementById("chatBox");
+    const closeChat = document.getElementById("closeChat");
 
-  chatToggle.addEventListener("click", () => {
-    chatBox.classList.toggle("show");
-  });
+    if (chatToggle && chatBox) {
+        chatToggle.addEventListener("click", () => {
+            chatBox.classList.toggle("show");
+        });
+    }
 
-  closeChat.addEventListener("click", () => {
-    chatBox.classList.remove("show");
-  });
+    if (closeChat && chatBox) {
+        closeChat.addEventListener("click", () => {
+            chatBox.classList.remove("show");
+        });
+    }
 });

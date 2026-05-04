@@ -36,7 +36,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
-                        href="{{ route('contact') }}">
+                        href="{{ route('contact.index') }}">
                         Contact Us
                     </a>
                 </li>

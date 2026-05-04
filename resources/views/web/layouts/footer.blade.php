@@ -32,7 +32,7 @@
                 <h5>Legal Pages</h5>
                 <ul class="list-unstyled d-inline-block mb-0">
                     <li class="py-1"><a href="{{ route('about') }}" class="nav-link">About Us</a></li>
-                    <li class="py-1"><a href="{{ route('contact') }}" class="nav-link">Contact Us</a></li>
+                    <li class="py-1"><a href="{{ route('contact.index') }}" class="nav-link">Contact Us</a></li>
                     <li class="py-1"><a href="{{ route('privacy-policy') }}" class="nav-link">Privacy Policy</a></li>
                     <li class="py-1"><a href="{{ route('term-condition') }}" class="nav-link">Terms and Conditions</a></li>
                 </ul>

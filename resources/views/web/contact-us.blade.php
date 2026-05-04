@@ -1,8 +1,8 @@
 @extends('layouts.master')
-@section('title',config('app.name'))
+@section('title', config('app.name'))
 @section('no-sidebar', true)
 @section('content')
-    <!-- Start Contact-Us Section --> 
+    <!-- Start Contact-Us Section -->
     <section class="contact-us-section section-s1padding">
         <div class="container max-w-1000px">
             <div class="row">
@@ -32,39 +32,75 @@
                         <div class="card-body p-md-4 p-3">
                             <div class="row">
                                 <div class="col-lg-6 mb-lg-0 mb-4">
-                                    <form id="contactUsForm">
+                                    @if(session('success'))
+                                        <div class="alert alert-success success-alert">
+                                            ✔ {{ session('success') }}
+                                        </div>
+                                    @endif
+                                    <form id="contactUsForm" action="{{ route('contact.store') }}" method="POST">
+                                        @csrf
                                         <div class="row g-3 mt-0">
                                             <div class="col-md-6">
-                                                <label for="first_name" class="form-label text-start fw-500 fs-16px">First Name</label>
+                                                <label for="first_name" class="form-label text-start fw-500 fs-16px">First
+                                                    Name</label>
                                                 <div>
-                                                    <input type="text" name="first_name" class="form-control input-field-s1 rounded-8" id="first_name" placeholder="Enter name">
+                                                    <input type="text" name="first_name"
+                                                        class="form-control input-field-s1 rounded-8" id="first_name"
+                                                        placeholder="Enter name" value="{{ old('first_name') }}">
                                                 </div>
-                                                <label id="first_name-error" class="text-danger" for="first_name" style="display: none"></label>
+                                                @error('first_name')
+                                                    <label id="first_name-error" class="text-danger"
+                                                        for="first_name">{{ $message }}</label>
+                                                @enderror
+
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="last_name" class="form-label text-start fw-500 fs-16px">Last Name</label>
+                                                <label for="last_name" class="form-label text-start fw-500 fs-16px">Last
+                                                    Name</label>
                                                 <div>
-                                                    <input type="text" name="last_name" class="form-control input-field-s1 rounded-8" id="last_name" placeholder="Enter last name">
+                                                    <input type="text" name="last_name"
+                                                        class="form-control input-field-s1 rounded-8" id="last_name"
+                                                        placeholder="Enter last name" value="{{ old('last_name') }}">
                                                 </div>
-                                                <label id="last_name-error" class="text-danger" for="last_name" style="display: none"></label>
+                                                @error('last_name')
+                                                    <label id="last_name-error" class="text-danger"
+                                                        for="last_name">{{ $message }}</label>
+                                                @enderror
+
                                             </div>
                                             <div class="col-12">
-                                                <label for="email" class="form-label text-start fw-500 fs-16px">Email Address</label>
+                                                <label for="email" class="form-label text-start fw-500 fs-16px">Email
+                                                    Address</label>
                                                 <div>
-                                                    <input type="email" name="email" class="form-control input-field-s1 rounded-8" id="email" placeholder="Enter email address">
+                                                    <input type="text" name="email"
+                                                        class="form-control input-field-s1 rounded-8" id="email"
+                                                        placeholder="Enter email address" value="{{ old('email') }}">
                                                 </div>
-                                                <label id="email-error" class="text-danger" for="email" style="display: none"></label>
+                                                @error('email')
+                                                    <label id="email-error" class="text-danger"
+                                                        for="email">{{ $message }}</label>
+                                                @enderror
+
                                             </div>
                                             <div class="col-12">
-                                                <label for="message" class="form-label text-start fw-500 fs-16px">Message</label>
+                                                <label for="message"
+                                                    class="form-label text-start fw-500 fs-16px">Message</label>
                                                 <div>
-                                                    <textarea class="form-control input-field-s1 rounded-8" name="message" id="contactMessage" placeholder="Enter Comment Here" style="height: 150px"></textarea>
+                                                    <textarea class="form-control input-field-s1 rounded-8" name="message"
+                                                        id="contactMessage" placeholder="Enter Comment Here"
+                                                        style="height: 150px">{{ old('message') }}</textarea>
                                                 </div>
-                                                <label id="message-error" class="text-danger" for="message" style="display: none"></label>
+                                                @error('message')
+                                                    <label id="message-error" class="text-danger"
+                                                        for="message">{{ $message }}</label>
+                                                @enderror
+
                                             </div>
                                             <div class="col-12 mt-4">
                                                 <div class="text-center">
-                                                    <button id="contactUsBtn" type="submit" class="btn btn-primary" id="contactFormBtn"><i class="fa-regular fa-paper-plane me-2"></i>Send Message</button>
+                                                    <button id="contactUsBtn" type="submit" class="btn btn-primary"
+                                                        id="contactFormBtn"><i
+                                                            class="fa-regular fa-paper-plane me-2"></i>Send Message</button>
                                                 </div>
                                             </div>
                                             <div class="col-12 mt-4">
@@ -72,10 +108,11 @@
                                                     <div class=" fs-22px">
                                                         <i class="fa-solid fa-envelope gt-text-theme"></i>
                                                     </div>
-                                                   <div>
-                                                    <a href="mailto:support@paycoin.ltd" class="fw-600 lh-normal fs-18px">support@paycoin.ltd</a>
-                                                    <p class="mb-0 lh-normal text-muted fs-16px">Our response time is typically within 24 to 48 hours.</p>
-                                                   </div>
+                                                    <div>
+                                                        <a href="#" class="fw-600 lh-normal fs-18px">support@meetup.com</a>
+                                                        <p class="mb-0 lh-normal text-muted fs-16px">Our response time is
+                                                            typically within 24 to 48 hours.</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -84,12 +121,17 @@
                                 <div class="col-lg-6">
                                     <div class="gt-bg-s3 rounded-12 p-3 h-100">
                                         <h3 class="fs-22px gt-text-theme mb-3">Get In Touch With Us</h3>
-                                        <p>We’re here to help. To clarify our financial data, analytics content, partner interest, feedback, or any other ideas on how to improve <a href="javascript:void(0);">eventtime.com</a>, please contact us.</p>
-                                        <p>You want to report a problem, need to clarify a point about some article, or have an idea for a new topic, our team will read your message and reply to you as soon as possible.</p>
+                                        <p>We’re here to help. To clarify our financial data, analytics content, partner
+                                            interest, feedback, or any other ideas on how to improve <a
+                                                href="javascript:void(0);">eventtime.com</a>, please contact us.</p>
+                                        <p>You want to report a problem, need to clarify a point about some article, or have
+                                            an idea for a new topic, our team will read your message and reply to you as
+                                            soon as possible.</p>
                                         <h4 class="fs-18px fw-600 mb-3">What You Can Contact Us About</h4>
                                         <div>
                                             <ul class="ps-4 mb-0">
-                                                <li class="pb-1">The general questions are related to the financial information and the educational material</li>
+                                                <li class="pb-1">The general questions are related to the financial
+                                                    information and the educational material</li>
                                                 <li class="pb-1">Suggestions for new tools, articles, or improvements</li>
                                                 <li class="pb-1">Reporting incorrect or outdated information</li>
                                                 <li class="pb-1">Advertising/collaboration queries</li>
@@ -105,5 +147,5 @@
             </div>
         </div>
     </section>
-    <!-- End Contact-Us Section --> 
+    <!-- End Contact-Us Section -->
 @endsection

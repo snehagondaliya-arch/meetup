@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ImportJsonController;
 use App\Http\Controllers\MessageController;
@@ -30,8 +31,6 @@ Route::get('/faq', [EventController::class, 'faq'])->name('faq');
 
 Route::get('/about', [EventController::class, 'about'])->name('about');
 
-Route::get('/contact', [EventController::class, 'contact'])->name('contact');
-
 Route::get('/event-detail/{id}', [EventController::class, 'eventDetail'])->name('event-detail');
 
 Route::get('/event-list', [EventController::class, 'eventList'])->name('event-list');
@@ -45,3 +44,5 @@ Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclai
 
 Route::get('/messages', [MessageController::class, 'fetchMessages']);
 Route::post('/messages', [MessageController::class, 'sendMessage']);
+
+Route::resource('contact',ContactController::class);

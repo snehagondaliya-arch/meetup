@@ -36,11 +36,6 @@ class EventController extends Controller
         return view('web.about-us');
     }
 
-    public function contact()
-    {
-        return view('web.contact-us');
-    }
-
     public function eventDetail($eventSlug)
     {
         $event = Event::with('event_photos')
