@@ -109,10 +109,7 @@
 
             <!-- Body -->
             <div class="chat-body">
-                <p class="welcome-title">Chat with us.</p>
-
-                <div id="messages" class="message bot"></div>
-
+                <div id="messages" class="messages-container"></div>
             </div>
 
             <!-- Footer -->
@@ -129,6 +126,7 @@
         <script>
             // Event-Filter-Select-2
             $(document).ready(function () {
+                window.currentUserId = {{ auth()->id() ?? 'null' }};
                 let category = null;
                 let search = '';
 

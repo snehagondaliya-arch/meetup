@@ -1612,13 +1612,16 @@ span.select2-selection__arrow::before {
 }
 
 /* =========================
-   CHAT BOX (HIDDEN BY DEFAULT)
+   CHAT BOX (MAIN CONTAINER)
 ========================= */
 .chat-box {
     position: fixed;
     bottom: 100px;
     right: 25px;
     width: 340px;
+    height: 500px; /* ✅ important for scroll */
+    max-height: 80vh;
+
     background: #fff;
     border-radius: 18px;
     overflow: hidden;
@@ -1635,7 +1638,7 @@ span.select2-selection__arrow::before {
     transition: all 0.3s ease;
 }
 
-/* Show state (toggle with JS) */
+/* Show state */
 .chat-box.show {
     opacity: 1;
     transform: translateY(0);
@@ -1652,11 +1655,8 @@ span.select2-selection__arrow::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
 
-.chat-header small {
-    opacity: 0.8;
-    font-size: 12px;
+    flex-shrink: 0; /* ✅ prevent overlap */
 }
 
 .close-btn {
@@ -1665,65 +1665,15 @@ span.select2-selection__arrow::before {
 }
 
 /* =========================
-   BODY
+   BODY (SCROLL AREA)
 ========================= */
 .chat-body {
-    padding: 16px;
+    flex: 1; /* ✅ takes remaining space */
+    overflow-y: auto; /* ✅ scroll here */
     background: #f7fafa;
-}
+    padding: 10px;
 
-.welcome-title {
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.welcome-sub {
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 12px;
-}
-
-/* Messages */
-.message {
-    max-width: 80%;
-    padding: 10px 12px;
-    border-radius: 14px;
-    margin-bottom: 10px;
-    font-size: 14px;
-    line-height: 1.4;
-    list-style: none;
-
-}
-
-.message.bot {
-    background: #e6f4f2;
-    color: #1f8f85;
-    border-top-left-radius: 4px;
-}
-
-/* =========================
-   QUICK ACTION BUTTONS
-========================= */
-.quick-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.quick-actions button {
-    flex: 1;
-    border: 1px solid #2aa79b;
-    background: transparent;
-    color: #2aa79b;
-    border-radius: 20px;
-    padding: 6px;
-    font-size: 13px;
-    transition: 0.3s;
-}
-
-.quick-actions button:hover {
-    background: #2aa79b;
-    color: #fff;
+    scroll-behavior: smooth;
 }
 
 /* =========================
@@ -1734,6 +1684,8 @@ span.select2-selection__arrow::before {
     padding: 10px;
     border-top: 1px solid #eee;
     background: #fff;
+
+    flex-shrink: 0; /* ✅ prevent overlap */
 }
 
 .chat-footer input {
@@ -1760,6 +1712,69 @@ span.select2-selection__arrow::before {
     background: #1f8f85;
 }
 
-#messages li {
-    list-style: none;
+/* =========================
+   MESSAGES CONTAINER
+========================= */
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* =========================
+   MESSAGE BUBBLES
+========================= */
+.chat-message {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    word-wrap: break-word;
+}
+
+/* My messages */
+.chat-message.me {
+    align-self: flex-end;
+    background: #25D366;
+    color: white;
+}
+
+/* Other messages */
+.chat-message.other {
+    align-self: flex-start;
+    background: #f1f1f1;
+    color: #333;
+}
+
+/* =========================
+   MESSAGE HEADER (NAME + TIME)
+========================= */
+.msg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+/* Name */
+.msg-name {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+/* Time */
+.msg-time {
+    font-size: 11px;
+    color: #666;
+}
+
+/* Better contrast on green bubble */
+.chat-message.me .msg-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Message text */
+.msg-text {
+    font-size: 14px;
 }

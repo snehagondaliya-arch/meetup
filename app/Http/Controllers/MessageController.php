@@ -13,16 +13,20 @@ class MessageController extends Controller
     public function sendMessage(Request $request)
     {
         $message = Message::create([
-            'user_id' => 1,
+            'user_id' => Auth::id(),    
             'message' => $request->message
         ]);
         broadcast(new MessageSent($message))->toOthers();
-        return response()->json(['status' => 'Message Sent!']);
+        // return response()->json(['status' => 'Message Sent!']);
+        return response()->json($message->load('user'));
     }
 
     public function fetchMessages()
     {
-        return Message::with('user')->latest()->take(50)->get()->reverse();
+        return Message::with('user')
+        ->orderBy('id', 'asc') 
+        ->take(50)
+        ->get();
     }
 
 
