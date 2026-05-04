@@ -4,9 +4,9 @@
             <div class="col-12 col-lg-6 mb-lg-0 mb-2">
                 <a class="fw-600 nav-logo navbar-brand" href="#">
                     <!-- <img src="javascript:void(0);" alt="logo" class="logo-lg"> -->
-                    <h3 class="fs-24px gt-text-theme fw-600 mb-0">EventTime</h3>
+                    <h3 class="fs-24px gt-text-theme fw-600 mb-0">{{ config('app.name') }}</h3>
                 </a>
-                <p class="mt-sm-3 mt-2 mb-0 gt-text-dcdcdc"><a href="javascript:void(0);">eventtime.com</a> Tools gives
+                <p class="mt-sm-3 mt-2 mb-0 gt-text-dcdcdc"><a href="javascript:void(0);">meetup.com</a> Tools gives
                     simple, fast, and free online tools to edit images, video compress, convert files, and manage social
                     media content directly in your browser.</p>
             </div>
@@ -40,7 +40,7 @@
         </div>
         <div class="row footer-bottom pt-3 mt-3 border-top">
             <div class="col-12 text-center">
-                <p class="mb-0 small">© 2026 <a href="javascript:void(0);" class="gt-text-theme">eventtime.com</a>. All
+                <p class="mb-0 small">© 2026 <a href="javascript:void(0);" class="gt-text-theme">meetup.com</a>. All
                     rights reserved.</p>
             </div>
         </div>
