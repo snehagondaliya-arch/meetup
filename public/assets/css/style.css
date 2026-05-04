@@ -639,6 +639,11 @@ a {
     padding: 8px 12px;
     font-weight: 500;
     transition: color 0.2s ease;
+    margin-right: 20px; 
+}
+
+.navbar-nav .nav-item:last-child {
+    margin-right: 0;
 }
 
 .navbar.scrolled .navbar-nav .nav-link {
