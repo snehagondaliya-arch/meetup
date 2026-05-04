@@ -46,3 +46,5 @@ Route::get('/messages', [MessageController::class, 'fetchMessages']);
 Route::post('/messages', [MessageController::class, 'sendMessage']);
 
 Route::resource('contact',ContactController::class);
+
+Route::get('/events-by-bounds', [EventController::class, 'byBounds']);

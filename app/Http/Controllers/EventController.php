@@ -77,4 +77,15 @@ class EventController extends Controller
     {
         return view('web.disclaimer');
     }
+
+    public function byBounds(Request $request)
+{
+    return Event::select('id', 'title', 'latitude', 'longitude')
+        ->whereNotNull('latitude')
+        ->whereNotNull('longitude')
+        ->whereBetween('latitude', [$request->south, $request->north])
+        ->whereBetween('longitude', [$request->west, $request->east])
+        ->limit(200) 
+        ->get();
+}
 }

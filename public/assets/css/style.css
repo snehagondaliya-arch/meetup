@@ -1672,7 +1672,6 @@ span.select2-selection__arrow::before {
     overflow-y: auto; /* ✅ scroll here */
     background: #f7fafa;
     padding: 10px;
-
     scroll-behavior: smooth;
 }
 
@@ -1777,4 +1776,23 @@ span.select2-selection__arrow::before {
 /* Message text */
 .msg-text {
     font-size: 14px;
+}
+
+/* map */
+.location-icon {
+  color: #2aa198;           
+  font-size: 18px;            
+  background-color: #e6f4f2;  
+  padding: 10px 20px;
+  border-radius: 50px;   
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.location-icon:hover {
+  background-color: #2aa198;
+  color: #ffffff;
+  transform: scale(1.05);
 }
