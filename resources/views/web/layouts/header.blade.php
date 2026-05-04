@@ -18,11 +18,11 @@
                         Event
                     </a>
                 </li>
-                <li class="nav-item">
+                {{-- <li class="nav-item">
                     <a class="nav-link" href="#">
                         Blog
                     </a>
-                </li>
+                </li> --}}
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('faq') ? 'active' : '' }}" href="{{ route('faq')}}">
                         Faq's
