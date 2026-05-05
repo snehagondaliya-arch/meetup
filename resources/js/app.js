@@ -287,7 +287,10 @@ document.getElementById('open-map').addEventListener('click', () => {
     document.getElementById('map-modal').style.display = 'block';
 
     navigator.geolocation.getCurrentPosition(function (position) {
-
+        var lat = position.coords.latitude;
+        var lng = position.coords.longitude;
+        // console.log('latitude: ', lat);
+        // console.log('longitude: ', lng);
         if (map) {
             map.remove();
         }
@@ -327,6 +330,7 @@ function loadEvents() {
         .then(res => res.json())
         .then(data => {
             data.forEach(event => {
+                // console.log("Event:", event);
                 let lat = parseFloat(event.latitude);
                 let lng = parseFloat(event.longitude);
                 // let marker = L.marker([lat, lng])
