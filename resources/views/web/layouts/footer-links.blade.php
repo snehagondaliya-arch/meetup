@@ -11,7 +11,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js{{ ASSETS_VERSION }}"></script>
 
-<script src="{{ asset('assets/js/app.js') }}"></script>
+{{-- <script src="{{ asset('assets/js/app.js') }}"></script> --}}
+{{-- vite --}}
+@vite('resources/js/app.js')
+{{-- map --}}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js{{ ASSETS_VERSION }}"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js{{ ASSETS_VERSION }}"></script>
 
 <script>
     $.ajaxSetup({

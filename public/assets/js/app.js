@@ -186,3 +186,61 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// map
+let map;
+let markers = [];
+let debounceTimer;
+
+document.getElementById('open-map').addEventListener('click', () => {
+    document.getElementById('map-modal').style.display = 'block';
+
+    navigator.geolocation.getCurrentPosition(function (position) {
+
+        if (map) {
+            map.remove();
+        }
+
+        map = L.map('map').setView([39.4810, -0.3625], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        map.on('moveend', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(loadEvents, 400);
+        });
+
+        loadEvents();
+    });
+});
+
+function loadEvents() {
+    if (!map) return;
+
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    var bounds = map.getBounds();
+
+    var url = `events-by-bounds?minLat=${bounds.getSouth()}&maxLat=${bounds.getNorth()}&minLng=${bounds.getWest()}&maxLng=${bounds.getEast()}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(event => {
+                let lat = parseFloat(event.latitude);
+                let lng = parseFloat(event.longitude);
+
+                let marker = L.marker([lat, lng])
+                    .addTo(map)
+                    .bindPopup(event.title);
+
+                markers.push(marker);
+            });
+        });
+}
+ document.getElementById('close-map').addEventListener('click', () => {
+        document.getElementById('map-modal').style.display = 'none';
+    });

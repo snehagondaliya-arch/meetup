@@ -17,7 +17,6 @@ class MessageController extends Controller
             'message' => $request->message
         ]);
         broadcast(new MessageSent($message))->toOthers();
-        // return response()->json(['status' => 'Message Sent!']);
         return response()->json($message->load('user'));
     }
 
@@ -25,7 +24,7 @@ class MessageController extends Controller
     {
         return Message::with('user')
         ->orderBy('id', 'asc') 
-        ->take(50)
+        ->latest()
         ->get();
     }
 

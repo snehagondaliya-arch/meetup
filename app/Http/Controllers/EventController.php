@@ -79,13 +79,18 @@ class EventController extends Controller
     }
 
     public function byBounds(Request $request)
-{
-    return Event::select('id', 'title', 'latitude', 'longitude')
-        ->whereNotNull('latitude')
-        ->whereNotNull('longitude')
-        ->whereBetween('latitude', [$request->south, $request->north])
-        ->whereBetween('longitude', [$request->west, $request->east])
-        ->limit(200) 
-        ->get();
-}
+    {
+        $minLat = $request->minLat ?? $request->south;
+        $maxLat = $request->maxLat ?? $request->north;
+        $minLng = $request->minLng ?? $request->west;
+        $maxLng = $request->maxLng ?? $request->east;
+
+        return Event::select('id', 'title', 'latitude', 'longitude')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->whereBetween('latitude', [$minLat, $maxLat])
+            ->whereBetween('longitude', [$minLng, $maxLng])
+            ->limit(200)
+            ->get();
+    }
 }
