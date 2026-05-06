@@ -18,6 +18,7 @@ class Event extends Model
     public const STATUS_LIVE_NOW = 'Live Now';
     public const STATUS_EXPIRED = 'Expired';
 
+    protected $appends = ['formatted_date', 'formatted_time'];
     protected $fillable = [
         'category_id',
         'group_id',

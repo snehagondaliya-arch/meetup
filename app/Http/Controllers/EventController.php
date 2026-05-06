@@ -77,6 +77,24 @@ class EventController extends Controller
     {
         return view('web.disclaimer');
     }
+    public function map(Request $request){
+       $query = Event::query();
+
+        if ($request->search) {
+            $query->search($request->search);
+        }
+
+        if ($request->month) {
+            $query->whereMonth('start_time', $request->month)
+            ->whereYear('start_time', 2026);
+        }
+
+        $events = $query->latestBySlug()->take(10)->get();
+
+         return ($request->ajax())
+            ? view('web.partials.map-events', compact('events'))->render()
+            : view('web.map', compact('events'));
+    }
 
     public function byBounds(Request $request)
     {
@@ -84,13 +102,23 @@ class EventController extends Controller
         $maxLat = $request->maxLat ?? $request->north;
         $minLng = $request->minLng ?? $request->west;
         $maxLng = $request->maxLng ?? $request->east;
+        $month = $request->month;
 
-        return Event::select('id', 'title', 'latitude', 'longitude')
+        $query = Event::query(); 
+
+        // Month filter
+        if ($request->month) {
+            $query->whereMonth('start_time', $month)
+              ->whereYear('start_time', 2026);
+        }
+
+        return $query
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->whereBetween('latitude', [$minLat, $maxLat])
             ->whereBetween('longitude', [$minLng, $maxLng])
             ->limit(200)
+            ->latestBySlug()
             ->get();
     }
 }

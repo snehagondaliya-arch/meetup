@@ -11,7 +11,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js{{ ASSETS_VERSION }}"></script>
 
-{{-- <script src="{{ asset('assets/js/app.js') }}"></script> --}}
+<script src="{{ asset('assets/js/app.js') }}"></script>
 {{-- vite --}}
 @vite('resources/js/app.js')
 {{-- map --}}

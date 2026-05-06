@@ -25,13 +25,13 @@ Route::post('/logout', function () {
 })->name('logout');
 
 
-Route::get('/', [EventController::class, 'index'])->name('index');
+Route::any('/', [EventController::class, 'index'])->name('index');
 
 Route::get('/faq', [EventController::class, 'faq'])->name('faq');
 
 Route::get('/about', [EventController::class, 'about'])->name('about');
 
-Route::get('/event-detail/{id}', [EventController::class, 'eventDetail'])->name('event-detail');
+Route::get('/event-detail/{slug}', [EventController::class, 'eventDetail'])->name('event-detail');
 
 Route::get('/event-list', [EventController::class, 'eventList'])->name('event-list');
 
@@ -47,4 +47,5 @@ Route::post('/messages', [MessageController::class, 'sendMessage']);
 
 Route::resource('contact',ContactController::class);
 
+Route::get('/map', [EventController::class, 'map'])->name('map');
 Route::get('/events-by-bounds', [EventController::class, 'byBounds']);
