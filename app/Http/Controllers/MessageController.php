@@ -12,9 +12,15 @@ class MessageController extends Controller
 {
     public function sendMessage(Request $request)
     {
+        $request->validate([
+            'message' => 'required|string',
+            'parent_id' => 'nullable|exists:messages,id'
+        ]);
+
         $message = Message::create([
-            'user_id' => Auth::id(),    
-            'message' => $request->message
+            'user_id' => Auth::id(),
+            'message' => $request->message,
+            'parent_id' => $request->parent_id ?? null,
         ]);
         broadcast(new MessageSent($message))->toOthers();
         return response()->json($message->load('user'));
@@ -23,9 +29,9 @@ class MessageController extends Controller
     public function fetchMessages()
     {
         return Message::with('user')
-        ->orderBy('id', 'asc') 
-        ->latest()
-        ->get();
+            ->orderBy('id', 'asc')
+            ->latest()
+            ->get();
     }
 
 

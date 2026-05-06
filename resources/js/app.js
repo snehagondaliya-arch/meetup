@@ -18,74 +18,205 @@ const el = {
     input: document.getElementById('message-input')
 };
 
-// Load messages
-axios.get('http://localhost/running/meetup/public/messages').then(r => {
-    el.messages.innerHTML = '';
-    r.data.forEach(renderMessage);
-});
+// Store all messages
+let allMessages = [];
 
-// window.Echo.connector.pusher.connection.bind('connected', () => {
-//     window.axios.defaults.headers.common['X-Socket-Id'] =
-//         window.Echo.socketId();
-// });
+/* =========================
+   BUILD TREE (parent-child)
+========================= */
+function buildTree(messages) {
+    const map = {};
+    const roots = [];
 
-// Listen real-time
-window.Echo.channel('chat')
-    .listen('MessageSent', (e) => {
-        console.log('RECEIVED:', e);
-        renderMessage(e.message);
-        const chatBody = document.querySelector('.chat-body');
-        chatBody.scrollTop = chatBody.scrollHeight;
+    messages.forEach(m => {
+        m.replies = [];
+        map[m.id] = m;
     });
 
+    messages.forEach(m => {
+        if (m.parent_id) {
+            map[m.parent_id]?.replies.push(m);
+        } else {
+            roots.push(m);
+        }
+    });
 
-// Send message
+    return roots;
+}
+
+/* =========================
+   LOAD INITIAL MESSAGES
+========================= */
+axios.get('http://localhost/running/meetup/public/messages')
+    .then(r => {
+        allMessages = r.data;
+        renderAll();
+    });
+
+/* =========================
+   REAL-TIME LISTENER
+========================= */
+window.Echo.channel('chat')
+    .listen('MessageSent', (e) => {
+        allMessages.push(e.message);
+        renderAll();
+    });
+
+/* =========================
+   SEND ROOT MESSAGE
+========================= */
 el.form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     if (!el.input.value.trim()) return;
 
-    const response = await axios.post('http://localhost/running/meetup/public/messages', {
-        message: el.input.value
+    const res = await axios.post('http://localhost/running/meetup/public/messages', {
+        message: el.input.value,
+        parent_id: null
     });
 
-    renderMessage(response.data);
-    const chatBody = document.querySelector('.chat-body');
-    chatBody.scrollTop = chatBody.scrollHeight;
+    allMessages.push(res.data);
+    renderAll();
 
     el.input.value = '';
-    el.input.focus();
 });
 
-// UI function
-function renderMessage(m) {
+/* =========================
+   RENDER ALL
+========================= */
+function renderAll() {
+    el.messages.innerHTML = '';
+    if (allMessages.length === 0) {
+        const noMsg = document.createElement('div');
+        noMsg.id = 'no-messages';
+        noMsg.className = 'no-messages';
+        noMsg.textContent = 'No messages yet. Start the conversation 👋';
+
+        el.messages.appendChild(noMsg);
+        return; // stop here
+    }
+
+    const tree = buildTree(allMessages);
+
+    tree.forEach(msg => {
+        el.messages.appendChild(createMessageNode(msg));
+    });
+
+    el.messages.scrollTop = el.messages.scrollHeight;
+}
+
+/* =========================
+   CREATE MESSAGE NODE
+========================= */
+function createMessageNode(m, level = 0) {
+
     const div = document.createElement('div');
 
     const isMe = Number(m.user_id) === Number(window.currentUserId);
 
-    const displayName = isMe
-        ? 'You'
-        : (m.user?.name || 'User');
-
-    // Format time
     const time = new Date(m.created_at).toLocaleTimeString([], {
         hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
+        minute: '2-digit'
     });
 
-    div.classList.add('chat-message', isMe ? 'me' : 'other');
+    div.className = `chat-message ${isMe ? 'me' : 'other'}`;
+    div.style.marginLeft = level * 16 + 'px';
+
+    const firstLetter = (m.user?.name || 'U')[0].toUpperCase();
 
     div.innerHTML = `
-    <div class="msg-header">
-        <span class="msg-name">${displayName}</span>
-        <span class="msg-time">${time}</span>
-    </div>
-    <div class="msg-text">${m.message}</div>
-`;
+        <div class="msg-row">
+            
+            <div class="avatar">${firstLetter}</div>
 
-    el.messages.appendChild(div);
-    el.messages.scrollTop = el.messages.scrollHeight;
+            <div class="msg-content">
+                <div class="msg-header">
+                    <span class="msg-name">${m.user?.name || 'User'}</span>
+                    <span class="msg-time">${time}</span>
+                </div>
+
+              <div class="msg-line">
+                <div class="msg-text">${m.message}</div>
+
+                ${level === 0 ? `
+                    <span class="reply-btn">↩ Reply</span>
+                ` : ''}
+            </div>
+                <div class="reply-box" style="display:none;">
+                <div class="reply-input">
+                    <input type="text" placeholder="Write a reply..." />
+                    <button>Send</button>
+                </div>
+            </div>
+
+                <div class="replies"></div>
+            </div>
+        </div>
+    `;
+
+    const replyBtn = div.querySelector('.reply-btn');
+    const replyBox = div.querySelector('.reply-box');
+    const replyInput = replyBox.querySelector('input');
+    const replySend = replyBox.querySelector('button');
+    const repliesContainer = div.querySelector('.replies');
+
+    /* Toggle reply box */
+    if (replyBtn) {
+        replyBtn.onclick = () => {
+            replyBox.style.display = replyBox.style.display === 'none' ? 'flex' : 'none';
+        };
+    }
+    /* Send reply */
+    if (replySend) {
+        replySend.onclick = async () => {
+            if (!replyInput.value.trim()) return;
+
+            const res = await axios.post('http://localhost/running/meetup/public/messages', {
+                message: replyInput.value,
+                parent_id: m.id
+            });
+
+            allMessages.push(res.data);
+            renderAll();
+        };
+    }
+
+    /* Replies + View More */
+    if (m.replies && m.replies.length) {
+
+        let expanded = false;
+
+        const renderReplies = () => {
+            repliesContainer.innerHTML = '';
+
+            // ONLY show replies when expanded
+            if (expanded) {
+                m.replies.forEach(r => {
+                    repliesContainer.appendChild(
+                        createMessageNode(r, level + 1)
+                    );
+                });
+            }
+
+            // ALWAYS show button
+            const toggle = document.createElement('div');
+            toggle.className = 'view-more';
+
+            toggle.innerHTML = expanded
+                ? 'Hide replies'
+                : 'View more';
+
+            toggle.onclick = () => {
+                expanded = !expanded;
+                renderReplies();
+            };
+
+            repliesContainer.appendChild(toggle);
+        };
+
+        renderReplies();
+    }
+    return div;
 }
 
 // =====================
@@ -275,78 +406,4 @@ document.addEventListener("DOMContentLoaded", () => {
             chatBox.classList.remove("show");
         });
     }
-});
-
-// map
-let map;
-// let markers = [];
-let markerGroup; 
-let debounceTimer;
-
-document.getElementById('open-map').addEventListener('click', () => {
-    document.getElementById('map-modal').style.display = 'block';
-
-    navigator.geolocation.getCurrentPosition(function (position) {
-        var lat = position.coords.latitude;
-        var lng = position.coords.longitude;
-        // console.log('latitude: ', lat);
-        // console.log('longitude: ', lng);
-        if (map) {
-            map.remove();
-        }
-
-        map = L.map('map').setView([39.4810, -0.3625], 13);
-
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 200);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        map.on('moveend', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(loadEvents, 400);
-        });
-        markerGroup = L.markerClusterGroup();
-        map.addLayer(markerGroup);          
-        loadEvents();
-    });
-});
-
-function loadEvents() {
-    if (!map) return;
-
-    // markers.forEach(m => map.removeLayer(m));
-    // markers = [];
-    markerGroup.clearLayers();
-
-    var bounds = map.getBounds();
-
-    var url = `events-by-bounds?minLat=${bounds.getSouth()}&maxLat=${bounds.getNorth()}&minLng=${bounds.getWest()}&maxLng=${bounds.getEast()}`;
-
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(event => {
-                // console.log("Event:", event);
-                let lat = parseFloat(event.latitude);
-                let lng = parseFloat(event.longitude);
-                // let marker = L.marker([lat, lng])
-                //     .addTo(map) 
-                //     .bindPopup(event.title);
-
-                // markers.push(marker);
-                let marker = L.marker([lat, lng])
-                    .bindPopup(event.title);
-
-                markerGroup.addLayer(marker);
-            });
-        })
-        .catch(err => console.error(err));
-}
-
-document.getElementById('close-map').addEventListener('click', () => {
-    document.getElementById('map-modal').style.display = 'none';
 });
