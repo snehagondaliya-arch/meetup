@@ -35,14 +35,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
+                    <a class="nav-link {{ request()->routeIs('contact.*') ? 'active' : '' }}"
                         href="{{ route('contact.index') }}">
                         Contact Us
                     </a>
                 </li>
             </ul>
         </div>
-        <a href="{{ route('map') }}"><i class="fa-solid fa-location-dot location-icon" id="open-map"></i></a>
+        <a class="nav-link {{ request()->routeIs('map') ? 'active' : '' }}" href="{{ route('map') }}"><i class="fa-solid fa-location-dot location-icon" id="open-map"></i>
+        </a>
         <div class="d-flex align-items-center gap-2 ms-lg-0 ms-auto">
             @auth
                 <ul class="list-unstyled user-profile mb-0 ms-lg-2">
