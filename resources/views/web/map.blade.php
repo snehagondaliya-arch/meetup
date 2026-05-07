@@ -35,7 +35,7 @@
                 <div id="timelineScroll" class="timeline-scroll">
                     @foreach($months as $item)
                         <div class="timeline-chip 
-                                    {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
+                                            {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
                             data-month="{{ $item->month }}" data-year="{{ $item->year }}">
                             {{ $monthNames[$item->month] }} {{ $item->year }}
                         </div>
@@ -72,98 +72,69 @@
 @endsection
 @section('js')
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
+        $(function () {
             function scrollChipIntoView(el) {
-                if (!el) return;
-                    el.scrollIntoView({
-                        behavior: 'smooth',
-                        inline: 'center',
-                        block: 'nearest'
-                    });
-            }
-            const activeChip = document.querySelector('.timeline-chip.active');
-            scrollChipIntoView(activeChip);
+                if (!el || el.length === 0) return;
 
+                el[0].scrollIntoView({
+                    behavior: 'smooth',
+                    inline: 'center',
+                    block: 'nearest'
+                });
+            }
 
             let currentDate = new Date();
             let selectedMonth = currentDate.getMonth() + 1;
             let selectedYear = currentDate.getFullYear();
             let search = '';
 
-            document.querySelectorAll('.timeline-chip').forEach((chip, index) => {
+            let $activeChip = $('.timeline-chip.active');
+            scrollChipIntoView($activeChip);
 
-                // console.log('Loop init → chip:', index, chip.innerText);
+            $('.timeline-chip').on('click', function () {
 
-                chip.addEventListener('click', function () {
+                $('.timeline-chip').removeClass('active');
+                $(this).addClass('active');
 
-                    // console.log('Clicked:', this.innerText);
-                    // console.log('Month value:', this.dataset.month);
+                scrollChipIntoView($(this));
 
-                    document.querySelectorAll('.timeline-chip').forEach((c, i) => {
-                        // console.log('Removing active from:', i, c.innerText);
-                        c.classList.remove('active');
-                    });
+                selectedMonth = $(this).data('month');
+                selectedYear = $(this).data('year');
 
-                    this.classList.add('active');
-                    scrollChipIntoView(this);
+                console.log('Selected Month:', selectedMonth);
+                console.log('Selected Year:', selectedYear);
 
-                    // console.log('active:', this.innerText);
-
-                    selectedMonth = this.dataset.month;
-                    selectedYear = this.dataset.year;
-
-                    console.log('Selected Month set to:', selectedMonth);
-                    console.log('Selected year set to:', selectedYear);
-
-                    loadData();
-                });
+                loadData();
             });
-
+            // serach
             $(document).on('input', '#search', function () {
                 search = $(this).val() || '';
                 loadData();
             });
-            //  Month filter
+            // scroll
             const scrollContainer = document.getElementById('timelineScroll');
 
-            // Button scroll
-            // document.getElementById('scrollLeft').onclick = () => {
-            //     scrollContainer.scrollBy({
-            //         left: -200,
-            //         behavior: 'smooth'
-            //     });
-            // };
+            if (scrollContainer) {
+                scrollContainer.addEventListener('wheel', function (e) {
+                    e.preventDefault();
 
-            // document.getElementById('scrollRight').onclick = () => {
-            //     scrollContainer.scrollBy({
-            //         left: 200,
-            //         behavior: 'smooth'
-            //     });
-            // };
-
-            // Mouse wheel horizontal scroll
-            scrollContainer.addEventListener('wheel', (e) => {
-                e.preventDefault();
-
-                scrollContainer.scrollBy({
-                    left: e.deltaY,
-                    behavior: 'smooth'
+                    this.scrollBy({
+                        left: e.deltaY,
+                        behavior: 'smooth'
+                    });
                 });
-            });
-
+            }
 
             // map
             let map;
-            // let markers = [];
             let markerGroup;
             let debounceTimer;
 
             navigator.geolocation.getCurrentPosition(function (position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                // console.log('latitude: ', lat);
-                // console.log('longitude: ', lng);
-                // 39.4810, -0.3625
+
+                let lat = position.coords.latitude;
+                let lng = position.coords.longitude;
+
                 if (map) {
                     map.remove();
                 }
@@ -178,19 +149,24 @@
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
 
-                map.on('moveend', () => {
-                    clearTimeout(debounceTimer);
-
-                    debounceTimer = setTimeout(loadData, 400);
-                });
+                // Marker cluster group
                 markerGroup = L.markerClusterGroup();
                 map.addLayer(markerGroup);
+
+                // Map move event
+                map.on('moveend', function () {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(loadData, 400);
+                });
                 loadData();
             });
+
             function loadData() {
+
                 if (!map) return;
 
                 markerGroup.clearLayers();
+
                 let bounds = map.getBounds();
 
                 $.ajax({
@@ -203,35 +179,41 @@
                         maxLng: bounds.getEast(),
                         month: selectedMonth || '',
                         year: selectedYear || '',
-                        search: search || '',
+                        search: search || ''
                     },
                     success: function (response) {
+
                         $('#event-container').html(response.sidebar);
-                        response.events.forEach(event => {
+
+                        response.events.forEach(function (event) {
+
                             console.log(event);
+
                             let popupContent = `
-                                <a href="event-detail/${event.slug}" class="event-card-link">
-                                    <div class="event-card-popup">
-                                        <img src="${event.image_url}" 
-                                            alt="${event.title}" 
-                                            class="event-img" />
+                            <a href="event-detail/${event.slug}" class="event-card-link">
+                                <div class="event-card-popup">
 
-                                        <div class="event-body">
-                                            <h3>${event.title}</h3>
+                                    <img src="${event.image_url}" 
+                                         alt="${event.title}" 
+                                         class="event-img" />
 
-                                            <p>
-                                                <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
-                                            </p>
+                                    <div class="event-body">
+                                        <h3>${event.title}</h3>
 
-                                            <p>
-                                                <strong>🕒 Date:</strong>
-                                                ${event.formatted_date ?? ''}
-                                                ${event.formatted_time ?? ''}
-                                            </p>
-                                        </div>
+                                        <p>
+                                            <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
+                                        </p>
+
+                                        <p>
+                                            <strong>🕒 Date:</strong>
+                                            ${event.formatted_date ?? ''}
+                                            ${event.formatted_time ?? ''}
+                                        </p>
                                     </div>
-                                </a>
-                            `;
+
+                                </div>
+                            </a>
+                        `;
 
                             let marker = L.marker([
                                 parseFloat(event.latitude),
@@ -240,9 +222,10 @@
 
                             markerGroup.addLayer(marker);
                         });
-                    },
+                    }
                 });
             }
+
         });
     </script>
 @endsection

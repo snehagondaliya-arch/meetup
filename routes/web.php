@@ -47,6 +47,6 @@ Route::post('/messages', [MessageController::class, 'sendMessage']);
 
 Route::resource('contact',ContactController::class);
 
-Route::get('/map', [EventController::class, 'map'])->name('map'); // Blade page
+Route::get('/map', [EventController::class, 'map'])->name('map'); 
 
-Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');; // AJAX JSON
+Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');
