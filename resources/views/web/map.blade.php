@@ -30,19 +30,19 @@
 
             <div class="timeline-container shadow">
 
-                <div class="timeline-arrow" id="scrollLeft">‹</div>
+                {{-- <div class="timeline-arrow" id="scrollLeft">‹</div> --}}
 
                 <div id="timelineScroll" class="timeline-scroll">
                     @foreach($months as $item)
                         <div class="timeline-chip 
-                            {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
+                                    {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
                             data-month="{{ $item->month }}" data-year="{{ $item->year }}">
                             {{ $monthNames[$item->month] }} {{ $item->year }}
                         </div>
                     @endforeach
                 </div>
 
-                <div class="timeline-arrow" id="scrollRight">›</div>
+                {{-- <div class="timeline-arrow" id="scrollRight">›</div> --}}
 
             </div>
 
@@ -71,145 +71,178 @@
     </div>
 @endsection
 @section('js')
-    <script>    
-        let currentDate = new Date();
-        let selectedMonth = currentDate.getMonth() + 1;
-        let selectedYear = currentDate.getFullYear();
-        let search = '';
-        document.querySelectorAll('.timeline-chip').forEach((chip, index) => {
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            function scrollChipIntoView(el) {
+                if (!el) return;
+                    el.scrollIntoView({
+                        behavior: 'smooth',
+                        inline: 'center',
+                        block: 'nearest'
+                    });
+            }
+            const activeChip = document.querySelector('.timeline-chip.active');
+            scrollChipIntoView(activeChip);
 
-            // console.log('Loop init → chip:', index, chip.innerText);
 
-            chip.addEventListener('click', function () {
+            let currentDate = new Date();
+            let selectedMonth = currentDate.getMonth() + 1;
+            let selectedYear = currentDate.getFullYear();
+            let search = '';
 
-                // console.log('Clicked:', this.innerText);
-                // console.log('Month value:', this.dataset.month);
+            document.querySelectorAll('.timeline-chip').forEach((chip, index) => {
 
-                document.querySelectorAll('.timeline-chip').forEach((c, i) => {
-                    // console.log('Removing active from:', i, c.innerText);
-                    c.classList.remove('active');
+                // console.log('Loop init → chip:', index, chip.innerText);
+
+                chip.addEventListener('click', function () {
+
+                    // console.log('Clicked:', this.innerText);
+                    // console.log('Month value:', this.dataset.month);
+
+                    document.querySelectorAll('.timeline-chip').forEach((c, i) => {
+                        // console.log('Removing active from:', i, c.innerText);
+                        c.classList.remove('active');
+                    });
+
+                    this.classList.add('active');
+                    scrollChipIntoView(this);
+
+                    // console.log('active:', this.innerText);
+
+                    selectedMonth = this.dataset.month;
+                    selectedYear = this.dataset.year;
+
+                    console.log('Selected Month set to:', selectedMonth);
+                    console.log('Selected year set to:', selectedYear);
+
+                    loadData();
                 });
+            });
 
-                this.classList.add('active');
-
-                // console.log('active:', this.innerText);
-
-                selectedMonth = this.dataset.month;
-                selectedYear = this.dataset.year;
-
-                console.log('Selected Month set to:', selectedMonth);
-                console.log('Selected year set to:', selectedYear);
-
+            $(document).on('input', '#search', function () {
+                search = $(this).val() || '';
                 loadData();
             });
-        });
+            //  Month filter
+            const scrollContainer = document.getElementById('timelineScroll');
 
-        $(document).on('input', '#search', function () {
-            search = $(this).val() || '';
-            loadData();
-        });
-        //  Month filter
-        const scrollContainer = document.getElementById('timelineScroll');
+            // Button scroll
+            // document.getElementById('scrollLeft').onclick = () => {
+            //     scrollContainer.scrollBy({
+            //         left: -200,
+            //         behavior: 'smooth'
+            //     });
+            // };
 
-        document.getElementById('scrollLeft').onclick = () => {
-            scrollContainer.scrollBy({ left: -200, behavior: 'smooth' });
-        };
+            // document.getElementById('scrollRight').onclick = () => {
+            //     scrollContainer.scrollBy({
+            //         left: 200,
+            //         behavior: 'smooth'
+            //     });
+            // };
 
-        document.getElementById('scrollRight').onclick = () => {
-            scrollContainer.scrollBy({ left: 200, behavior: 'smooth' });
-        };
+            // Mouse wheel horizontal scroll
+            scrollContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
 
-
-        // map
-        let map;
-        // let markers = [];
-        let markerGroup;
-        let debounceTimer;
-
-        navigator.geolocation.getCurrentPosition(function (position) {
-            var lat = position.coords.latitude;
-            var lng = position.coords.longitude;
-            // console.log('latitude: ', lat);
-            // console.log('longitude: ', lng);
-            // 39.4810, -0.3625
-            if (map) {
-                map.remove();
-            }
-
-            map = L.map('map').setView([lat, lng], 13);
-
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 200);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
-            map.on('moveend', () => {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(loadData, 400);
+                scrollContainer.scrollBy({
+                    left: e.deltaY,
+                    behavior: 'smooth'
+                });
             });
-            markerGroup = L.markerClusterGroup();
-            map.addLayer(markerGroup);
-            loadData();
-        });
-        function loadData() {
-            if (!map) return;
 
-            markerGroup.clearLayers();
-            let bounds = map.getBounds();
 
-            $.ajax({
-                url: "{{ route('map.data') }}",
-                type: "GET",
-                data: {
-                    minLat: bounds.getSouth(),
-                    maxLat: bounds.getNorth(),
-                    minLng: bounds.getWest(),
-                    maxLng: bounds.getEast(),
-                    month: selectedMonth || '',
-                    year: selectedYear || '',
-                    search: search || '',
-                },
-                success: function (response) {
-                    $('#event-container').html(response.sidebar);
-                    response.events.forEach(event => {
-                        console.log(event);
-                        let popupContent = `
-                            <a href="event-detail/${event.slug}" class="event-card-link">
-                                <div class="event-card-popup">
-                                    <img src="${event.image_url}" 
-                                        alt="${event.title}" 
-                                        class="event-img" />
+            // map
+            let map;
+            // let markers = [];
+            let markerGroup;
+            let debounceTimer;
 
-                                    <div class="event-body">
-                                        <h3>${event.title}</h3>
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                // console.log('latitude: ', lat);
+                // console.log('longitude: ', lng);
+                // 39.4810, -0.3625
+                if (map) {
+                    map.remove();
+                }
 
-                                        <p>
-                                            <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
-                                        </p>
+                map = L.map('map').setView([lat, lng], 13);
 
-                                        <p>
-                                            <strong>🕒 Date:</strong>
-                                            ${event.formatted_date ?? ''}
-                                            ${event.formatted_time ?? ''}
-                                        </p>
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 200);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                map.on('moveend', () => {
+                    clearTimeout(debounceTimer);
+
+                    debounceTimer = setTimeout(loadData, 400);
+                });
+                markerGroup = L.markerClusterGroup();
+                map.addLayer(markerGroup);
+                loadData();
+            });
+            function loadData() {
+                if (!map) return;
+
+                markerGroup.clearLayers();
+                let bounds = map.getBounds();
+
+                $.ajax({
+                    url: "{{ route('map.data') }}",
+                    type: "GET",
+                    data: {
+                        minLat: bounds.getSouth(),
+                        maxLat: bounds.getNorth(),
+                        minLng: bounds.getWest(),
+                        maxLng: bounds.getEast(),
+                        month: selectedMonth || '',
+                        year: selectedYear || '',
+                        search: search || '',
+                    },
+                    success: function (response) {
+                        $('#event-container').html(response.sidebar);
+                        response.events.forEach(event => {
+                            console.log(event);
+                            let popupContent = `
+                                <a href="event-detail/${event.slug}" class="event-card-link">
+                                    <div class="event-card-popup">
+                                        <img src="${event.image_url}" 
+                                            alt="${event.title}" 
+                                            class="event-img" />
+
+                                        <div class="event-body">
+                                            <h3>${event.title}</h3>
+
+                                            <p>
+                                                <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
+                                            </p>
+
+                                            <p>
+                                                <strong>🕒 Date:</strong>
+                                                ${event.formatted_date ?? ''}
+                                                ${event.formatted_time ?? ''}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
-                        `;
+                                </a>
+                            `;
 
-                        let marker = L.marker([
-                            parseFloat(event.latitude),
-                            parseFloat(event.longitude)
-                        ]).bindPopup(popupContent);
+                            let marker = L.marker([
+                                parseFloat(event.latitude),
+                                parseFloat(event.longitude)
+                            ]).bindPopup(popupContent);
 
-                        markerGroup.addLayer(marker);
-                    });
-                },
-            });
-        }
+                            markerGroup.addLayer(marker);
+                        });
+                    },
+                });
+            }
+        });
     </script>
 @endsection
