@@ -151,12 +151,12 @@ class Event extends Model
             ->orderBy('distance');
     }
 
-    public function scopeLatestBySlug($query)
+    public function scopeLatestByTitle($query)
     {
         return $query->whereIn('id', function ($query) {
             $query->selectRaw('MIN(id)')
                 ->from('events')
-                ->groupBy('slug');
+                ->groupBy('title');
         });
     }
 

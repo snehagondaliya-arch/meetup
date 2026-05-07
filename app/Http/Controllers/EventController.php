@@ -19,7 +19,7 @@ class EventController extends Controller
             ->when($request->date_filter, fn($q) => $q->dateFilter($request->date_filter))
             ->eventType($request->event_type)
             ->distanceFrom($request->latitude, $request->longitude, $request->distance)
-            ->latestBySlug()
+            ->latestByTitle()
             ->paginate(8);
 
         return $request->ajax()
@@ -55,7 +55,7 @@ class EventController extends Controller
     {
         $events = Event::query()
             ->byCategory($request->category)
-            ->latestBySlug()
+            ->latestByTitle()
             ->paginate(8);
 
         return ($request->ajax())
@@ -78,71 +78,69 @@ class EventController extends Controller
     {
         return view('web.disclaimer');
     }
-    public function map(Request $request){
-       $query = Event::select([
-                    'id',
-                    'title',
-                    'slug',
-                    'latitude',
-                    'longitude',
-                    'start_time',
-                    'image_url',
-                    'venue_name',
-                ]);
 
+    public function map()
+    {
+        $events = Event::latestByTitle()->limit(50)->get();
+
+        $months = Event::selectRaw('
+                MONTH(start_time) as month,
+                YEAR(start_time) as year
+            ')
+            ->groupBy('month', 'year')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get();
+
+        return view('web.map', compact('events', 'months'));
+    }
+    public function mapData(Request $request)
+    {
+        $query = Event::latestByTitle()->select([
+            'id',
+            'title',
+            'slug',
+            'latitude',
+            'longitude',
+            'start_time',
+            'image_url',
+            'venue_name',
+        ]);
+
+        // Search
         if ($request->search) {
             $query->search($request->search);
         }
 
+        // Month filter
         if ($request->month && $request->year) {
             $query->whereMonth('start_time', $request->month)
                 ->whereYear('start_time', $request->year);
         }
 
-        $events = $query->latestBySlug()->paginate(50);
-        $months = Event::selectRaw('
-                    MONTH(start_time) as month,
-                    YEAR(start_time) as year
-                ')
-                ->groupBy('month', 'year')
-                ->orderBy('year')
-                ->orderBy('month')
-                ->get();
-        return ($request->ajax())
-            ? view('web.partials.map-events', compact('events'))->render()
-            : view('web.map', compact('events', 'months'));
-    }
-
-    public function byBounds(Request $request)
-    {
-        $minLat = $request->minLat ?? $request->south;
-        $maxLat = $request->maxLat ?? $request->north;
-        $minLng = $request->minLng ?? $request->west;
-        $maxLng = $request->maxLng ?? $request->east;
-
-        $query = Event::select([
-                    'id',
-                    'title',
-                    'slug',
-                    'latitude',
-                    'longitude',
-                    'start_time',
-                    'image_url',
-                    'venue_name',
-                ]);
-
-        if ($request->month && $request->year) {
-            $query->whereMonth('start_time', $request->month)
-                ->whereYear('start_time', $request->year);
+        // Bounds filter
+        if (
+            $request->minLat &&
+            $request->maxLat &&
+            $request->minLng &&
+            $request->maxLng
+        ) {
+            $query->whereBetween('latitude', [$request->minLat, $request->maxLat])
+                ->whereBetween('longitude', [$request->minLng, $request->maxLng]);
         }
 
-        return $query
+        $events = $query
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->whereBetween('latitude', [$minLat, $maxLat])
-            ->whereBetween('longitude', [$minLng, $maxLng])
             ->limit(200)
-            ->latestBySlug()
             ->get();
+
+        return response()->json([
+            'events' => $events,
+            'sidebar' => view(
+                'web.partials.map-events',
+                compact('events')
+            )->render(),
+        ]);
     }
 }

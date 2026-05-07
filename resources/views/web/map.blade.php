@@ -35,7 +35,7 @@
                 <div id="timelineScroll" class="timeline-scroll">
                     @foreach($months as $item)
                         <div class="timeline-chip 
-                                            {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
+                            {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
                             data-month="{{ $item->month }}" data-year="{{ $item->year }}">
                             {{ $monthNames[$item->month] }} {{ $item->year }}
                         </div>
@@ -71,7 +71,7 @@
     </div>
 @endsection
 @section('js')
-    <script>
+    <script>    
         let currentDate = new Date();
         let selectedMonth = currentDate.getMonth() + 1;
         let selectedYear = currentDate.getFullYear();
@@ -100,34 +100,14 @@
                 console.log('Selected Month set to:', selectedMonth);
                 console.log('Selected year set to:', selectedYear);
 
-                loadEvents();
-                loadSidebar();
+                loadData();
             });
         });
+
         $(document).on('input', '#search', function () {
             search = $(this).val() || '';
-
-            loadEvents();
-            loadSidebar();
+            loadData();
         });
-        function loadSidebar() {
-            $.ajax({
-                url: "{{ route('map') }}",
-                type: "GET",
-                data: {
-                    search: search || '',
-                    month: selectedMonth || '',
-                    year: selectedYear || '',
-                },
-                success: function (html) {
-                    document.getElementById('event-container').innerHTML = html;
-                },
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-                }
-            });
-        }
-
         //  Month filter
         const scrollContainer = document.getElementById('timelineScroll');
 
@@ -156,7 +136,7 @@
                 map.remove();
             }
 
-           map = L.map('map').setView([lat,lng], 13);
+            map = L.map('map').setView([lat, lng], 13);
 
             setTimeout(() => {
                 map.invalidateSize();
@@ -168,75 +148,68 @@
 
             map.on('moveend', () => {
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(loadEvents, 400);
+
+                debounceTimer = setTimeout(loadData, 400);
             });
             markerGroup = L.markerClusterGroup();
             map.addLayer(markerGroup);
-            loadEvents();
-            loadSidebar();
+            loadData();
         });
-        function loadEvents() {
+        function loadData() {
             if (!map) return;
 
-            // markers.forEach(m => map.removeLayer(m));
-            // markers = [];
             markerGroup.clearLayers();
+            let bounds = map.getBounds();
 
-            var bounds = map.getBounds();
-
-            var url = `events-by-bounds?minLat=${bounds.getSouth()}&maxLat=${bounds.getNorth()}&minLng=${bounds.getWest()}&maxLng=${bounds.getEast()}`;
-
-            if (selectedMonth) {
-                url += `&month=${selectedMonth}`;
-            }
-            if (selectedYear) {
-                url += `&year=${selectedYear}`;
-            }
-            if (search) {
-                url += `&search=${encodeURIComponent(search)}`;
-            }
-
-            fetch(url)
-                .then(res => res.json())
-                .then(data => {
-                    data.forEach(event => {
-                        console.log("Event:", event);
-                        let lat = parseFloat(event.latitude);
-                        let lng = parseFloat(event.longitude);
-                        // let marker = L.marker([lat, lng])
-                        //     .addTo(map) 
-                        //     .bindPopup(event.title);
-
+            $.ajax({
+                url: "{{ route('map.data') }}",
+                type: "GET",
+                data: {
+                    minLat: bounds.getSouth(),
+                    maxLat: bounds.getNorth(),
+                    minLng: bounds.getWest(),
+                    maxLng: bounds.getEast(),
+                    month: selectedMonth || '',
+                    year: selectedYear || '',
+                    search: search || '',
+                },
+                success: function (response) {
+                    $('#event-container').html(response.sidebar);
+                    response.events.forEach(event => {
+                        console.log(event);
                         let popupContent = `
-                                                                <a href="event-detail/${event.slug}" class="event-card-link">
-                                                                                    <div class="event-card-popup">
-                                                                                        <img src="${event.image_url}" 
-                                                                                            alt="${event.title}" 
-                                                                                            class="event-img" />
+                            <a href="event-detail/${event.slug}" class="event-card-link">
+                                <div class="event-card-popup">
+                                    <img src="${event.image_url}" 
+                                        alt="${event.title}" 
+                                        class="event-img" />
 
-                                                                                        <div class="event-body">
-                                                                                        <h3>${event.title}</h3>
+                                    <div class="event-body">
+                                        <h3>${event.title}</h3>
 
-                                                                                        <p>
-                                                                                            <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
-                                                                                        </p>
+                                        <p>
+                                            <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
+                                        </p>
 
-                                                                                        <p>
-                                                                                            <strong>🕒 Date:</strong> ${event.formatted_date ?? ''} ${event.formatted_time ?? ''}
-                                                                                        </p>
+                                        <p>
+                                            <strong>🕒 Date:</strong>
+                                            ${event.formatted_date ?? ''}
+                                            ${event.formatted_time ?? ''}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
 
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </a>
-                                                                                    `;
-                        // markers.push(marker);
-                        let marker = L.marker([lat, lng])
-                            .bindPopup(popupContent);
+                        let marker = L.marker([
+                            parseFloat(event.latitude),
+                            parseFloat(event.longitude)
+                        ]).bindPopup(popupContent);
 
                         markerGroup.addLayer(marker);
                     });
-                })
-                .catch(err => console.error(err));
+                },
+            });
         }
     </script>
 @endsection
