@@ -16,6 +16,7 @@
 {{-- map --}}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js{{ ASSETS_VERSION }}"></script>
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js{{ ASSETS_VERSION }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js{{ ASSETS_VERSION }}"></script>
 
 <script>
     $.ajaxSetup({

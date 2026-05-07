@@ -42,6 +42,8 @@ Route::get('/term-condition', [EventController::class, 'termCondition'])->name('
 Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclaimer');
 
 
+// Route::get('/messages', [MessageController::class, 'fetchMessages']);
+// Route::post('/messages', [MessageController::class, 'sendMessage']);
 Route::get('/messages', [MessageController::class, 'fetchMessages']);
 Route::post('/messages', [MessageController::class, 'sendMessage']);
 

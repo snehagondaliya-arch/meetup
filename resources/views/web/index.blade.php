@@ -2,7 +2,7 @@
 @section('title', config('app.name'))
 @section('no-sidebar', false)
 {{-- vite --}}
-@vite('resources/js/app.js')
+{{-- @vite('resources/js/app.js') --}}
 @section('content')
     <!-- Main-Content -->
     <div class="main-page-content">
@@ -126,6 +126,334 @@
 @endsection
     @section('js')
         <script>
+            // chat
+            
+            document.addEventListener('DOMContentLoaded', () => {
+            window.baseUrl = "{{ url('/') }}";
+            window.currentUserId = {{ auth()->id() ?? 'null' }};
+                const el = {
+                    messages: document.getElementById('messages'),
+                    form: document.getElementById('message-form'),
+                    input: document.getElementById('message-input')
+                };
+
+                if (!el.messages || !el.form || !el.input) return;
+
+                let allMessages = [];
+
+                /* ===================================
+                   BUILD TREE
+                =================================== */
+                function buildTree(messages) {
+
+                    const map = {};
+                    const roots = [];
+
+                    messages.forEach(m => {
+                        m.replies = [];
+                        map[m.id] = m;
+                    });
+
+                    messages.forEach(m => {
+
+                        if (m.parent_id) {
+
+                            if (map[m.parent_id]) {
+                                map[m.parent_id].replies.push(m);
+                            }
+
+                        } else {
+                            roots.push(m);
+                        }
+
+                    });
+
+                    return roots;
+                }
+
+                /* ===================================
+                   FETCH MESSAGES
+                =================================== */
+                async function fetchMessages() {
+
+                    try {
+
+                        const response = await $.get(window.baseUrl + '/messages');
+
+                        const newData = JSON.stringify(response);
+                        const oldData = JSON.stringify(allMessages);
+
+                        if (newData !== oldData) {
+
+                            allMessages = response;
+
+                            renderAll();
+                        }
+
+                    } catch (error) {
+
+                        console.log(error);
+                    }
+                }
+
+                /* ===================================
+                   INITIAL LOAD
+                =================================== */
+                fetchMessages();
+
+                /* ===================================
+                   AUTO REFRESH
+                =================================== */
+                setInterval(fetchMessages, 2000);
+
+                /* ===================================
+                   SEND ROOT MESSAGE
+                =================================== */
+                el.form.addEventListener('submit', async (e) => {
+
+                    e.preventDefault();
+
+                    const message = el.input.value.trim();
+
+                    if (!message) return;
+
+                    try {
+
+                        await $.post(window.baseUrl + '/messages', {
+                            message: message,
+                            parent_id: null
+                        });
+
+                        el.input.value = '';
+
+                        fetchMessages();
+
+                    } catch (error) {
+                        console.log(error);
+                    }
+                });
+
+                /* ===================================
+                   RENDER ALL
+                =================================== */
+                function renderAll() {
+
+                    el.messages.innerHTML = '';
+
+                    if (allMessages.length === 0) {
+
+                        const noMsg = document.createElement('div');
+
+                        noMsg.className = 'no-messages';
+
+                        noMsg.innerHTML = `
+                        No messages yet. Start conversation 👋
+                    `;
+
+                        el.messages.appendChild(noMsg);
+
+                        return;
+                    }
+
+                    const tree = buildTree(allMessages);
+
+                    tree.forEach(msg => {
+                        el.messages.appendChild(createMessageNode(msg));
+                    });
+
+                    el.messages.scrollTop = el.messages.scrollHeight;
+                }
+
+                /* ===================================
+                   CREATE MESSAGE NODE
+                =================================== */
+                function createMessageNode(m, level = 0) {
+
+                    const div = document.createElement('div');
+
+                    const isMe = Number(m.user_id) === Number(window.currentUserId);
+
+                    const time = new Date(m.created_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    div.className = `chat-message ${isMe ? 'me' : 'other'}`;
+
+                    div.style.marginLeft = level * 16 + 'px';
+
+                    const firstLetter = (m.user?.name || 'U')[0].toUpperCase();
+
+                    div.innerHTML = `
+                    <div class="msg-row">
+
+                        <div class="avatar">
+                            ${firstLetter}
+                        </div>
+
+                        <div class="msg-content">
+
+                            <div class="msg-header">
+
+                                <span class="msg-name">
+                                    ${m.user?.name || 'User'}
+                                </span>
+
+                                <span class="msg-time">
+                                    ${time}
+                                </span>
+
+                            </div>
+
+                            <div class="msg-line">
+
+                                <div class="msg-text">
+                                    ${m.message}
+                                </div>
+
+                                ${level === 0 ? `
+                                    <span class="reply-btn">
+                                        ↩ Reply
+                                    </span>
+                                ` : ''}
+
+                            </div>
+
+                            <div class="reply-box" style="display:none;">
+
+                                <div class="reply-input">
+
+                                    <input type="text" placeholder="Write a reply..." />
+
+                                    <button>
+                                        Send
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <div class="replies"></div>
+
+                        </div>
+
+                    </div>
+                `;
+
+                    const replyBtn = div.querySelector('.reply-btn');
+                    const replyBox = div.querySelector('.reply-box');
+                    const replyInput = div.querySelector('.reply-input input');
+                    const replySend = div.querySelector('.reply-input button');
+                    const repliesContainer = div.querySelector('.replies');
+
+                    /* =========================
+                       TOGGLE REPLY BOX
+                    ========================= */
+                    if (replyBtn) {
+
+                        replyBtn.onclick = () => {
+
+                            replyBox.style.display =
+                                replyBox.style.display === 'none'
+                                    ? 'block'
+                                    : 'none';
+                        };
+                    }
+
+                    /* =========================
+                       SEND REPLY
+                    ========================= */
+                    if (replySend) {
+
+                        replySend.onclick = async () => {
+
+                            const text = replyInput.value.trim();
+
+                            if (!text) return;
+
+                            try {
+
+                                await $.post(window.baseUrl + '/messages', {
+                                    message: text,
+                                    parent_id: m.id
+                                });
+
+                                fetchMessages();
+
+                            } catch (error) {
+                                console.log(error);
+                            }
+                        };
+                    }
+
+                    /* =========================
+                       REPLIES
+                    ========================= */
+                    if (m.replies && m.replies.length > 0) {
+
+                        let expanded = false;
+
+                        const renderReplies = () => {
+
+                            repliesContainer.innerHTML = '';
+
+                            if (expanded) {
+
+                                m.replies.forEach(reply => {
+
+                                    repliesContainer.appendChild(
+                                        createMessageNode(reply, level + 1)
+                                    );
+                                });
+                            }
+
+                            const toggle = document.createElement('div');
+
+                            toggle.className = 'view-more';
+
+                            toggle.innerHTML = expanded
+                                ? 'Hide replies'
+                                : 'View replies';
+
+                            toggle.onclick = () => {
+
+                                expanded = !expanded;
+
+                                renderReplies();
+                            };
+
+                            repliesContainer.appendChild(toggle);
+                        };
+
+                        renderReplies();
+                    }
+
+                    return div;
+                }
+
+                /* ===================================
+                   CHAT TOGGLE
+                =================================== */
+
+                const chatToggle = document.getElementById('chatToggle');
+                const chatBox = document.getElementById('chatBox');
+                const closeChat = document.getElementById('closeChat');
+
+                if (chatToggle && chatBox) {
+
+                    chatToggle.addEventListener('click', () => {
+                        chatBox.classList.toggle('show');
+                    });
+                }
+
+                if (closeChat && chatBox) {
+
+                    closeChat.addEventListener('click', () => {
+                        chatBox.classList.remove('show');
+                    });
+                }
+
+            });
             // Event-Filter-Select-2
             $(document).ready(function () {
                 window.currentUserId = {{ auth()->id() ?? 'null' }};
