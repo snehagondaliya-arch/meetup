@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /* =========================
        LOAD INITIAL MESSAGES
     ========================= */
-    axios.get('http://localhost/running/meetup/public/messages')
+    axios.get('/messages')
         .then(r => {
             allMessages = r.data;
             renderAll();
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!el.input.value.trim()) return;
 
-            const res = await axios.post('http://localhost/running/meetup/public/messages', {
+            const res = await axios.post('/messages', {
                 message: el.input.value,
                 parent_id: null
             });

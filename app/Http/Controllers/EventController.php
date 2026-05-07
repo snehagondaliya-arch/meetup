@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 
@@ -78,22 +79,38 @@ class EventController extends Controller
         return view('web.disclaimer');
     }
     public function map(Request $request){
-       $query = Event::query();
+       $query = Event::select([
+                    'id',
+                    'title',
+                    'slug',
+                    'latitude',
+                    'longitude',
+                    'start_time',
+                    'image_url',
+                    'venue_name',
+                ]);
 
         if ($request->search) {
             $query->search($request->search);
         }
 
-        if ($request->month) {
+        if ($request->month && $request->year) {
             $query->whereMonth('start_time', $request->month)
-            ->whereYear('start_time', 2026);
+                ->whereYear('start_time', $request->year);
         }
 
-        $events = $query->latestBySlug()->take(10)->get();
-
-         return ($request->ajax())
+        $events = $query->latestBySlug()->paginate(50);
+        $months = Event::selectRaw('
+                    MONTH(start_time) as month,
+                    YEAR(start_time) as year
+                ')
+                ->groupBy('month', 'year')
+                ->orderBy('year')
+                ->orderBy('month')
+                ->get();
+        return ($request->ajax())
             ? view('web.partials.map-events', compact('events'))->render()
-            : view('web.map', compact('events'));
+            : view('web.map', compact('events', 'months'));
     }
 
     public function byBounds(Request $request)
@@ -102,14 +119,21 @@ class EventController extends Controller
         $maxLat = $request->maxLat ?? $request->north;
         $minLng = $request->minLng ?? $request->west;
         $maxLng = $request->maxLng ?? $request->east;
-        $month = $request->month;
 
-        $query = Event::query(); 
+        $query = Event::select([
+                    'id',
+                    'title',
+                    'slug',
+                    'latitude',
+                    'longitude',
+                    'start_time',
+                    'image_url',
+                    'venue_name',
+                ]);
 
-        // Month filter
-        if ($request->month) {
-            $query->whereMonth('start_time', $month)
-              ->whereYear('start_time', 2026);
+        if ($request->month && $request->year) {
+            $query->whereMonth('start_time', $request->month)
+                ->whereYear('start_time', $request->year);
         }
 
         return $query

@@ -40,7 +40,7 @@
         </div>
         <div class="row footer-bottom pt-3 mt-3 border-top">
             <div class="col-12 text-center">
-                <p class="mb-0 small">© 2026 <a href="javascript:void(0);" class="gt-text-theme">meetup.com</a>. All
+                <p class="mb-0 small">© {{ now()->year }} <a href="javascript:void(0);" class="gt-text-theme">meetup.com</a>. All
                     rights reserved.</p>
             </div>
         </div>

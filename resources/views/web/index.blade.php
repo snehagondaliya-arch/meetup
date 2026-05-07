@@ -1,6 +1,8 @@
 @extends('layouts.master')
 @section('title', config('app.name'))
 @section('no-sidebar', false)
+{{-- vite --}}
+@vite('resources/js/app.js')
 @section('content')
     <!-- Main-Content -->
     <div class="main-page-content">

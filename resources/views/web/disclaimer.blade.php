@@ -108,8 +108,8 @@
 
                             <h3 class="fs-22px gt-text-theme">Contact Information</h2>
                             <p>If you have questions about this Disclaimer or the content on eventtime.com, you may contact us at:</p>
-                            <a href="#" class="fw-600 lh-normal fs-18px d-inline-flex mb-3"><i class="fa-solid fa-envelope me-2 my-auto fs-22px gt-text-theme"></i> support@eventtime.com</a>
-                            <p><b><a href="https://paycoin.ltd">eventtime.com</a></b> provides educational content on cryptocurrency and digital finance for informational purposes only</p>
+                            <a href="#" class="fw-600 lh-normal fs-18px d-inline-flex mb-3"><i class="fa-solid fa-envelope me-2 my-auto fs-22px gt-text-theme"></i> support@meetup.com</a>
+                            <p><b><a href="#">meetup.com</a></b> provides educational content on cryptocurrency and digital finance for informational purposes only</p>
                         </div>
                     </div>
                 </div>

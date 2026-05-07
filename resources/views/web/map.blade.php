@@ -1,6 +1,24 @@
 @extends('layouts.master')
 @section('title', config('app.name'))
 @section('no-sidebar', true)
+@php
+    $monthNames = [
+        1 => 'January',
+        2 => 'February',
+        3 => 'March',
+        4 => 'April',
+        5 => 'May',
+        6 => 'June',
+        7 => 'July',
+        8 => 'August',
+        9 => 'September',
+        10 => 'October',
+        11 => 'November',
+        12 => 'December'
+    ];
+    $currentMonth = now()->month;
+    $currentYear = now()->year;
+@endphp
 @section('content')
     <div class="d-flex position-relative" style="height: 80vh;">
 
@@ -15,18 +33,13 @@
                 <div class="timeline-arrow" id="scrollLeft">‹</div>
 
                 <div id="timelineScroll" class="timeline-scroll">
-                    <div class="timeline-chip" data-month="01">January 2026</div>
-                    <div class="timeline-chip" data-month="02">February 2026</div>
-                    <div class="timeline-chip" data-month="03">March 2026</div>
-                    <div class="timeline-chip" data-month="04">April 2026</div>
-                    <div class="timeline-chip" data-month="05">May 2026</div>
-                    <div class="timeline-chip" data-month="06">June 2026</div>
-                    <div class="timeline-chip" data-month="07">July 2026</div>
-                    <div class="timeline-chip" data-month="08">August 2026</div>
-                    <div class="timeline-chip" data-month="09">September 2026</div>
-                    <div class="timeline-chip" data-month="10">October 2026</div>
-                    <div class="timeline-chip" data-month="11">November 2026</div>
-                    <div class="timeline-chip" data-month="12">December 2026</div>
+                    @foreach($months as $item)
+                        <div class="timeline-chip 
+                                            {{ $item->month == $currentMonth && $item->year == $currentYear ? 'active' : '' }}"
+                            data-month="{{ $item->month }}" data-year="{{ $item->year }}">
+                            {{ $monthNames[$item->month] }} {{ $item->year }}
+                        </div>
+                    @endforeach
                 </div>
 
                 <div class="timeline-arrow" id="scrollRight">›</div>
@@ -59,7 +72,9 @@
 @endsection
 @section('js')
     <script>
-        let selectedMonth = null;
+        let currentDate = new Date();
+        let selectedMonth = currentDate.getMonth() + 1;
+        let selectedYear = currentDate.getFullYear();
         let search = '';
         document.querySelectorAll('.timeline-chip').forEach((chip, index) => {
 
@@ -77,11 +92,13 @@
 
                 this.classList.add('active');
 
-                // console.log('Now active:', this.innerText);
+                // console.log('active:', this.innerText);
 
                 selectedMonth = this.dataset.month;
+                selectedYear = this.dataset.year;
 
                 console.log('Selected Month set to:', selectedMonth);
+                console.log('Selected year set to:', selectedYear);
 
                 loadEvents();
                 loadSidebar();
@@ -98,8 +115,9 @@
                 url: "{{ route('map') }}",
                 type: "GET",
                 data: {
-                    search: search || '',   
-                    month: selectedMonth || ''
+                    search: search || '',
+                    month: selectedMonth || '',
+                    year: selectedYear || '',
                 },
                 success: function (html) {
                     document.getElementById('event-container').innerHTML = html;
@@ -133,11 +151,12 @@
             var lng = position.coords.longitude;
             // console.log('latitude: ', lat);
             // console.log('longitude: ', lng);
+            // 39.4810, -0.3625
             if (map) {
                 map.remove();
             }
 
-            map = L.map('map').setView([39.4810, -0.3625], 13);
+           map = L.map('map').setView([lat,lng], 13);
 
             setTimeout(() => {
                 map.invalidateSize();
@@ -170,14 +189,18 @@
             if (selectedMonth) {
                 url += `&month=${selectedMonth}`;
             }
+            if (selectedYear) {
+                url += `&year=${selectedYear}`;
+            }
             if (search) {
                 url += `&search=${encodeURIComponent(search)}`;
             }
+
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     data.forEach(event => {
-                        // console.log("Event:", event);
+                        console.log("Event:", event);
                         let lat = parseFloat(event.latitude);
                         let lng = parseFloat(event.longitude);
                         // let marker = L.marker([lat, lng])
@@ -185,27 +208,27 @@
                         //     .bindPopup(event.title);
 
                         let popupContent = `
-                                                        <a href="event-detail/${event.slug}" class="event-card-link">
-                                                                            <div class="event-card-popup">
-                                                                                <img src="${event.image_url}" 
-                                                                                    alt="${event.title}" 
-                                                                                    class="event-img" />
+                                                                <a href="event-detail/${event.slug}" class="event-card-link">
+                                                                                    <div class="event-card-popup">
+                                                                                        <img src="${event.image_url}" 
+                                                                                            alt="${event.title}" 
+                                                                                            class="event-img" />
 
-                                                                                <div class="event-body">
-                                                                                <h3>${event.title}</h3>
+                                                                                        <div class="event-body">
+                                                                                        <h3>${event.title}</h3>
 
-                                                                                <p>
-                                                                                    <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
-                                                                                </p>
+                                                                                        <p>
+                                                                                            <strong>📍 Location:</strong> ${event.venue_name ?? 'N/A'}
+                                                                                        </p>
 
-                                                                                <p>
-                                                                                    <strong>🕒 Date:</strong> ${event.formatted_date ?? ''} ${event.formatted_time ?? ''}
-                                                                                </p>
+                                                                                        <p>
+                                                                                            <strong>🕒 Date:</strong> ${event.formatted_date ?? ''} ${event.formatted_time ?? ''}
+                                                                                        </p>
 
-                                                                                </div>
-                                                                            </div>
-                                                                        </a>
-                                                                            `;
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </a>
+                                                                                    `;
                         // markers.push(marker);
                         let marker = L.marker([lat, lng])
                             .bindPopup(popupContent);
