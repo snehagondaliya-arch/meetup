@@ -139,7 +139,24 @@
                     map.remove();
                 }
 
+                var userIcon = L.divIcon({
+                    className: "custom-user-marker",
+                    html: `
+                        <div class="user-marker">
+                            <div class="pulse"></div>
+                        </div>
+                    `,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                // Initialize map
                 map = L.map('map').setView([lat, lng], 13);
+
+                // Add user marker
+                var userMarker = L.marker([lat, lng], {
+                    icon: userIcon
+                }).addTo(map);
 
                 setTimeout(() => {
                     map.invalidateSize();
@@ -187,7 +204,7 @@
 
                         response.events.forEach(function (event) {
 
-                            console.log(event);
+                            // console.log(event);
 
                             let popupContent = `
                             <a href="event-detail/${event.slug}" class="event-card-link">
