@@ -36,7 +36,7 @@ class ContactController extends Controller
         ]);
 
         $data = [
-            'first_name' => $request->first_name,
+            'first_name' => $request->first_name,   
             'last_name' => $request->last_name,
             'email' => $request->email,
             'message' => $request->message,

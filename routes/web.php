@@ -5,8 +5,11 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\ImportJsonController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\EventDataController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrganizationAuthController;
+
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -17,11 +20,20 @@ Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback']);
 
 Route::post('/logout', function () {
-    Auth::logout();
+
+    if (Auth::guard('organization')->check()) {
+        Auth::guard('organization')->logout();
+    }
+
+    if (Auth::check()) {
+        Auth::logout();
+    }
+
     request()->session()->invalidate();
     request()->session()->regenerateToken();
 
     return redirect()->route('index');
+
 })->name('logout');
 
 
@@ -52,3 +64,21 @@ Route::resource('contact',ContactController::class);
 Route::get('/map', [EventController::class, 'map'])->name('map'); 
 
 Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');
+
+// organization auth
+Route::middleware('guest:organization')->group(function () {
+
+    Route::post('/organization/register', [OrganizationAuthController::class, 'register'])
+        ->name('organization.register');
+
+    Route::post('/organization/login', [OrganizationAuthController::class, 'login'])
+        ->name('organization.login');
+
+});
+
+Route::prefix('organization')
+    ->controller(EventDataController::class)
+    ->group(function () {
+    Route::get('/create','create')->name('organization.create');
+    Route::post('/store','store')->name('organization.store');
+});

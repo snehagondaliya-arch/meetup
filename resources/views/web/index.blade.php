@@ -141,9 +141,6 @@
 
                 let allMessages = [];
 
-                /* ===================================
-                   BUILD TREE
-                =================================== */
                 function buildTree(messages) {
 
                     const map = {};
@@ -171,9 +168,6 @@
                     return roots;
                 }
 
-                /* ===================================
-                   FETCH MESSAGES
-                =================================== */
                 async function fetchMessages() {
 
                     try {
@@ -196,19 +190,10 @@
                     }
                 }
 
-                /* ===================================
-                   INITIAL LOAD
-                =================================== */
                 fetchMessages();
 
-                /* ===================================
-                   AUTO REFRESH
-                =================================== */
-                setInterval(fetchMessages, 2000);
+                // setInterval(fetchMessages, 2000);
 
-                /* ===================================
-                   SEND ROOT MESSAGE
-                =================================== */
                 el.form.addEventListener('submit', async (e) => {
 
                     e.preventDefault();
@@ -233,9 +218,6 @@
                     }
                 });
 
-                /* ===================================
-                   RENDER ALL
-                =================================== */
                 function renderAll() {
 
                     el.messages.innerHTML = '';
@@ -264,9 +246,6 @@
                     el.messages.scrollTop = el.messages.scrollHeight;
                 }
 
-                /* ===================================
-                   CREATE MESSAGE NODE
-                =================================== */
                 function createMessageNode(m, level = 0) {
 
                     const div = document.createElement('div');
@@ -346,9 +325,6 @@
                     const replySend = div.querySelector('.reply-input button');
                     const repliesContainer = div.querySelector('.replies');
 
-                    /* =========================
-                       TOGGLE REPLY BOX
-                    ========================= */
                     if (replyBtn) {
 
                         replyBtn.onclick = () => {
@@ -360,9 +336,6 @@
                         };
                     }
 
-                    /* =========================
-                       SEND REPLY
-                    ========================= */
                     if (replySend) {
 
                         replySend.onclick = async () => {
@@ -386,9 +359,6 @@
                         };
                     }
 
-                    /* =========================
-                       REPLIES
-                    ========================= */
                     if (m.replies && m.replies.length > 0) {
 
                         let expanded = false;
@@ -431,10 +401,7 @@
                     return div;
                 }
 
-                /* ===================================
-                   CHAT TOGGLE
-                =================================== */
-
+                // chat toogle
                 const chatToggle = document.getElementById('chatToggle');
                 const chatBox = document.getElementById('chatBox');
                 const closeChat = document.getElementById('closeChat');
