@@ -8,7 +8,7 @@ use App\Jobs\MarkFileProcessedJob;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\EventPhotos;
-use App\Models\Group;
+use App\Models\Organization;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -73,8 +73,8 @@ class ProcessSingleFileJob implements ShouldQueue
 
                     if (!empty($eventData['group'])) {
                         $group = $groupCache[$eventData['group']]
-                            ??= Group::firstOrCreate([
-                                'name' => $eventData['group']
+                            ??= Organization::firstOrCreate([
+                                'organization_name' => $eventData['group']   
                             ]);
                     }
 
@@ -114,7 +114,7 @@ class ProcessSingleFileJob implements ShouldQueue
                         ],
                         [
                             'category_id' => $category->id,
-                            'group_id' => $group->id ?? null,
+                            'organization_id' => $group->id ?? null,
                             'title' => $eventData['title'] ?? 'N/A',
                             'start_time' => $startDateTime,
                             'end_time' => $endDateTime,

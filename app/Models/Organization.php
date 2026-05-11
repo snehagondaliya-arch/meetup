@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Organization extends Authenticatable
 {
+    protected $table = 'organizations';
     protected $fillable = [
         'organization_name',
         'email',
@@ -16,4 +17,11 @@ class Organization extends Authenticatable
         'password',
         'remember_token'
     ];
+    protected $casts = [
+        'password' => 'hashed',
+    ];
+
+    public function events(){
+        return $this->hasMany(Event::class);
+    }
 }

@@ -18,6 +18,9 @@
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js{{ ASSETS_VERSION }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js{{ ASSETS_VERSION }}"></script>
 
+{{-- datatable --}}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js{{ ASSETS_VERSION }}"></script>
+
 <script>
     $.ajaxSetup({
         headers: {

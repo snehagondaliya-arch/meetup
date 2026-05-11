@@ -127,10 +127,14 @@
     @section('js')
         <script>
             // chat
-            
+
             document.addEventListener('DOMContentLoaded', () => {
-            window.baseUrl = "{{ url('/') }}";
-            window.currentUserId = {{ auth()->id() ?? 'null' }};
+                window.baseUrl = "{{ url('/') }}";
+                window.currentUserId = @json(
+                    Auth::guard('organization')->check()
+                    ? Auth::guard('organization')->id()
+                    : auth()->id()
+                );
                 const el = {
                     messages: document.getElementById('messages'),
                     form: document.getElementById('message-form'),
@@ -229,8 +233,8 @@
                         noMsg.className = 'no-messages';
 
                         noMsg.innerHTML = `
-                        No messages yet. Start conversation 👋
-                    `;
+                                No messages yet. Start conversation 👋
+                            `;
 
                         el.messages.appendChild(noMsg);
 
@@ -250,7 +254,13 @@
 
                     const div = document.createElement('div');
 
+                    const isOrg = m.user_type === 'organization';
+
                     const isMe = Number(m.user_id) === Number(window.currentUserId);
+
+                    const name = isOrg
+                        ? m.organization?.organization_name
+                        : m.user?.name;
 
                     const time = new Date(m.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
@@ -258,66 +268,41 @@
                     });
 
                     div.className = `chat-message ${isMe ? 'me' : 'other'}`;
-
                     div.style.marginLeft = level * 16 + 'px';
 
-                    const firstLetter = (m.user?.name || 'U')[0].toUpperCase();
+                    const firstLetter = (name || 'U')[0].toUpperCase();
 
                     div.innerHTML = `
-                    <div class="msg-row">
+            <div class="msg-row">
 
-                        <div class="avatar">
-                            ${firstLetter}
-                        </div>
+                <div class="avatar">${firstLetter}</div>
 
-                        <div class="msg-content">
+                <div class="msg-content">
 
-                            <div class="msg-header">
-
-                                <span class="msg-name">
-                                    ${m.user?.name || 'User'}
-                                </span>
-
-                                <span class="msg-time">
-                                    ${time}
-                                </span>
-
-                            </div>
-
-                            <div class="msg-line">
-
-                                <div class="msg-text">
-                                    ${m.message}
-                                </div>
-
-                                ${level === 0 ? `
-                                    <span class="reply-btn">
-                                        ↩ Reply
-                                    </span>
-                                ` : ''}
-
-                            </div>
-
-                            <div class="reply-box" style="display:none;">
-
-                                <div class="reply-input">
-
-                                    <input type="text" placeholder="Write a reply..." />
-
-                                    <button>
-                                        Send
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                            <div class="replies"></div>
-
-                        </div>
-
+                    <div class="msg-header">
+                        <span class="msg-name">${name || 'User'}</span>
+                        <span class="msg-time">${time}</span>
                     </div>
-                `;
+
+                    <div class="msg-line">
+                        <div class="msg-text">${m.message}</div>
+
+                        ${level === 0 ? `<span class="reply-btn">↩ Reply</span>` : ''}
+                    </div>
+
+                    <div class="reply-box" style="display:none;">
+                        <div class="reply-input">
+                            <input type="text" placeholder="Write a reply..." />
+                            <button>Send</button>
+                        </div>
+                    </div>
+
+                    <div class="replies"></div>
+
+                </div>
+
+            </div>
+        `;
 
                     const replyBtn = div.querySelector('.reply-btn');
                     const replyBox = div.querySelector('.reply-box');
@@ -325,37 +310,27 @@
                     const replySend = div.querySelector('.reply-input button');
                     const repliesContainer = div.querySelector('.replies');
 
+                    // toggle reply box
                     if (replyBtn) {
-
                         replyBtn.onclick = () => {
-
                             replyBox.style.display =
-                                replyBox.style.display === 'none'
-                                    ? 'block'
-                                    : 'none';
+                                replyBox.style.display === 'none' ? 'block' : 'none';
                         };
                     }
 
+                    // send reply
                     if (replySend) {
-
                         replySend.onclick = async () => {
 
                             const text = replyInput.value.trim();
-
                             if (!text) return;
 
-                            try {
+                            await $.post(window.baseUrl + '/messages', {
+                                message: text,
+                                parent_id: m.id
+                            });
 
-                                await $.post(window.baseUrl + '/messages', {
-                                    message: text,
-                                    parent_id: m.id
-                                });
-
-                                fetchMessages();
-
-                            } catch (error) {
-                                console.log(error);
-                            }
+                            fetchMessages();
                         };
                     }
 
@@ -370,7 +345,6 @@
                             if (expanded) {
 
                                 m.replies.forEach(reply => {
-
                                     repliesContainer.appendChild(
                                         createMessageNode(reply, level + 1)
                                     );
@@ -378,17 +352,16 @@
                             }
 
                             const toggle = document.createElement('div');
-
                             toggle.className = 'view-more';
 
                             toggle.innerHTML = expanded
                                 ? 'Hide replies'
-                                : 'View replies';
+                                : `View replies (${m.replies.length})`;
+
+                            toggle.style.cursor = 'pointer';
 
                             toggle.onclick = () => {
-
                                 expanded = !expanded;
-
                                 renderReplies();
                             };
 
@@ -423,7 +396,6 @@
             });
             // Event-Filter-Select-2
             $(document).ready(function () {
-                window.currentUserId = {{ auth()->id() ?? 'null' }};
                 let category = null;
                 let search = '';
 

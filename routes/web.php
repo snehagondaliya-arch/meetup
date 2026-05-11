@@ -76,9 +76,6 @@ Route::middleware('guest:organization')->group(function () {
 
 });
 
-Route::prefix('organization')
-    ->controller(EventDataController::class)
-    ->group(function () {
-    Route::get('/create','create')->name('organization.create');
-    Route::post('/store','store')->name('organization.store');
+Route::prefix('organization')->group(function () {
+    Route::resource('events', EventDataController::class);
 });

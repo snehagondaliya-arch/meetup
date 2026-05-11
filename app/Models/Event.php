@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\Category;
 use App\Models\EventPhotos;
-use App\Models\Group;
 use Carbon\Carbon;
 use App\Traits\HasImageUrl;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -18,10 +17,13 @@ class Event extends Model
     public const STATUS_LIVE_NOW = 'Live Now';
     public const STATUS_EXPIRED = 'Expired';
 
+    public const ONLINE = 'Online';
+    public const OFFLINE = 'Offline';
+
     protected $appends = ['formatted_date', 'formatted_time'];
     protected $fillable = [
         'category_id',
-        'group_id',
+        'organization_id',
         'title',
         'slug',
         'host_name',
@@ -55,9 +57,9 @@ class Event extends Model
         return $this->hasMany(EventPhotos::class);
     }
 
-    public function group()
+    public function organization()
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(Organization::class);
     }
 
     public function scopeByCategory($query, $categorySlug)
@@ -161,7 +163,7 @@ class Event extends Model
     }
 
     protected function imageUrl(): Attribute
-    {
+    {   
         return Attribute::make(
             get: fn ($value) => $this->resolveImageUrl($value,EVENT_IMAGES) 
         );
@@ -173,7 +175,13 @@ class Event extends Model
         );
 
     }
-
+    protected function groupImage(): Attribute
+    {
+        return Attribute::make(
+          get: fn ($value) => $this->resolveImageUrl($value,GROUP_IMAGES) 
+        );
+    }
+    
     public function getStatusAttribute()
     {
         $now = Carbon::now();
@@ -229,4 +237,6 @@ class Event extends Model
             $this->end_local->format('g:i A') . ' ' .
             $this->start_local->format('T');
     }
+
+
 }

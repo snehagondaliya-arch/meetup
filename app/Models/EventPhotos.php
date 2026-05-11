@@ -20,11 +20,10 @@ class EventPhotos extends Model
         return $this->belongsTo(Event::class);
     }
 
-    protected function eventphotos(): Attribute
+     protected function eventPhotos(): Attribute
     {
         return Attribute::make(
             get: fn($value) => $this->resolveImageUrl($value, EVENT_PHOTOS)
         );
-
     }
 }

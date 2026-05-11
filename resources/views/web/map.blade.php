@@ -134,6 +134,7 @@
 
                 let lat = position.coords.latitude;
                 let lng = position.coords.longitude;
+                console.log(lat,lng);
 
                 if (map) {
                     map.remove();

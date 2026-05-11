@@ -15,3 +15,13 @@ function createUniqueSlug($title)
 
     return $slug;
 }
+
+function uploadImage($file, $folder)
+{
+    $image = md5($file);
+    $filename = $image. '.' . $file->getClientOriginalExtension();
+
+    $file->move(public_path($folder), $filename);
+
+    return $filename;
+}

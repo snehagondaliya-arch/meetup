@@ -18,7 +18,7 @@
 
         <div class="card-body">
 
-            <form action="{{ route('organization.store') }}"
+            <form action="{{ route('events.store') }}"
                   method="POST"
                   enctype="multipart/form-data">
                 @csrf
@@ -61,8 +61,8 @@
 
                         <label class="form-label">Organization</label>
 
-                        <select name="group_id"
-                                class="form-select @error('group_id') is-invalid @enderror"
+                        <select name="organization_id"
+                                class="form-select @error('organization_id') is-invalid @enderror"
                                 >
 
                             <option value="">Select Organization</option>
@@ -70,7 +70,7 @@
                             @foreach($organizations as $organization)
 
                                 <option value="{{ $organization->id }}"
-                                    {{ old('group_id') == $organization->id ? 'selected' : '' }}>
+                                    {{ old('organization_id') == $organization->id ? 'selected' : '' }}>
 
                                     {{ $organization->organization_name }}
 
@@ -80,7 +80,7 @@
 
                         </select>
 
-                        @error('group_id')
+                        @error('organization_id')
                             <div class="invalid-feedback">
                                 {{ $message }}
                             </div>
@@ -385,6 +385,24 @@
 
                         @error('is_online')
                             <div class="text-danger small">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
+                    {{-- events Images --}}
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">Event Photos</label>
+
+                        <input type="file"
+                            name="event_photos[]"
+                            class="form-control"
+                            accept="image/*"
+                            multiple>
+
+                        @error('event_photos.*')
+                            <div class="invalid-feedback d-block">
                                 {{ $message }}
                             </div>
                         @enderror

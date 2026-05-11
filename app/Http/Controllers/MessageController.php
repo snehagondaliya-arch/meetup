@@ -15,20 +15,23 @@ class MessageController extends Controller
             'parent_id' => 'nullable|exists:messages,id'
         ]);
 
-        $message = Message::create([
-            'user_id' => Auth::id(),
+        $isOrg = Auth::guard('organization')->check();
+
+        $message = Message::create([ 
+            'user_id' => $isOrg ? Auth::guard('organization')->id() : Auth::id(),
+            'user_type' => $isOrg ? 'organization' : 'user',
             'message' => $request->message,
             'parent_id' => $request->parent_id
         ]);
 
         return response()->json(
-            $message->load('user')
+            $message->load(['user', 'organization'])
         );
     }
 
     public function fetchMessages()
     {
-        $messages = Message::with('user')
+        $messages = Message::with(['user', 'organization', 'replies.user', 'replies.organization'])
             ->orderBy('created_at', 'asc')
             ->get();
 

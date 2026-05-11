@@ -11,7 +11,6 @@
         {{-- Navigation --}}
         <div class="d-lg-block d-none mx-auto">
             <ul class="navbar-nav custom-scroll px-lg-0 px-4">
-
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('index') ? 'active' : '' }}" href="{{ route('index') }}">
                         Home
@@ -99,7 +98,7 @@
                                     {{-- Create Event (only organization) --}}
                                     @if(Auth::guard('organization')->check())
                                         <div class="p-3 border-bottom">
-                                            <a href="{{ route('organization.create') }}" class="btn btn-primary w-100">
+                                            <a href="{{ route('events.create') }}" class="btn btn-primary w-100">
                                                 Create Event
                                                 <i class="fa-solid fa-plus ms-1"></i>
                                             </a>
