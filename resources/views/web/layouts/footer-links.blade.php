@@ -21,6 +21,10 @@
 {{-- datatable --}}
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js{{ ASSETS_VERSION }}"></script>
 
+
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script src="https://unpkg.com/leaflet-control-search/dist/leaflet-search.min.js"></script>
+
 <script>
     $.ajaxSetup({
         headers: {

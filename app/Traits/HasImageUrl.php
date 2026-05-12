@@ -16,4 +16,4 @@ trait HasImageUrl
 
         return asset(PLACEHOLDER_IMAGE);
     }
-}
+}   

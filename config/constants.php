@@ -3,7 +3,7 @@ if(!defined('ASSETS_VERSION')) {
     define('ASSETS_VERSION', '?v=1.0.0');
 }
 if(!defined('PLACEHOLDER_IMAGE')) {
-    define('PLACEHOLDER_IMAGE', 'uploads/images/no-event-found.jpg');
+    define('PLACEHOLDER_IMAGE', 'uploads/images/no-event-found.png');
 }
 if(!defined('EVENT_IMAGES')) {
     define('EVENT_IMAGES', 'uploads/events/');

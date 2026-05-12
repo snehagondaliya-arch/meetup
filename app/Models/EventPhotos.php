@@ -23,7 +23,8 @@ class EventPhotos extends Model
      protected function eventPhotos(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => $this->resolveImageUrl($value, EVENT_PHOTOS)
+            get: fn($value) => $this->resolveImageUrl($value, EVENT_PHOTOS),
+            set: fn ($value) => $value
         );
     }
 }

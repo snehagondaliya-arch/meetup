@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\EventPhotos;
 use App\Models\Organization;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -32,7 +33,7 @@ class EventDataController extends Controller
                         : '<span class="badge bg-secondary">' . Event::OFFLINE . '</span>';
                 })
                 ->addColumn('action', function ($event) {
-                    return '<a href="#" type="button" data-bs-toggle="modal" data-bs-target="#editModal" class="EditBtn"data-id="' . $event->id . '">
+                    return '<a href="#" type="button" data-bs-toggle="modal" data-bs-target="#editModal" class="EditBtn"data-slug="' . $event->slug . '">
                                 <i class="fas fa-edit text-success"></i>
                             </a>
                             <a href="" class="DeleteBtn" data-id="' . $event->id . '">
@@ -53,7 +54,7 @@ class EventDataController extends Controller
     public function create()
     {
         $categories = Category::all();
-        $organizations = Organization::paginate(10);
+        $organizations = Organization::all();
         return view('events.create', compact('categories', 'organizations'));
     }
 
@@ -104,11 +105,24 @@ class EventDataController extends Controller
         if ($request->hasFile('host_image')) {
             $validated['host_image'] = uploadImage($request->file('host_image'), $imagepath['hosts']);
         }
-        $event = Event::create($validated);
-        if ($request->hasFile('event_photos')) {
+        if ($request->start_time) {
+                $validated['start_time'] = Carbon::parse(
+                    $request->start_time,
+                    $request->timezone ?? config('app.timezone')
+                )->utc();
+        }
 
-            foreach ($request->file('event_photos') as $photo) {
-                $event_photos = uploadImage($photo, $imagepath['event_photos']);
+            if ($request->end_time) {
+                    $validated['end_time'] = Carbon::parse( 
+                        $request->end_time,
+                        $request->timezone ?? config('app.timezone')
+                    )->utc();
+            }
+            $event = Event::create($validated);
+            if ($request->hasFile('event_photos')) {
+
+                foreach ($request->file('event_photos') as $photo) {
+                    $event_photos = uploadImage($photo, $imagepath['event_photos']);
                 EventPhotos::create([
                     'event_id' => $event->id,
                     'event_photos' => $event_photos
@@ -117,8 +131,7 @@ class EventDataController extends Controller
         }
 
         return redirect()
-            ->back()
-            ->withInput()
+            ->route('events.index')
             ->with('success', 'Event created successfully.');
 
 
@@ -135,26 +148,27 @@ class EventDataController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(string $slug)
     {
-        $event = Event::with('event_photos')->findOrFail($id);
+        $event = Event::with('event_photos')
+            ->where('slug', $slug)
+            ->firstOrFail();
         $categories = Category::all();
-        $organizations = Organization::limit(10)->get();
+        $organizations = Organization::all();
 
         return response()->json([
             'event' => $event,
             'categories' => $categories,
             'organizations' => $organizations
-
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $slug)
     {
-        $event = Event::findOrFail($id);
+        $event = Event::where('slug', $slug)->firstOrFail();
 
         // Validation
         $request->validate([
@@ -200,35 +214,42 @@ class EventDataController extends Controller
 
 
         // EVENT IMAGE
+        // if ($event->image_url) {
+        //         $debugPath = public_path(EVENT_IMAGES . $event->getRawOriginal('image_url'));
+        //         if (!file_exists($debugPath)) {
+        //             \Log::error("File not found at: " . $debugPath);
+        //         }
+        //     }
         if ($request->hasFile('image_url')) {
 
-            if ($event->image_url && file_exists(public_path(EVENT_IMAGES . $event->image_url))) {
-                unlink(public_path(EVENT_IMAGES . $event->image_url));
+            if ($event->getRawOriginal('image_url') && file_exists(public_path(EVENT_IMAGES . $event->getRawOriginal('image_url')))) {
+                unlink(public_path(EVENT_IMAGES . $event->getRawOriginal('image_url')));
             }
 
-            $event->image_url = uploadImage($request->file('image_url'), $imagepath['events']);
+            $event->forceFill(['image_url' => uploadImage($request->file('image_url'), $imagepath['events'])]);
+
         }
 
 
         // GROUP IMAGE
         if ($request->hasFile('group_image')) {
 
-            if ($event->group_image && file_exists(public_path(GROUP_IMAGES . $event->group_image))) {
-                unlink(public_path(GROUP_IMAGES . $event->group_image));
+            if ($event->getRawOriginal('group_image') && file_exists(public_path(GROUP_IMAGES . $event->getRawOriginal('group_image')))) {
+                unlink(public_path(GROUP_IMAGES . $event->getRawOriginal('group_image')));
             }
 
-            $event->group_image = uploadImage($request->file('group_image'),$imagepath['groups'] );
+            $event->forceFill(['group_image' => uploadImage($request->file('group_image'), $imagepath['groups'])]);
         }
 
 
         // HOST IMAGE
         if ($request->hasFile('host_image')) {
 
-            if ($event->host_image && file_exists(public_path(HOST_IMAGES . $event->host_image))) {
-                unlink(public_path(HOST_IMAGES . $event->host_image));
+            if ($event->getRawOriginal('host_image') && file_exists(public_path(HOST_IMAGES .$event->getRawOriginal('host_image')))) {
+                unlink(public_path(HOST_IMAGES . $event->getRawOriginal('host_image')));
             }
 
-            $event->host_image = uploadImage($request->file('host_image'), $imagepath['hosts']);
+            $event->forceFill(['host_image' => uploadImage($request->file('host_image'), $imagepath['hosts'])]);
         }
 
 
@@ -242,22 +263,21 @@ class EventDataController extends Controller
             // delete old
             foreach ($event->event_photos as $photo) {
 
-                if (
-                    $photo->event_photos &&
-                    file_exists(public_path(EVENT_PHOTOS . $photo->event_photos))
-                ) {
-                    unlink(public_path(EVENT_PHOTOS . $photo->event_photos));
+                $oldImage = $photo->getRawOriginal('event_photos');
+
+                if ($oldImage && file_exists(public_path(EVENT_PHOTOS . $oldImage))) {
+                    unlink(public_path(EVENT_PHOTOS . $oldImage));
                 }
 
                 $photo->delete();
             }
 
             // add new
-            foreach ($request->file('event_photos') as $photo) {
+            foreach ($request->file('event_photos') as $file) {
 
                 EventPhotos::create([
                     'event_id' => $event->id,
-                    'event_photos' => uploadImage($photo, $imagepath['event_photos'])
+                    'event_photos' => uploadImage($file, $imagepath['event_photos'])
                 ]);
             }
         }
@@ -277,40 +297,37 @@ class EventDataController extends Controller
 
         // Delete event image
         if (
-            $event->image_url &&
-            file_exists(public_path(EVENT_IMAGES . $event->image_url))
+            $event->getRawOriginal('image_url') &&
+            file_exists(public_path(EVENT_IMAGES . $event->getRawOriginal('image_url')))
         ) {
 
-            unlink(public_path(EVENT_IMAGES . $event->image_url));
+            unlink(public_path(EVENT_IMAGES . $event->getRawOriginal('image_url')));
         }
 
         // Delete group image
         if (
-            $event->group_image &&
-            file_exists(public_path(GROUP_IMAGES . $event->group_image))
+            $event->getRawOriginal('group_image') &&
+            file_exists(public_path(GROUP_IMAGES . $event->getRawOriginal('group_image')))
         ) {
 
-            unlink(public_path(GROUP_IMAGES . $event->group_image));
+            unlink(public_path(GROUP_IMAGES . $event->getRawOriginal('group_image')));
         }
 
         // Delete host image
-        if (
-            $event->host_image &&
-            file_exists(public_path(HOST_IMAGES . $event->host_image))
-        ) {
+        if ($event->getRawOriginal('host_image') && file_exists(public_path(HOST_IMAGES . $event->getRawOriginal('host_image')))) {
 
-            unlink(public_path(HOST_IMAGES . $event->host_image));
+            unlink(public_path(HOST_IMAGES . $event->getRawOriginal('host_image')));
         }
 
         // Delete gallery image files
         foreach ($event->event_photos as $photo) {
 
             if (
-                $photo->event_photos &&
-                file_exists(public_path(EVENT_PHOTOS . $photo->event_photos))
+                $photo->getRawOriginal('event_photos') &&
+                file_exists(public_path(EVENT_PHOTOS . $photo->getRawOriginal('event_photos')))
             ) {
 
-                unlink(public_path(EVENT_PHOTOS . $photo->event_photos));
+                unlink(public_path(EVENT_PHOTOS . $photo->getRawOriginal('event_photos')));
             }
         }
 

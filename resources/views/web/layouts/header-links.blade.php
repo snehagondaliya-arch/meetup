@@ -33,3 +33,6 @@
 {{-- data table --}}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css{{ ASSETS_VERSION }}">
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-search/dist/leaflet-search.min.css">
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />

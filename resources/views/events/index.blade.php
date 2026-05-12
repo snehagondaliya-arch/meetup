@@ -4,7 +4,7 @@
 @section('content')
     <div class="container py-5">
         <h2 class="mb-4 text-center">Events</h2>
-        <div class="table-responsive">
+
             <table class="table table-striped table-nowrap align-middle">
                 <thead>
                     <tr>
@@ -29,36 +29,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- @foreach ($events as $event) --}}
-                    {{-- @dump($events) --}}
-                    {{-- <tr>
-                        <td>{{ $events->id }}</td>
-                        <td>
-                            <img style="width:50px; height:50px; object-fit:cover;" src="{{ $events->image_url }}" alt="">
-                        </td>
-                        <td>{{ $events->category->name }}</td>
-                        <td>{{ $events->organization->organization_name }}</td>
-                        <td>{{ $events->title }}</td>
-                        <td>{{ $events->formatted_date_time }}</td>
-                        <td class="text-truncate">{{ $events->venue_name }}</td>
-                        <td class="text-truncate">{{ $events->full_address }}</td>
-                        <td><img style="width:50px; height:50px; object-fit:cover;" src="{{ $events->group_image }}" alt="">
-                        </td> --}}
-                        {{-- <td class="text-truncate">{{ $events->description }}</td> --}}
-                        {{-- <td class="text-truncate">{{ $events->host_name }}</td>
-                        <td><img style="width:50px; height:50px; object-fit:cover;" src="{{ $events->host_image }}" alt="">
-                        </td>
-                        <td>{{ $events->price }}</td>
-                        <td>{{ $events->is_online == 1 ? 'Online' : 'Offline';}}</td>
-                        <td>
-                            <a href=""><i class="fas fa-edit text-success"></i></a>
-                            <a href=""><i class="fa-solid fa-trash text-danger"></i></a>
-                        </td>
-                    </tr> --}}
-                    {{-- @endforeach --}}
                 </tbody>
             </table>
-        </div>
+
         {{-- update modal --}}
         <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -73,7 +46,7 @@
                                 @csrf
                                 @method('PUT')
                                     <div class="row">
-                                     <input type="hidden" id="event_id" name="event_id">   
+                                     <input type="hidden" id="event_slug" name="event_slug">   
                                 {{-- Category --}}  
                               <div class="col-md-6 mb-3">
                                     <label class="form-label">Category</label>
@@ -101,7 +74,7 @@
                                     <select id="organization_id" name="organization_id"
                                             class="form-select @error('organization_id') is-invalid @enderror"
                                             >
-                                    </select>
+                                    </select>   
 
                                     @error('organization_id')
                                         <div class="invalid-feedback">
@@ -157,30 +130,15 @@
 
                                     <label class="form-label">Timezone</label>
 
-                                   <select id="timezone" name="timezone" class="form-select">
-
+                                  <select id="timezone" name="timezone" class="form-select">
                                         <option value="">Select Timezone</option>
 
-                                        <option value="Asia/Kolkata"
-                                            {{ old('timezone') == 'Asia/Kolkata' ? 'selected' : '' }}>
-                                            Asia/Kolkata
-                                        </option>
-
-                                        <option value="UTC"
-                                            {{ old('timezone') == 'UTC' ? 'selected' : '' }}>
-                                            UTC
-                                        </option>
-
-                                        <option value="America/New_York"
-                                            {{ old('timezone') == 'America/New_York' ? 'selected' : '' }}>
-                                            America/New_York
-                                        </option>
-
-                                        <option value="Europe/London"
-                                            {{ old('timezone') == 'Europe/London' ? 'selected' : '' }}>
-                                            Europe/London
-                                        </option>
-
+                                        @foreach (DateTimeZone::listIdentifiers() as $tz)
+                                            <option value="{{ $tz }}"
+                                                {{ old('timezone') == $tz ? 'selected' : '' }}>
+                                                {{ $tz }}
+                                            </option>
+                                        @endforeach
                                     </select>
 
                                     @error('timezone')
@@ -261,7 +219,7 @@
                                     class="rounded border"
                                     style="object-fit:cover;" alt="event Image">
 
-                            @error('image')
+                            @error('image_url')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -537,31 +495,31 @@ $(document).ready(function () {
 
         e.preventDefault();
 
-        let id = $(this).data('id');
+        let slug = $(this).data('slug');
 
-        if (!id) {
-            console.error('Event ID not found');
+        if (!slug) {
+            console.error('Event slug not found');
             return;
         }
 
         $.ajax({
 
-            url: "{{ url('organization/events') }}/" + id + "/edit",
+            url: "{{ url('organization/events') }}/" + slug + "/edit",
 
             type: "GET",
 
             success: function (response) {
 
-                console.log(response);
+                // console.log(response);
 
                 // FORM ACTION
                 $('#UpdateEvents').attr(
                     'action',
-                    "{{ url('organization/events') }}/" + response.event.id
+                    "{{ url('organization/events') }}/" + response.event.slug
                 );
 
                 // HIDDEN ID
-                $('#event_id').val(response.event.id);
+                $('#event_slug').val(response.event.slug);
 
                 // IMAGES
                 $("#image_url").attr("src", response.event.image_url);
@@ -694,6 +652,7 @@ $(document).ready(function () {
         let form = $(this);
 
         let url = form.attr('action');
+        console.log(url);
 
         let formData = new FormData(this);
 
@@ -715,11 +674,9 @@ $(document).ready(function () {
 
             success: function (response) {
 
-                console.log(response);
+                // console.log(response);
 
                 if (response.status) {
-
-                    alert(response.message);
 
                     $('#editModal').modal('hide');
 
@@ -759,11 +716,7 @@ $(document).ready(function () {
 
             success: function (response) {
 
-                console.log(response);
-
                 if (response.status) {
-
-                    alert(response.message);
 
                     Datatable.ajax.reload(null, false);
                 }
