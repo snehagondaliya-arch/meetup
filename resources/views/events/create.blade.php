@@ -254,7 +254,7 @@
             $('input[name="longitude"]').val(lng);
             $('input[name="full_address"]').val(address);
 
-            console.log("FORM UPDATED:", lat, lng, address);
+            // console.log("FORM UPDATED:", lat, lng, address);
         }
 
         var geocoder = L.Control.geocoder({
