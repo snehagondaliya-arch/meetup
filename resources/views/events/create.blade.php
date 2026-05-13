@@ -34,7 +34,7 @@
                                 {{-- Category --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Category</label>
-                                        <select class="form-control @error('title') is-invalid @enderror event-select-s1" name="category_id">
+                                        <select class="form-control @error('category_id') is-invalid @enderror event-select-s1" name="category_id">
                                             <option value="">Select Category</option>
                                             @foreach($categories as $category)
                                                 <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>

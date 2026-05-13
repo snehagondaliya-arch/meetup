@@ -85,7 +85,7 @@
                                         <div class="invalid-feedback">
                                             {{ $message }}
                                         </div>
-                                    @enderror
+                                @enderror
                                 </div> --}}
 
                                 {{-- Title --}}
@@ -389,7 +389,6 @@
 @section('js')
     <script>
 $(document).ready(function () {
-
     let Datatable = $('.table').DataTable({
         responsive: true,
         autoWidth: false,
