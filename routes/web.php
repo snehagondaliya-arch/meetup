@@ -14,7 +14,7 @@ use App\Http\Controllers\OrganizationAuthController;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-Route::get('/import',[ImportJsonController::class,'start'])->name('import');
+Route::get('/import', [ImportJsonController::class, 'start'])->name('import');
 
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple')->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback']);
@@ -53,28 +53,23 @@ Route::get('/term-condition', [EventController::class, 'termCondition'])->name('
 
 Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclaimer');
 
-
-// Route::get('/messages', [MessageController::class, 'fetchMessages']);
-// Route::post('/messages', [MessageController::class, 'sendMessage']);
 Route::get('/messages', [MessageController::class, 'fetchMessages']);
 Route::post('/messages', [MessageController::class, 'sendMessage']);
 
-Route::resource('contact',ContactController::class);
+Route::resource('contact', ContactController::class);
 
-Route::get('/map', [EventController::class, 'map'])->name('map'); 
+Route::get('/map', [EventController::class, 'map'])->name('map');
 
 Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');
 
 // organization auth
-Route::middleware('guest:organization')->group(function () {
 
-    Route::post('/organization/register', [OrganizationAuthController::class, 'register'])
-        ->name('organization.register');
+Route::post('/organization/register', [OrganizationAuthController::class, 'register'])
+    ->name('organization.register');
 
-    Route::post('/organization/login', [OrganizationAuthController::class, 'login'])
-        ->name('organization.login');
+Route::post('/organization/login', [OrganizationAuthController::class, 'login'])
+    ->name('organization.login');
 
-});
 
 Route::middleware('auth:organization')->prefix('organization')->group(function () {
     Route::resource('events', EventDataController::class);
