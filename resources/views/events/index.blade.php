@@ -58,9 +58,7 @@
 
                                     <select id="category_id"
                                             name="category_id"
-                                            class="form-select @error('category_id') is-invalid @enderror">
-
-                                        <option value="">Select Category</option>
+                                            class="form-control @error('category_id') is-invalid @enderror event-select-s1">
 
                                     </select>
 
@@ -135,7 +133,7 @@
 
                                     <label class="form-label">Timezone</label>
 
-                                  <select id="timezone" name="timezone" class="form-select">
+                                  <select id="timezone" name="timezone" class="form-control @error('timezone') is-invalid @enderror event-select-s1">
                                         <option value="">Select Timezone</option>
 
                                         @foreach (DateTimeZone::listIdentifiers() as $tz)
@@ -157,7 +155,9 @@
                         <div class="col-md-6 mb-3">
 
                             <label class="form-label">Venue Name</label>
-
+                            <input type="hidden" id="latitude" name="latitude">
+                            <input type="hidden" id="longitude" name="longitude">
+                            <textarea id="full_address" name="full_address" hidden></textarea>
                             <input type="text" id="venue_name" name="venue_name" class="form-control">
 
                             @error('venue_name')
@@ -166,9 +166,20 @@
                                 </div>
                             @enderror
                         </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Pick Location on Map</label>
+
+                            <div id="editMap"
+                                style="height:350px; border-radius:12px; border:1px solid #ddd;">
+                            </div>
+
+                            <small class="text-muted">
+                                Click or drag marker to set location
+                            </small>
+                        </div>
 
                         {{-- Full Address --}}
-                        <div class="col-md-12 mb-3">
+                        {{-- <div class="col-md-12 mb-3">
 
                             <label class="form-label">Full Address</label>
 
@@ -179,10 +190,10 @@
                                     {{ $message }}
                                 </div>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         {{-- Latitude --}}
-                        <div class="col-md-6 mb-3">
+                        {{-- <div class="col-md-6 mb-3">
 
                             <label class="form-label">Latitude</label>
 
@@ -193,10 +204,10 @@
                                     {{ $message }}
                                 </div>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         {{-- Longitude --}}
-                        <div class="col-md-6 mb-3">
+                        {{-- <div class="col-md-6 mb-3">
 
                             <label class="form-label">Longitude</label>
 
@@ -207,7 +218,7 @@
                                     {{ $message }}
                                 </div>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         {{-- Event Image --}}
                         <div class="col-md-6 mb-3">
@@ -387,359 +398,440 @@
     </div>
 @endsection
 @section('js')
-    <script>
-$(document).ready(function () {
-    let Datatable = $('.table').DataTable({
-        responsive: true,
-        autoWidth: false,
-        scrollX: true,
-        processing: true,
-        serverSide: true,
-        searchDelay: 500,
-        info: true,
-        lengthMenu: [
-            [10, 25, 50],
-            ['10 rows', '25 rows', '50 rows']
-        ],
-        columnDefs: [
-            { targets: "_all", className: "text-center" }
-        ],  
-        language: {
-            search: '',
-            searchPlaceholder: "Search Here",
-            processing: '<span class="spinner-border spinner-border-sm"></span> Loading...',
-        },
+    <script>    
+        $('.event-select-s1').select2({
+                dropdownCssClass: "event-select-s1Dropdown",
+                width: '100%',
+                dropdownParent: $('#editModal')
+        });
 
-        ajax: "{{ route('events.index') }}",
+        let editMap;
+        let editMarker;
 
-        columns: [
-            {
-                data: 'DT_RowIndex',
-                name: 'ID',
-                orderable: false,
-                searchable: false
-            },
+        function initEditMap(lat = 51.505, lng = -0.09) {
 
-            {
-                data: 'image_url',
-                render: function (data) {
-
-                    return `
-                        <img 
-                            src="${data}" 
-                            width="80"
-                            height="80"
-                            class="rounded border"
-                            style="object-fit:cover;"
-                        >
-                    `;
-                },
-                orderable: false,
-                searchable: false
-            },
-
-            { data: 'category.name' },
-
-            { data: 'organization.organization_name' },
-
-            { data: 'title' },
-
-            { data: 'formatted_date_time', defaultContent: 'N/A' },
-
-            { data: 'venue_name' },
-
-            {
-                data: 'group_image',
-                render: function (data) {
-
-                    return `
-                        <img 
-                            src="${data}" 
-                            width="80"
-                            height="80"
-                            class="rounded border"
-                            style="object-fit:cover;"
-                        >
-                    `;
-                },
-                orderable: false,
-                searchable: false
-            },
-
-            { data: 'host_name' },
-
-            {
-                data: 'host_image',
-                render: function (data) {
-
-                    return `
-                        <img 
-                            src="${data}" 
-                            width="80"
-                            height="80"
-                            class="rounded border"
-                            style="object-fit:cover;"
-                        >
-                    `;
-                },
-                orderable: false,
-                searchable: false
-            },
-
-            { data: 'price' },
-
-            { data: 'status' },
-
-            {
-                data: 'action',
-                orderable: false,
-                searchable: false
+            // Prevent duplicate map initialization
+            if (editMap) {
+                editMap.remove();
             }
-        ]
-    });
 
+            editMap = L.map('editMap').setView([lat, lng], 13);
 
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(editMap);
 
-    $(document).on('click', '.EditBtn', function (e) {
+            editMarker = L.marker([lat, lng], {
+                draggable: true
+            }).addTo(editMap);
 
-        e.preventDefault();
+            // Drag event
+            editMarker.on('dragend', function () {
 
-        let slug = $(this).data('slug');
+                let pos = editMarker.getLatLng();
 
-        if (!slug) {
-            console.error('Event slug not found');
-            return;
+                $('#latitude').val(pos.lat);
+                $('#longitude').val(pos.lng);
+
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                    .then(res => res.json())
+                    .then(data => {
+
+                        $('#full_address').val(data.display_name);
+
+                        editMarker.bindPopup(data.display_name).openPopup();
+                    });
+            });
+
+            // Search control
+            L.Control.geocoder({
+                defaultMarkGeocode: false
+            })
+            .on('markgeocode', function (e) {
+
+                let latlng = e.geocode.center;
+                let address = e.geocode.name;
+
+                editMap.setView(latlng, 16);
+
+                editMarker.setLatLng(latlng);
+
+                $('#latitude').val(latlng.lat);
+                $('#longitude').val(latlng.lng);
+                $('#full_address').val(address);
+
+                editMarker.bindPopup(address).openPopup();
+            })
+            .addTo(editMap);
+
+            // Fix map rendering inside modal
+            setTimeout(() => {
+                editMap.invalidateSize();
+            }, 300);
         }
 
-        $.ajax({
 
-            url: "{{ url('organization/events') }}/" + slug + "/edit",
+        $(document).ready(function () {
+            
+            let Datatable = $('.table').DataTable({
+                responsive: true,
+                autoWidth: false,
+                scrollX: true,
+                processing: true,
+                serverSide: true,
+                searchDelay: 500,
+                info: true,
+                lengthMenu: [
+                    [10, 25, 50],
+                    ['10 rows', '25 rows', '50 rows']
+                ],
+                columnDefs: [
+                    { targets: "_all", className: "text-center" }
+                ],  
+                language: {
+                    search: '',
+                    searchPlaceholder: "Search Here",
+                    processing: '<span class="spinner-border spinner-border-sm"></span> Loading...',
+                },
 
-            type: "GET",
+                ajax: "{{ route('events.index') }}",
 
-            success: function (response) {
+                columns: [
+                    {
+                        data: 'DT_RowIndex',
+                        name: 'ID',
+                        orderable: false,
+                        searchable: false
+                    },
 
-                // console.log(response);
+                    {
+                        data: 'image_url',
+                        render: function (data) {
 
-                // FORM ACTION
-                $('#UpdateEvents').attr(
-                    'action',
-                    "{{ url('organization/events') }}/" + response.event.slug
-                );
+                            return `
+                                <img 
+                                    src="${data}" 
+                                    width="80"
+                                    height="80"
+                                    class="rounded border"
+                                    style="object-fit:cover;"
+                                >
+                            `;
+                        },
+                        orderable: false,
+                        searchable: false
+                    },
 
-                // HIDDEN ID
-                $('#event_slug').val(response.event.slug);
+                    { data: 'category.name' },
 
-                // IMAGES
-                $("#image_url").attr("src", response.event.image_url);
+                    { data: 'organization.organization_name' },
 
-                $("#group_image").attr("src", response.event.group_image);
+                    { data: 'title' },
 
-                $("#host_image").attr("src", response.event.host_image);
+                    { data: 'formatted_date_time', defaultContent: 'N/A' },
+
+                    { data: 'venue_name' },
+
+                    {
+                        data: 'group_image',
+                        render: function (data) {
+
+                            return `
+                                <img 
+                                    src="${data}" 
+                                    width="80"
+                                    height="80"
+                                    class="rounded border"
+                                    style="object-fit:cover;"
+                                >
+                            `;
+                        },
+                        orderable: false,
+                        searchable: false
+                    },
+
+                    { data: 'host_name' },
+
+                    {
+                        data: 'host_image',
+                        render: function (data) {
+
+                            return `
+                                <img 
+                                    src="${data}" 
+                                    width="80"
+                                    height="80"
+                                    class="rounded border"
+                                    style="object-fit:cover;"
+                                >
+                            `;
+                        },
+                        orderable: false,
+                        searchable: false
+                    },
+
+                    { data: 'price' },
+
+                    { data: 'status' },
+
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
+                ]
+            });
 
 
-                // EVENT PHOTOS
-                let photosHtml = '';
 
-                response.event.event_photos.forEach(function (photo) {
+            $(document).on('click', '.EditBtn', function (e) {
 
-                    photosHtml += `
-                        <img 
-                            src="${photo.event_photos}" 
-                            width="80"
-                            height="80"
-                            class="rounded border me-2 mb-2"
-                            style="object-fit:cover;"
-                        >
-                    `;
+                e.preventDefault();
+
+                let slug = $(this).data('slug');
+
+                if (!slug) {
+                    console.error('Event slug not found');
+                    return;
+                }
+
+                $.ajax({
+
+                    url: "{{ url('organization/events') }}/" + slug + "/edit",
+
+                    type: "GET",
+
+                    success: function (response) {
+
+                        // console.log(response);
+
+                        // FORM ACTION
+                        $('#UpdateEvents').attr(
+                            'action',
+                            "{{ url('organization/events') }}/" + response.event.slug
+                        );
+
+                        // HIDDEN ID
+                        $('#event_slug').val(response.event.slug);
+
+                        // IMAGES
+                        $("#image_url").attr("src", response.event.image_url);
+
+                        $("#group_image").attr("src", response.event.group_image);
+
+                        $("#host_image").attr("src", response.event.host_image);
+
+
+                        // EVENT PHOTOS
+                        let photosHtml = '';
+
+                        response.event.event_photos.forEach(function (photo) {
+
+                            photosHtml += `
+                                <img 
+                                    src="${photo.event_photos}" 
+                                    width="80"
+                                    height="80"
+                                    class="rounded border me-2 mb-2"
+                                    style="object-fit:cover;"
+                                >
+                            `;
+                        });
+
+                        $("#event_photos_preview").html(photosHtml);
+
+
+                        // CATEGORY
+                        let categorySelect = $('#category_id');
+
+                        categorySelect.empty();
+
+                        categorySelect.append(
+                            '<option value="">Select Category</option>'
+                        );
+
+                        $.each(response.categories, function (key, category) {
+
+                            categorySelect.append(`
+                                <option value="${category.id}"
+                                    ${response.event.category_id == category.id ? 'selected' : ''}>
+                                    ${category.name}
+                                </option>
+                            `);
+
+                        });
+                     categorySelect.val(response.event.category_id).trigger('change');
+
+                        // ORGANIZATION
+                        // let organizationSelect = $('#organization_id');
+
+                        // organizationSelect.empty();
+
+                        // organizationSelect.append(
+                        //     '<option value="">Select Organization</option>'
+                        // );
+
+                        // $.each(response.organizations, function (key, organization) {
+
+                        //     organizationSelect.append(`
+                        //         <option value="${organization.id}"
+                        //             ${response.event.organization_id == organization.id ? 'selected' : ''}>
+                        //             ${organization.organization_name}
+                        //         </option>
+                        //     `);
+
+                        // });
+
+
+                        // INPUTS
+                        $('#title').val(response.event.title);
+
+                        $('#start_time').val(
+                            response.event.start_time
+                                ? response.event.start_time.replace(' ', 'T').slice(0, 16)
+                                : ''
+                        );
+
+                        $('#end_time').val(
+                            response.event.end_time
+                                ? response.event.end_time.replace(' ', 'T').slice(0, 16)
+                                : ''
+                        );
+
+                        $('#timezone').val(response.event.timezone).trigger('change');
+
+                        $('#venue_name').val(response.event.venue_name);
+
+                        $('#full_address').val(response.event.full_address);
+
+                        // $('#latitude').val(response.event.latitude);
+
+                        // $('#longitude').val(response.event.longitude);
+                        let lat = response.event.latitude ? parseFloat(response.event.latitude) : 51.505;
+                        let lng = response.event.longitude ? parseFloat(response.event.longitude) : -0.09;
+
+                        $('#description').val(response.event.description);
+
+                        $('#host_name').val(response.event.host_name);
+
+                        $('#price').val(response.event.price);
+
+
+                        // RADIO BUTTON
+                        if (response.event.is_online == 1) {
+
+                            $('input[name="is_online"][value="1"]').prop('checked', true);
+
+                        } else {
+
+                            $('input[name="is_online"][value="0"]').prop('checked', true);
+                        }
+
+
+                        // SHOW MODAL
+                        $('#editModal').modal('show');
+
+                        $('#editModal').on('shown.bs.modal', function () {
+
+                            initEditMap(lat, lng);
+
+                        });
+                    },
+
+                    error: function (xhr) {
+
+                        console.log(xhr.responseText);
+                    }
                 });
 
-                $("#event_photos_preview").html(photosHtml);
+            });
 
+            $(document).on('submit', '#UpdateEvents', function (e) {
 
-                // CATEGORY
-                let categorySelect = $('#category_id');
+                e.preventDefault();
 
-                categorySelect.empty();
+                let form = $(this);
 
-                categorySelect.append(
-                    '<option value="">Select Category</option>'
-                );
+                let url = form.attr('action');
+                console.log(url);
 
-                $.each(response.categories, function (key, category) {
+                let formData = new FormData(this);
 
-                    categorySelect.append(`
-                        <option value="${category.id}"
-                            ${response.event.category_id == category.id ? 'selected' : ''}>
-                            ${category.name}
-                        </option>
-                    `);
+                $.ajax({
 
+                    url: url,
+
+                    type: "POST",
+
+                    data: formData,
+
+                    processData: false,
+
+                    contentType: false,
+
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+
+                    success: function (response) {
+
+                        // console.log(response);
+
+                        if (response.status) {
+
+                            $('#editModal').modal('hide');
+
+                            Datatable.ajax.reload(null, false);
+                        }
+                    },
+
+                    error: function (xhr) {
+
+                        console.log(xhr.responseText);
+                    }
                 });
 
+            });
+            $(document).on('click', '.DeleteBtn', function (e) {
 
-                // ORGANIZATION
-                // let organizationSelect = $('#organization_id');
+            e.preventDefault();
 
-                // organizationSelect.empty();
+            let id = $(this).data('id');
 
-                // organizationSelect.append(
-                //     '<option value="">Select Organization</option>'
-                // );
-
-                // $.each(response.organizations, function (key, organization) {
-
-                //     organizationSelect.append(`
-                //         <option value="${organization.id}"
-                //             ${response.event.organization_id == organization.id ? 'selected' : ''}>
-                //             ${organization.organization_name}
-                //         </option>
-                //     `);
-
-                // });
-
-
-                // INPUTS
-                $('#title').val(response.event.title);
-
-                $('#start_time').val(
-                    response.event.start_time
-                        ? response.event.start_time.replace(' ', 'T').slice(0, 16)
-                        : ''
-                );
-
-                $('#end_time').val(
-                    response.event.end_time
-                        ? response.event.end_time.replace(' ', 'T').slice(0, 16)
-                        : ''
-                );
-
-                $('#timezone').val(response.event.timezone);
-
-                $('#venue_name').val(response.event.venue_name);
-
-                $('#full_address').val(response.event.full_address);
-
-                $('#latitude').val(response.event.latitude);
-
-                $('#longitude').val(response.event.longitude);
-
-                $('#description').val(response.event.description);
-
-                $('#host_name').val(response.event.host_name);
-
-                $('#price').val(response.event.price);
-
-
-                // RADIO BUTTON
-                if (response.event.is_online == 1) {
-
-                    $('input[name="is_online"][value="1"]').prop('checked', true);
-
-                } else {
-
-                    $('input[name="is_online"][value="0"]').prop('checked', true);
-                }
-
-
-                // SHOW MODAL
-                $('#editModal').modal('show');
-            },
-
-            error: function (xhr) {
-
-                console.log(xhr.responseText);
+            if (!id) {
+                console.error('Event ID not found');
+                return;
             }
+
+            if (confirm("Are you sure you want to delete this record?")) {
+
+                $.ajax({
+
+                    url: "{{ url('organization/events') }}/" + id,
+
+                    type: "DELETE",
+
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+
+                    success: function (response) {
+
+                        if (response.status) {
+
+                            Datatable.ajax.reload(null, false);
+                        }
+                    },
+
+                    error: function (xhr) {
+
+                        console.error('Error:', xhr.responseText);
+                    }
+                });
+            }
+
         });
 
-    });
-
-    $(document).on('submit', '#UpdateEvents', function (e) {
-
-        e.preventDefault();
-
-        let form = $(this);
-
-        let url = form.attr('action');
-        console.log(url);
-
-        let formData = new FormData(this);
-
-        $.ajax({
-
-            url: url,
-
-            type: "POST",
-
-            data: formData,
-
-            processData: false,
-
-            contentType: false,
-
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-
-            success: function (response) {
-
-                // console.log(response);
-
-                if (response.status) {
-
-                    $('#editModal').modal('hide');
-
-                    Datatable.ajax.reload(null, false);
-                }
-            },
-
-            error: function (xhr) {
-
-                console.log(xhr.responseText);
-            }
         });
-
-    });
-    $(document).on('click', '.DeleteBtn', function (e) {
-
-    e.preventDefault();
-
-    let id = $(this).data('id');
-
-    if (!id) {
-        console.error('Event ID not found');
-        return;
-    }
-
-    if (confirm("Are you sure you want to delete this record?")) {
-
-        $.ajax({
-
-            url: "{{ url('organization/events') }}/" + id,
-
-            type: "DELETE",
-
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-
-            success: function (response) {
-
-                if (response.status) {
-
-                    Datatable.ajax.reload(null, false);
-                }
-            },
-
-            error: function (xhr) {
-
-                console.error('Error:', xhr.responseText);
-            }
-        });
-    }
-
-});
-
-});
 </script>
 @endsection
