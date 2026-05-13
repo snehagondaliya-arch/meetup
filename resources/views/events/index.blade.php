@@ -3,7 +3,12 @@
 @section('no-sidebar', true)
 @section('content')
     <div class="container py-5">
-        <h2 class="mb-4 text-center">Events</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="m-0">Events</h2>
+            <button class="btn btn-primary">
+                Create Event
+            </button>
+        </div>
 
             <table class="table table-striped table-nowrap align-middle">
                 <thead>
@@ -239,7 +244,7 @@
                             <img id="group_image"  width="80" 
                                     height="80"
                                     class="rounded border"
-                                    style="object-fit:cover;"src="" width='50' height='50' alt="group Image">
+                                    style="object-fit:cover;"src="" alt="group Image">
                             @error('group_image')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -285,7 +290,7 @@
                             <img id="host_image"  width="80" 
                                     height="80"
                                     class="rounded border"
-                                    style="object-fit:cover;" src="" width="50" height="50"  alt="host Image">
+                                    style="object-fit:cover;" src="" alt="host Image">
 
                             @error('host_image')
                                 <div class="invalid-feedback">
@@ -386,6 +391,9 @@
 $(document).ready(function () {
 
     let Datatable = $('.table').DataTable({
+        responsive: true,
+        autoWidth: false,
+        scrollX: true,
         processing: true,
         serverSide: true,
         searchDelay: 500,
@@ -394,7 +402,9 @@ $(document).ready(function () {
             [10, 25, 50],
             ['10 rows', '25 rows', '50 rows']
         ],
-
+        columnDefs: [
+            { targets: "_all", className: "text-center" }
+        ],  
         language: {
             search: '',
             searchPlaceholder: "Search Here",
