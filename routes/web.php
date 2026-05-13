@@ -76,6 +76,10 @@ Route::middleware('guest:organization')->group(function () {
 
 });
 
-Route::prefix('organization')->group(function () {
+Route::middleware('auth:organization')->prefix('organization')->group(function () {
     Route::resource('events', EventDataController::class);
 });
+
+Route::get('/login', function () {
+    return redirect('/');
+})->name('login');

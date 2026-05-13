@@ -444,7 +444,7 @@ $(document).ready(function () {
 
             { data: 'title' },
 
-            { data: 'formatted_date_time' },
+            { data: 'formatted_date_time', defaultContent: 'N/A' },
 
             { data: 'venue_name' },
 
