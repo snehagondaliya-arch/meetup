@@ -5,9 +5,9 @@
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="m-0">Events</h2>
-            <button class="btn btn-primary">
+            <a href="{{ route('events.create') }}" class="btn btn-primary">
                 Create Event
-            </button>
+            </a>
         </div>
 
             <table class="table table-striped table-nowrap align-middle">
@@ -72,7 +72,7 @@
                                 </div>
 
                                 {{-- Organization --}}
-                                <div class="col-md-6 mb-3">
+                                {{-- <div class="col-md-6 mb-3">
 
                                     <label class="form-label">Organization</label>
 
@@ -86,7 +86,7 @@
                                             {{ $message }}
                                         </div>
                                     @enderror
-                                </div>
+                                </div> --}}
 
                                 {{-- Title --}}
                                 <div class="col-md-6 mb-3">
@@ -580,24 +580,24 @@ $(document).ready(function () {
 
 
                 // ORGANIZATION
-                let organizationSelect = $('#organization_id');
+                // let organizationSelect = $('#organization_id');
 
-                organizationSelect.empty();
+                // organizationSelect.empty();
 
-                organizationSelect.append(
-                    '<option value="">Select Organization</option>'
-                );
+                // organizationSelect.append(
+                //     '<option value="">Select Organization</option>'
+                // );
 
-                $.each(response.organizations, function (key, organization) {
+                // $.each(response.organizations, function (key, organization) {
 
-                    organizationSelect.append(`
-                        <option value="${organization.id}"
-                            ${response.event.organization_id == organization.id ? 'selected' : ''}>
-                            ${organization.organization_name}
-                        </option>
-                    `);
+                //     organizationSelect.append(`
+                //         <option value="${organization.id}"
+                //             ${response.event.organization_id == organization.id ? 'selected' : ''}>
+                //             ${organization.organization_name}
+                //         </option>
+                //     `);
 
-                });
+                // });
 
 
                 // INPUTS

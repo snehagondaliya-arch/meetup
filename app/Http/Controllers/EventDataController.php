@@ -153,12 +153,10 @@ class EventDataController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
         $categories = Category::all();
-        $organizations = Organization::all();
 
         return response()->json([
             'event' => $event,
             'categories' => $categories,
-            'organizations' => $organizations
         ]);
     }
 
