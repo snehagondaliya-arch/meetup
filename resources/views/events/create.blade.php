@@ -258,9 +258,10 @@
             // console.log("FORM UPDATED:", lat, lng, address);
         }
 
-        var geocoder = L.Control.geocoder({
-            defaultMarkGeocode: false
-        })
+            var geocoder = L.Control.geocoder({
+                defaultMarkGeocode: false,
+                geocoder: L.Control.Geocoder.photon()
+            })
             .on('markgeocode', function (e) {
 
                 var latlng = e.geocode.center;

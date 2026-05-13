@@ -157,7 +157,7 @@
                             <label class="form-label">Venue Name</label>
                             <input type="hidden" id="latitude" name="latitude">
                             <input type="hidden" id="longitude" name="longitude">
-                            <textarea id="full_address" name="full_address" hidden></textarea>
+                            <input type="hidden" id="full_address" name="full_address">
                             <input type="text" id="venue_name" name="venue_name" class="form-control">
 
                             @error('venue_name')
@@ -400,32 +400,48 @@
 @section('js')
     <script>    
         $('.event-select-s1').select2({
-                dropdownCssClass: "event-select-s1Dropdown",
-                width: '100%',
-                dropdownParent: $('#editModal')
+            dropdownCssClass: "event-select-s1Dropdown",
+            width: '100%',
+            dropdownParent: $('#editModal')
         });
 
-        let editMap;
-        let editMarker;
+        let editMap = null;
+        let editMarker = null;
+        let geocoderControl = null;
 
-        function initEditMap(lat = 51.505, lng = -0.09) {
+        // INIT MAP
+        function initEditMap(lat = 51.505, lng = -0.09, address = '') {
 
-            // Prevent duplicate map initialization
-            if (editMap) {
+            // REMOVE OLD MAP
+            if (editMap !== null) {
                 editMap.remove();
+                editMap = null;
             }
 
+            // CREATE MAP
             editMap = L.map('editMap').setView([lat, lng], 13);
 
+            // TILE
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
             }).addTo(editMap);
 
+            // MARKER
             editMarker = L.marker([lat, lng], {
                 draggable: true
             }).addTo(editMap);
 
-            // Drag event
+            // EXISTING POPUP
+            if (address) {
+                editMarker.bindPopup(address).openPopup();
+            }
+
+            // SET HIDDEN INPUTS
+            $('#latitude').val(lat);
+            $('#longitude').val(lng);
+            $('#full_address').val(address);
+
+            // DRAG EVENT
             editMarker.on('dragend', function () {
 
                 let pos = editMarker.getLatLng();
@@ -437,20 +453,31 @@
                     .then(res => res.json())
                     .then(data => {
 
-                        $('#full_address').val(data.display_name);
+                        let newAddress = data.display_name || '';
 
-                        editMarker.bindPopup(data.display_name).openPopup();
+                        $('#full_address').val(newAddress);
+
+                        editMarker
+                            .bindPopup(newAddress)
+                            .openPopup();
                     });
+
             });
 
-            // Search control
-            L.Control.geocoder({
-                defaultMarkGeocode: false
+            // REMOVE OLD GEOCODER
+            if (geocoderControl !== null) {
+                geocoderControl.remove();
+            }
+
+            // SEARCH CONTROL
+            geocoderControl = L.Control.geocoder({
+                defaultMarkGeocode: false,
+                geocoder: L.Control.Geocoder.photon()
             })
             .on('markgeocode', function (e) {
 
                 let latlng = e.geocode.center;
-                let address = e.geocode.name;
+                let searchedAddress = e.geocode.name;
 
                 editMap.setView(latlng, 16);
 
@@ -458,18 +485,19 @@
 
                 $('#latitude').val(latlng.lat);
                 $('#longitude').val(latlng.lng);
-                $('#full_address').val(address);
+                $('#full_address').val(searchedAddress);
 
-                editMarker.bindPopup(address).openPopup();
+                editMarker
+                    .bindPopup(searchedAddress)
+                    .openPopup();
+
             })
             .addTo(editMap);
 
-            // Fix map rendering inside modal
             setTimeout(() => {
                 editMap.invalidateSize();
-            }, 300);
+            }, 500);
         }
-
 
         $(document).ready(function () {
             
@@ -707,9 +735,6 @@
                         // $('#latitude').val(response.event.latitude);
 
                         // $('#longitude').val(response.event.longitude);
-                        let lat = response.event.latitude ? parseFloat(response.event.latitude) : 51.505;
-                        let lng = response.event.longitude ? parseFloat(response.event.longitude) : -0.09;
-
                         $('#description').val(response.event.description);
 
                         $('#host_name').val(response.event.host_name);
@@ -729,13 +754,23 @@
 
 
                         // SHOW MODAL
+                        let lat = response.event.latitude
+                            ? parseFloat(response.event.latitude)
+                            : 51.505;
+
+                        let lng = response.event.longitude
+                            ? parseFloat(response.event.longitude)
+                            : -0.09;
+
+                        let address = response.event.full_address ?? '';
+
                         $('#editModal').modal('show');
 
-                        $('#editModal').on('shown.bs.modal', function () {
+                        setTimeout(() => {
 
-                            initEditMap(lat, lng);
+                            initEditMap(lat, lng, address);
 
-                        });
+                        }, 400);
                     },
 
                     error: function (xhr) {
