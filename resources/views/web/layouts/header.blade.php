@@ -98,7 +98,7 @@
                                     {{-- Create Event (only organization) --}}
                                     @if(Auth::guard('organization')->check())
                                         <div class="p-3 border-bottom">
-                                            <a href="{{ route('events.index') }}" class="btn btn-primary w-100">
+                                            <a href="{{ route('events.create') }}" class="btn btn-primary w-100">
                                                 Create Event
                                                 <i class="fa-solid fa-plus ms-1"></i>
                                             </a>

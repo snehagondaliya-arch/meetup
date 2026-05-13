@@ -127,44 +127,114 @@
     @section('js')
         <script>
             // chat
+            $(document).ready(function () {
+                let baseUrl = "{{ url('/') }}";
 
-            document.addEventListener('DOMContentLoaded', () => {
-                window.baseUrl = "{{ url('/') }}";
-                window.currentUserId = @json(
+                let currentUserId = @json(
                     Auth::guard('organization')->check()
                     ? Auth::guard('organization')->id()
                     : auth()->id()
                 );
-                const el = {
-                    messages: document.getElementById('messages'),
-                    form: document.getElementById('message-form'),
-                    input: document.getElementById('message-input')
-                };
-
-                if (!el.messages || !el.form || !el.input) return;
 
                 let allMessages = [];
 
-                function buildTree(messages) {
+                const messagesBox = $("#messages");
+                const messageForm = $("#message-form");
+                const messageInput = $("#message-input");
 
-                    const map = {};
-                    const roots = [];
 
-                    messages.forEach(m => {
-                        m.replies = [];
-                        map[m.id] = m;
+                // get messages
+                function fetchMessages() {
+
+                    $.ajax({
+                        url: baseUrl + "/messages",
+                        type: "GET",
+
+                        success: function (response) {
+
+                            allMessages = response;
+
+                            renderMessages();
+                        },
+
+                        error: function (error) {
+                            console.log(error);
+                        }
                     });
 
-                    messages.forEach(m => {
+                }
 
-                        if (m.parent_id) {
+                // first load
+                fetchMessages();
 
-                            if (map[m.parent_id]) {
-                                map[m.parent_id].replies.push(m);
+                // auto refresh every 2 seconds
+                // setInterval(fetchMessages, 2000);
+
+                // =========================
+                // SEND NEW MESSAGE
+                // =========================
+
+                messageForm.on("submit", function (e) {
+
+                    e.preventDefault();
+
+                    let message = messageInput.val().trim();
+
+                    if (message == "") {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: baseUrl + "/messages",
+                        type: "POST",
+
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            message: message,
+                            parent_id: null
+                        },
+
+                        success: function () {
+
+                            messageInput.val("");
+
+                            fetchMessages();
+                        },
+
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+
+                });
+
+                // tree for parent and child
+                function buildTree(messages) {
+
+                    let map = {};
+                    let roots = [];
+
+                    // create map
+                    $.each(messages, function (index, msg) {
+
+                        msg.replies = [];
+
+                        map[msg.id] = msg;
+                    });
+
+                    // add replies
+                    $.each(messages, function (index, msg) {
+
+                        if (msg.parent_id) {
+
+                            if (map[msg.parent_id]) {
+
+                                map[msg.parent_id].replies.push(msg);
                             }
 
                         } else {
-                            roots.push(m);
+
+                            roots.push(msg);
                         }
 
                     });
@@ -172,230 +242,211 @@
                     return roots;
                 }
 
-                async function fetchMessages() {
+                // all messages
+                function renderMessages() {
 
-                    try {
+                    messagesBox.html("");
 
-                        const response = await $.get(window.baseUrl + '/messages');
+                    if (allMessages.length == 0) {
 
-                        const newData = JSON.stringify(response);
-                        const oldData = JSON.stringify(allMessages);
-
-                        if (newData !== oldData) {
-
-                            allMessages = response;
-
-                            renderAll();
-                        }
-
-                    } catch (error) {
-
-                        console.log(error);
-                    }
-                }
-
-                fetchMessages();
-
-                // setInterval(fetchMessages, 2000);
-
-                el.form.addEventListener('submit', async (e) => {
-
-                    e.preventDefault();
-
-                    const message = el.input.value.trim();
-
-                    if (!message) return;
-
-                    try {
-
-                        await $.post(window.baseUrl + '/messages', {
-                            message: message,
-                            parent_id: null
-                        });
-
-                        el.input.value = '';
-
-                        fetchMessages();
-
-                    } catch (error) {
-                        console.log(error);
-                    }
-                });
-
-                function renderAll() {
-
-                    el.messages.innerHTML = '';
-
-                    if (allMessages.length === 0) {
-
-                        const noMsg = document.createElement('div');
-
-                        noMsg.className = 'no-messages';
-
-                        noMsg.innerHTML = `
-                                No messages yet. Start conversation 👋
-                            `;
-
-                        el.messages.appendChild(noMsg);
+                        messagesBox.append(`
+                                <div class="no-messages">
+                                    No messages yet. Start conversation 👋
+                                </div>
+                            `);
 
                         return;
                     }
 
-                    const tree = buildTree(allMessages);
+                    let tree = buildTree(allMessages);
 
-                    tree.forEach(msg => {
-                        el.messages.appendChild(createMessageNode(msg));
+                    $.each(tree, function (index, msg) {
+
+                        messagesBox.append(createMessage(msg));
+
                     });
 
-                    el.messages.scrollTop = el.messages.scrollHeight;
+                    messagesBox.scrollTop(messagesBox[0].scrollHeight);
                 }
 
-                function createMessageNode(m, level = 0) {
+                // single message
+                function createMessage(msg, level = 0) {
 
-                    const div = document.createElement('div');
+                    let isMe = Number(msg.user_id) === Number(currentUserId);
 
-                    const isOrg = m.user_type === 'organization';
+                    let isOrg = msg.user_type === "organization";
 
-                    const isMe = Number(m.user_id) === Number(window.currentUserId);
+                    let name = isOrg
+                        ? (msg.organization?.organization_name || "Organization")
+                        : (msg.user?.name || "User");
 
-                    const name = isOrg
-                        ? m.organization?.organization_name
-                        : m.user?.name;
+                    let firstLetter = name.charAt(0).toUpperCase();
 
-                    const time = new Date(m.created_at).toLocaleTimeString([], {
+                    let time = new Date(msg.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit'
                     });
 
-                    div.className = `chat-message ${isMe ? 'me' : 'other'}`;
-                    div.style.marginLeft = level * 16 + 'px';
+                    let html = $(`
+                    <div class="chat-message ${isMe ? 'me' : 'other'}" 
+                         style="margin-left:${level * 16}px">
 
-                    const firstLetter = (name || 'U')[0].toUpperCase();
+                        <div class="msg-row">
 
-                    div.innerHTML = `
-            <div class="msg-row">
+                            <div class="avatar">${firstLetter}</div>
 
-                <div class="avatar">${firstLetter}</div>
+                            <div class="msg-content">
 
-                <div class="msg-content">
+                                <div class="msg-header">
 
-                    <div class="msg-header">
-                        <span class="msg-name">${name || 'User'}</span>
-                        <span class="msg-time">${time}</span>
-                    </div>
+                                    <span class="msg-name">${name}</span>
 
-                    <div class="msg-line">
-                        <div class="msg-text">${m.message}</div>
+                                    <span class="msg-time">${time}</span>
 
-                        ${level === 0 ? `<span class="reply-btn">↩ Reply</span>` : ''}
-                    </div>
+                                </div>
 
-                    <div class="reply-box" style="display:none;">
-                        <div class="reply-input">
-                            <input type="text" placeholder="Write a reply..." />
-                            <button>Send</button>
+                                <div class="msg-line">
+
+                                    <div class="msg-text">${msg.message}</div>
+
+                                    ${level === 0
+                            ? `<span class="reply-btn">↩ Reply</span>`
+                            : ''
+                        }
+
+                                </div>
+
+                               ${level === 0 ? `
+                                    <div class="reply-box" style="display:none;">
+
+                                        <div class="reply-input">
+
+                                            <input type="text" 
+                                                class="reply-text"
+                                                placeholder="Write a reply..." />
+
+                                            <button class="send-reply-btn">
+                                                Send
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+                                ` : ''} 
+
+                                <div class="replies"></div>
+
+                            </div>
+
                         </div>
+
                     </div>
+                `);
 
-                    <div class="replies"></div>
+                    // toggle of reply button
+                    html.find(".reply-btn").click(function () {
 
-                </div>
+                        html.find(".reply-box").toggle();
 
-            </div>
-        `;
+                    });
 
-                    const replyBtn = div.querySelector('.reply-btn');
-                    const replyBox = div.querySelector('.reply-box');
-                    const replyInput = div.querySelector('.reply-input input');
-                    const replySend = div.querySelector('.reply-input button');
-                    const repliesContainer = div.querySelector('.replies');
+                    // send reply ajax
+                    html.find(".send-reply-btn").click(function () {
 
-                    // toggle reply box
-                    if (replyBtn) {
-                        replyBtn.onclick = () => {
-                            replyBox.style.display =
-                                replyBox.style.display === 'none' ? 'block' : 'none';
-                        };
-                    }
+                        let replyText = html.find(".reply-text").val().trim();
 
-                    // send reply
-                    if (replySend) {
-                        replySend.onclick = async () => {
+                        if (replyText == "") {
+                            return;
+                        }
 
-                            const text = replyInput.value.trim();
-                            if (!text) return;
+                        $.ajax({
 
-                            await $.post(window.baseUrl + '/messages', {
-                                message: text,
-                                parent_id: m.id
-                            });
+                            url: baseUrl + "/messages",
 
-                            fetchMessages();
-                        };
-                    }
+                            type: "POST",
 
-                    if (m.replies && m.replies.length > 0) {
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                message: replyText,
+                                parent_id: msg.id
+                            },
+
+                            success: function () {
+
+                                fetchMessages();
+
+                            },
+
+                            error: function (error) {
+
+                                console.log(error);
+                            }
+
+                        });
+
+                    });
+
+                    // show reply
+                    if (msg.replies && msg.replies.length > 0) {
+
+                        let repliesContainer = html.find(".replies");
 
                         let expanded = false;
 
-                        const renderReplies = () => {
+                        function renderReplies() {
 
-                            repliesContainer.innerHTML = '';
+                            repliesContainer.html("");
 
                             if (expanded) {
 
-                                m.replies.forEach(reply => {
-                                    repliesContainer.appendChild(
-                                        createMessageNode(reply, level + 1)
+                                $.each(msg.replies, function (index, reply) {
+
+                                    repliesContainer.append(
+                                        createMessage(reply, level + 1)
                                     );
+
                                 });
+
                             }
 
-                            const toggle = document.createElement('div');
-                            toggle.className = 'view-more';
+                            let toggleBtn = $(`
+                            <div class="view-more" style="cursor:pointer;">
+                                ${expanded
+                                    ? 'Hide replies'
+                                    : 'View replies (' + msg.replies.length + ')'
+                                }
+                            </div>
+                        `);
 
-                            toggle.innerHTML = expanded
-                                ? 'Hide replies'
-                                : `View replies (${m.replies.length})`;
+                            toggleBtn.click(function () {
 
-                            toggle.style.cursor = 'pointer';
-
-                            toggle.onclick = () => {
                                 expanded = !expanded;
-                                renderReplies();
-                            };
 
-                            repliesContainer.appendChild(toggle);
-                        };
+                                renderReplies();
+
+                            });
+
+                            repliesContainer.append(toggleBtn);
+
+                        }
 
                         renderReplies();
                     }
 
-                    return div;
+                    return html;
                 }
 
-                // chat toogle
-                const chatToggle = document.getElementById('chatToggle');
-                const chatBox = document.getElementById('chatBox');
-                const closeChat = document.getElementById('closeChat');
+                // chat toggle
+                $("#chatToggle").click(function () {
+                    $("#chatBox").toggleClass("show");
+                });
 
-                if (chatToggle && chatBox) {
+                $("#closeChat").click(function () {
+                    $("#chatBox").removeClass("show");
+                });
 
-                    chatToggle.addEventListener('click', () => {
-                        chatBox.classList.toggle('show');
-                    });
-                }
 
-                if (closeChat && chatBox) {
-
-                    closeChat.addEventListener('click', () => {
-                        chatBox.classList.remove('show');
-                    });
-                }
-
-            });
-            // Event-Filter-Select-2
-            $(document).ready(function () {
+                // Event-Filter-Select-2
                 let category = null;
                 let search = '';
 
