@@ -34,7 +34,7 @@
                                 {{-- Category --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Category</label>
-                                        <select class="form-control event-select-s1" name="category_id">
+                                        <select class="form-control @error('title') is-invalid @enderror event-select-s1" name="category_id">
                                             <option value="">Select Category</option>
                                             @foreach($categories as $category)
                                                 <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
@@ -47,7 +47,8 @@
                                 </div>
 
                                 {{-- Organization --}}
-                                <div class="col-md-6 mb-3">
+                                <input type="hidden" name="organization_id" value="{{ Auth::guard('organization')->user()->id }}">
+                                {{-- <div class="col-md-6 mb-3">
                                     <label class="form-label">Organization</label>
                                     <select name="organization_id"
                                         class="form-control event-select-s1">
@@ -59,7 +60,7 @@
                                         @endforeach
                                     </select>
                                     @error('organization_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
+                                </div> --}}
 
                                 {{-- Title --}}
                                 <div class="col-md-6 mb-3">

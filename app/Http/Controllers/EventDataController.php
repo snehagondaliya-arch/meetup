@@ -54,8 +54,7 @@ class EventDataController extends Controller
     public function create()
     {
         $categories = Category::all();
-        $organizations = Organization::all();
-        return view('events.create', compact('categories', 'organizations'));
+        return view('events.create', compact('categories'));
     }
 
     /**
