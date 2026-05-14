@@ -72,7 +72,3 @@ Route::post('/organization/login', [OrganizationAuthController::class, 'login'])
 Route::middleware('auth:organization')->prefix('organization')->group(function () {
     Route::resource('events', EventDataController::class)->except(['show']);
 });
-
-//     Route::get('/login', function () {
-//         return redirect('/');
-// })->name('login');
