@@ -238,68 +238,104 @@
 @endsection
 @section('js')
     <script>
+    $(document).ready(function () {
+
+        // Select2
         $('.event-select-s1').select2({
-                    dropdownCssClass: "event-select-s1Dropdown",
-                });
+            dropdownCssClass: "event-select-s1Dropdown",
+        });
 
-        var map = L.map('map').setView([51.505, -0.09], 13);
+        // Get current location
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+                let lat = position.coords.latitude;
+                let lng = position.coords.longitude;
 
-        let marker;
+                // Initialize map with current location
+                var map = L.map('map').setView([lat, lng], 13);
 
-        function updateForm(lat, lng, address = '') {
-            $('input[name="latitude"]').val(lat);
-            $('input[name="longitude"]').val(lng);
-            $('input[name="full_address"]').val(address);
+                // Tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
 
-            // console.log("FORM UPDATED:", lat, lng, address);
-        }
+                let marker;
 
-            var geocoder = L.Control.geocoder({
-                defaultMarkGeocode: false,
-                geocoder: L.Control.Geocoder.photon()
-            })
-            .on('markgeocode', function (e) {
-
-                var latlng = e.geocode.center;
-                var address = e.geocode.name;
-
-                map.setView(latlng, 16);
-
-                if (marker) {
-                    marker.setLatLng(latlng);
-                } else {
-                    marker = L.marker(latlng, {
-                        draggable: true
-                    }).addTo(map);
-
-                    // DRAG EVENT
-                    marker.on('dragend', function () {
-
-                        var pos = marker.getLatLng();
-
-                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
-                            .then(res => res.json())
-                            .then(data => {
-
-                                var addr = data.display_name;
-
-                                marker.bindPopup(addr).openPopup();
-
-                                updateForm(pos.lat, pos.lng, addr);
-
-                            });
-                    });
+                // Update form fields
+                function updateForm(lat, lng, address = '') {
+                    $('input[name="latitude"]').val(lat);
+                    $('input[name="longitude"]').val(lng);
+                    $('input[name="full_address"]').val(address);
                 }
 
-                marker.bindPopup(address).openPopup();
+                // Set initial marker
+                marker = L.marker([lat, lng], {
+                    draggable: true
+                }).addTo(map);
 
-                updateForm(latlng.lat, latlng.lng, address);
+                // Reverse geocode initial location
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then(res => res.json())
+                    .then(data => {
 
-            })
-            .addTo(map);
-    </script>
+                        let address = data.display_name || '';
+
+                        marker.bindPopup(address).openPopup();
+
+                        updateForm(lat, lng, address);
+                    });
+
+                // Drag marker event
+                marker.on('dragend', function () {
+
+                    let pos = marker.getLatLng();
+
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                        .then(res => res.json())
+                        .then(data => {
+
+                            let addr = data.display_name || '';
+
+                            marker.bindPopup(addr).openPopup();
+
+                            updateForm(pos.lat, pos.lng, addr);
+                        });
+                });
+
+                // Geocoder search
+                var geocoder = L.Control.geocoder({
+                    defaultMarkGeocode: false,
+                    geocoder: L.Control.Geocoder.photon()
+                })
+                .on('markgeocode', function (e) {
+
+                    let latlng = e.geocode.center;
+                    let address = e.geocode.name;
+
+                    map.setView(latlng, 16);
+
+                    marker.setLatLng(latlng);
+
+                    marker.bindPopup(address).openPopup();
+
+                    updateForm(latlng.lat, latlng.lng, address);
+                })
+                .addTo(map);
+            },
+
+            // Error callback
+            function (error) {
+                console.error("Geolocation error:", error.message);
+
+                // Fallback map location
+                var map = L.map('map').setView([20.5937, 78.9629], 5);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            }
+        );
+    });
+</script>
 @endsection

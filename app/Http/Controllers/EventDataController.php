@@ -31,8 +31,6 @@ class EventDataController extends Controller
             return response()->json([
                 'html' => view('events.partials.organization-events', compact('events'))->render(),
                 'next_page_url' => $events->nextPageUrl(),
-                'total' => $events->total(),
-                'count' => $events->count(),
             ]);
         }
 
