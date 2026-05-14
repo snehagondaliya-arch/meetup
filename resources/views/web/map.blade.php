@@ -101,8 +101,8 @@
                 selectedMonth = $(this).data('month');
                 selectedYear = $(this).data('year');
 
-                console.log('Selected Month:', selectedMonth);
-                console.log('Selected Year:', selectedYear);
+                // console.log('Selected Month:', selectedMonth);
+                // console.log('Selected Year:', selectedYear);
 
                 loadData();
             });
@@ -134,7 +134,7 @@
 
                 let lat = position.coords.latitude;
                 let lng = position.coords.longitude;
-                console.log(lat,lng);
+                // console.log(lat,lng);
 
                 if (map) {
                     map.remove();

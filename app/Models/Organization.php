@@ -21,7 +21,11 @@ class Organization extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function events(){
+    public function events(){   
         return $this->hasMany(Event::class);
+    }
+
+    public function messages(){
+        return $this->morphMany(Message::class,'messageable');
     }
 }

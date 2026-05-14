@@ -164,7 +164,7 @@
                             <div class="row">
 
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Event Image</label>
+                                    <label class="form-label">Event Banner Image</label>
                                     <input type="file" name="image" class="form-control" accept="image/*">
                                 </div>
 

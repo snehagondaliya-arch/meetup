@@ -6,16 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    protected $fillable = ['user_id','user_type', 'message','parent_id'];
+    protected $fillable = [
+        'messageable_id',
+        'messageable_type',
+        'message',
+        'parent_id'
+    ];
 
-    public function user()
+    public function messageable()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->morphTo();
     }
-    public function organization()
-    {
-        return $this->belongsTo(Organization::class, 'user_id');
-    }
+    
+    // public function senderName()
+    // {
+    //     if($this->user_type == 'user'){
+    //         return $this->belongsTo(User::class, 'user_id');
+    //     }else{
+    //         return $this->belongsTo(Organization::class, 'user_id')->select('id','organization_name as first_name','profile');
+    //     }
+    // }
 
     public function parent()
     {

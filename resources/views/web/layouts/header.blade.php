@@ -54,7 +54,7 @@
 
         {{-- ACTIVE USER (IMPORTANT FIX) --}}
         @php
-            $user = Auth::guard('organization')->user() ?? Auth::user();
+            $user = Auth::guard('organization')->user() ?? Auth::guard('web')->user();
         @endphp
 
         <div class="d-flex align-items-center gap-2 ms-lg-0 ms-auto">
@@ -75,7 +75,7 @@
 
                             <div class="card m-0">
 
-                                <div class="card-body p-0">
+                                <div class="card-body p-0"> 
 
                                     {{-- User Info --}}
                                     <div class="d-flex align-items-center p-3 border-bottom">
@@ -98,8 +98,8 @@
                                     {{-- Create Event (only organization) --}}
                                     @if(Auth::guard('organization')->check())
                                         <div class="p-3 border-bottom">
-                                            <a href="{{ route('events.create') }}" class="btn btn-primary w-100">
-                                                Create Event
+                                            <a href="{{ route('events.index') }}" class="btn btn-primary w-100">
+                                                Event List
                                                 <i class="fa-solid fa-plus ms-1"></i>
                                             </a>
                                         </div>

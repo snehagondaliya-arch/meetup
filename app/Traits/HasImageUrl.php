@@ -14,6 +14,6 @@ trait HasImageUrl
             return asset($folder . $value);
         }
 
-        return asset(PLACEHOLDER_IMAGE);
+        return asset(PLACEHOLDER_IMAGE);    
     }
 }   

@@ -24,7 +24,6 @@ class EventPhotos extends Model
     {
         return Attribute::make(
             get: fn($value) => $this->resolveImageUrl($value, EVENT_PHOTOS),
-            set: fn ($value) => $value
         );
     }
 }

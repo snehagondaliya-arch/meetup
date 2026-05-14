@@ -3,8 +3,14 @@
 @section('no-sidebar', false)
 {{-- vite --}}
 {{-- @vite('resources/js/app.js') --}}
+
 @section('content')
     <!-- Main-Content -->
+    @php
+    if (session('show_login_modal')) {
+        abort(403);
+    }
+    @endphp
     <div class="main-page-content">
         <!-- Start Search Section -->
         <section class="search-section-s1 section-s1padding  position-relative">
@@ -125,160 +131,181 @@
         </div>
 @endsection
     @section('js')
+    {{-- @if(session('show_login_modal'))
         <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                $("#loginBackdrop").modal("show");
+            });
+        </script>
+    @endif --}}
+        <script>
+            // $(document).ajaxError(function (event, xhr) {
+            //     if (xhr.status === 401) {
+            //         $("#loginBackdrop").modal("show");
+            //     }
+            // });
             // chat
             $(document).ready(function () {
                 let baseUrl = "{{ url('/') }}";
-
-                let currentUserId = @json(
-                    Auth::guard('organization')->check()
-                    ? Auth::guard('organization')->id()
-                    : auth()->id()
+                let currentUserId =  @json(
+                        Auth::guard('organization')->check()
+                            ? Auth::guard('organization')->id()
+                            : Auth::id()
                 );
-
+                let currentUserType = @json(
+                        Auth::guard('organization')->check()
+                            ? 'App\\Models\\Organization'
+                            : 'App\\Models\\User'
+                );
+                
                 let allMessages = [];
-
+                
                 const messagesBox = $("#messages");
                 const messageForm = $("#message-form");
                 const messageInput = $("#message-input");
-
-
+                
+                
                 // get messages
                 function fetchMessages() {
-
+                    
                     $.ajax({
                         url: baseUrl + "/messages",
                         type: "GET",
-
+                        
                         success: function (response) {
-
+                            
                             allMessages = response;
-
+                            
                             renderMessages();
                         },
-
+                        
                         error: function (error) {
                             console.log(error);
                         }
                     });
-
+                    
                 }
-
+                
                 // first load
                 fetchMessages();
-
+                
                 // auto refresh every 2 seconds
                 // setInterval(fetchMessages, 2000);
-
+                
                 // =========================
                 // SEND NEW MESSAGE
                 // =========================
-
+                
                 messageForm.on("submit", function (e) {
-
+                    
                     e.preventDefault();
 
+                    if(!@json(Auth::guard('organization')->check() || Auth::guard('web')->check())){
+                        $("#loginBackdrop").modal("show");
+                    }
+                    
                     let message = messageInput.val().trim();
-
+                    
                     if (message == "") {
                         return;
                     }
-
+                    
                     $.ajax({
                         url: baseUrl + "/messages",
                         type: "POST",
-
+                        
                         data: {
                             _token: "{{ csrf_token() }}",
                             message: message,
                             parent_id: null
                         },
-
+                        
                         success: function () {
-
+                            
                             messageInput.val("");
-
+                            
                             fetchMessages();
                         },
-
+                        
                         error: function (error) {
                             console.log(error);
                         }
                     });
-
+                    
                 });
-
+                
                 // tree for parent and child
                 function buildTree(messages) {
-
+                    
                     let map = {};
                     let roots = [];
-
+                    
                     // create map
                     $.each(messages, function (index, msg) {
-
+                        
                         msg.replies = [];
-
+                        
                         map[msg.id] = msg;
                     });
-
+                    
                     // add replies
                     $.each(messages, function (index, msg) {
-
+                        
                         if (msg.parent_id) {
-
+                            
                             if (map[msg.parent_id]) {
-
+                                
                                 map[msg.parent_id].replies.push(msg);
                             }
-
+                            
                         } else {
-
+                            
                             roots.push(msg);
                         }
-
+                        
                     });
-
+                    
                     return roots;
                 }
-
+                
                 // all messages
                 function renderMessages() {
-
+                    
                     messagesBox.html("");
-
+                    
                     if (allMessages.length == 0) {
-
+                        
                         messagesBox.append(`
-                                <div class="no-messages">
-                                    No messages yet. Start conversation 👋
-                                </div>
+                        <div class="no-messages">
+                            No messages yet. Start conversation 👋
+                            </div>
                             `);
-
-                        return;
+                            
+                            return;
+                        }
+                        
+                        let tree = buildTree(allMessages);
+                        
+                        $.each(tree, function (index, msg) {
+                            
+                            messagesBox.append(createMessage(msg));
+                            
+                        });
+                        
+                        messagesBox.scrollTop(messagesBox[0].scrollHeight);
                     }
-
-                    let tree = buildTree(allMessages);
-
-                    $.each(tree, function (index, msg) {
-
-                        messagesBox.append(createMessage(msg));
-
-                    });
-
-                    messagesBox.scrollTop(messagesBox[0].scrollHeight);
-                }
-
-                // single message
-                function createMessage(msg, level = 0) {
-
-                    let isMe = Number(msg.user_id) === Number(currentUserId);
-
-                    let isOrg = msg.user_type === "organization";
-
-                    let name = isOrg
-                        ? (msg.organization?.organization_name || "Organization")
-                        : (msg.user?.name || "User");
+                    
+                    // single message
+                    function createMessage(msg, level = 0) {
+                        
+                        let isMe = Number(msg.messageable_id) === Number(currentUserId) && msg.messageable_type === currentUserType;
+                        
+                        let isOrg = msg.messageable_type.includes("Organization");
+                        console.log(isOrg);
+                 
+                        let name = isOrg
+                            ? (msg.messageable?.organization_name || "Organization")
+                            : (msg.messageable?.name || "User");
 
                     let firstLetter = name.charAt(0).toUpperCase();
 
@@ -310,8 +337,8 @@
                                     <div class="msg-text">${msg.message}</div>
 
                                     ${level === 0
-                            ? `<span class="reply-btn">↩ Reply</span>`
-                            : ''
+                                    ? `<span class="reply-btn">↩ Reply</span>`
+                                    : ''
                         }
 
                                 </div>
@@ -352,7 +379,10 @@
 
                     // send reply ajax
                     html.find(".send-reply-btn").click(function () {
-
+                        
+                         if(!@json(Auth::guard('organization')->check() || Auth::guard('web')->check())){
+                            $("#loginBackdrop").modal("show");
+                        }
                         let replyText = html.find(".reply-text").val().trim();
 
                         if (replyText == "") {

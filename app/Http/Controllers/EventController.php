@@ -21,7 +21,7 @@ class EventController extends Controller
             ->distanceFrom($request->latitude, $request->longitude, $request->distance)
             ->latestByTitle()
             ->paginate(8);
-
+        
         return $request->ajax()
             ? view('web.partials.events', compact('events'))->render()
             : view('web.index', compact('events'));
@@ -137,10 +137,7 @@ class EventController extends Controller
 
         return response()->json([
             'events' => $events,
-            'sidebar' => view(
-                'web.partials.map-events',
-                compact('events')
-            )->render(),
+            'sidebar' => view('web.partials.map-events',compact('events'))->render(),
         ]);
     }
 }

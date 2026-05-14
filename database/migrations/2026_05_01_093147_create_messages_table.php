@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('user_type');
+            $table->morphs('messageable');
             $table->text('message');
             $table->foreignId('parent_id')->nullable()->constrained('messages')->onDelete('cascade');
             $table->timestamps();

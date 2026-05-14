@@ -7,24 +7,25 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // $middleware->redirectGuestsTo(null); 
+        $middleware->redirectGuestsTo(function ($request) {
+            return route('index');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //   $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-
-        //     if ($request->is('organization/*')) {
-        //         return response()->json([
-        //             'message' => 'You are not allowed'
-        //         ], 401);
-        //     }
-
-        //     return response()->json([
-        //         'message' => 'Unauthenticated'
-        //     ], 401);
-        // });
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            // logger('AUTH EXCEPTION HIT');
+            // if ($request->ajax() || $request->expectsJson()) {
+            //     return response()->json([
+            //         'auth' => false
+            //     ], 401);
+            // }
+            return redirect()
+                ->route('index')
+                ->with('show_login_modal', true);
+        });
     })->create();

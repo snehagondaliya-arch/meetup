@@ -8,43 +8,37 @@ use App\Models\Event;
 use App\Models\EventPhotos;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Yajra\DataTables\Facades\DataTables;
+
 
 class EventDataController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+  public function index(Request $request)
     {
-        if ($request->ajax()) {
-            $query = Event::with(['category', 'organization'])->latestByTitle();
+        $query = Event::with(['category', 'organization'])
+            ->forOrganization(auth('organization')->id())
+            ->latestByTitle();
 
-            return DataTables::eloquent($query)
-                ->addIndexColumn()
-                ->addColumn('image_url', fn($event) => $event->image_url)
-                ->addColumn('formatted_date_time', fn($event) => $event->formatted_date_time)
-                ->addColumn('group_image', fn($event) => $event->group_image)
-                ->addColumn('host_image', fn($event) => $event->host_image)
-                ->addColumn('status', function ($event) {
-                    return $event->is_online
-                        ? '<span class="badge bg-success">' . Event::ONLINE . '</span>'
-                        : '<span class="badge bg-secondary">' . Event::OFFLINE . '</span>';
-                })
-                ->addColumn('action', function ($event) {
-                    return '<a href="#" type="button" data-bs-toggle="modal" data-bs-target="#editModal" class="EditBtn"data-slug="' . $event->slug . '">
-                                <i class="fas fa-edit text-success"></i>
-                            </a>
-                            <a href="" class="DeleteBtn" data-id="' . $event->id . '">
-                                <i class="fa-solid fa-trash text-danger"></i>
-                            </a>';
-                })
-
-                ->rawColumns(['image_url', 'group_image', 'host_image', 'status', 'action'])
-                ->make(true);
+        if ($request->search) {
+            $query->search($request->search);
         }
 
-        return view('events.index');
+        $events = $query->paginate(8);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('events.partials.organization-events', compact('events'))->render(),
+                'next_page_url' => $events->nextPageUrl(),
+                'total' => $events->total(),
+                'count' => $events->count(),
+            ]);
+        }
+
+        return view('events.index', [
+            'events' => $events
+        ]);
     }
 
     /**
@@ -104,23 +98,23 @@ class EventDataController extends Controller
             $validated['host_image'] = uploadImage($request->file('host_image'), $imagepath['hosts']);
         }
         if ($request->start_time) {
-                $validated['start_time'] = Carbon::parse(
-                    $request->start_time,
-                    $request->timezone ?? config('app.timezone')
-                )->utc();
+            $validated['start_time'] = Carbon::parse(
+                $request->start_time,
+                $request->timezone ?? config('app.timezone')
+            )->utc();
         }
 
-            if ($request->end_time) {
-                    $validated['end_time'] = Carbon::parse( 
-                        $request->end_time,
-                        $request->timezone ?? config('app.timezone')
-                    )->utc();
-            }
-            $event = Event::create($validated);
-            if ($request->hasFile('event_photos')) {
+        if ($request->end_time) {
+            $validated['end_time'] = Carbon::parse(
+                $request->end_time,
+                $request->timezone ?? config('app.timezone')
+            )->utc();
+        }
+        $event = Event::create($validated);
+        if ($request->hasFile('event_photos')) {
 
-                foreach ($request->file('event_photos') as $photo) {
-                    $event_photos = uploadImage($photo, $imagepath['event_photos']);
+            foreach ($request->file('event_photos') as $photo) {
+                $event_photos = uploadImage($photo, $imagepath['event_photos']);
                 EventPhotos::create([
                     'event_id' => $event->id,
                     'event_photos' => $event_photos
@@ -136,14 +130,6 @@ class EventDataController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $slug)
@@ -153,10 +139,7 @@ class EventDataController extends Controller
             ->firstOrFail();
         $categories = Category::all();
 
-        return response()->json([
-            'event' => $event,
-            'categories' => $categories,
-        ]);
+        return view('events.edit', compact('event', 'categories'));
     }
 
     /**
@@ -210,12 +193,6 @@ class EventDataController extends Controller
 
 
         // EVENT IMAGE
-        // if ($event->image_url) {
-        //         $debugPath = public_path(EVENT_IMAGES . $event->getRawOriginal('image_url'));
-        //         if (!file_exists($debugPath)) {
-        //             \Log::error("File not found at: " . $debugPath);
-        //         }
-        //     }
         if ($request->hasFile('image_url')) {
 
             if ($event->getRawOriginal('image_url') && file_exists(public_path(EVENT_IMAGES . $event->getRawOriginal('image_url')))) {
@@ -225,7 +202,6 @@ class EventDataController extends Controller
             $event->forceFill(['image_url' => uploadImage($request->file('image_url'), $imagepath['events'])]);
 
         }
-
 
         // GROUP IMAGE
         if ($request->hasFile('group_image')) {
@@ -237,11 +213,10 @@ class EventDataController extends Controller
             $event->forceFill(['group_image' => uploadImage($request->file('group_image'), $imagepath['groups'])]);
         }
 
-
         // HOST IMAGE
         if ($request->hasFile('host_image')) {
 
-            if ($event->getRawOriginal('host_image') && file_exists(public_path(HOST_IMAGES .$event->getRawOriginal('host_image')))) {
+            if ($event->getRawOriginal('host_image') && file_exists(public_path(HOST_IMAGES . $event->getRawOriginal('host_image')))) {
                 unlink(public_path(HOST_IMAGES . $event->getRawOriginal('host_image')));
             }
 
@@ -251,7 +226,6 @@ class EventDataController extends Controller
 
         // SAVE EVENT
         $event->save();
-
 
         // EVENT PHOTOS
         if ($request->hasFile('event_photos')) {
@@ -278,10 +252,9 @@ class EventDataController extends Controller
             }
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Event updated successfully'
-        ]);
+        return redirect()
+            ->route('events.index')
+            ->with('success', 'Event updated successfully.');
     }
 
     /**
@@ -327,12 +300,10 @@ class EventDataController extends Controller
             }
         }
 
-        // Database rows auto delete because of cascadeOnDelete()
         $event->delete();
+        return redirect()
+            ->route('events.index')
+            ->with('success', 'Event Deleted successfully.');
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Event deleted successfully'
-        ]);
     }
 }

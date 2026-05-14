@@ -252,7 +252,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function (response) {
-                    $('#registrationForm')[0].reset();
+                    // $('#registrationForm')[0].reset();
                     if (response.redirect) {
                         window.location.href = response.redirect;
                     }
@@ -280,7 +280,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function (response) {
-                    $('#loginForm')[0].reset();
+                    // $('#loginForm')[0].reset();
                     if (response.redirect) {
                         window.location.href = response.redirect;
                     }
@@ -307,3 +307,4 @@
     });
 
 </script>
+

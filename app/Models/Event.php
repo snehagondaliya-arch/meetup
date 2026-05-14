@@ -89,6 +89,11 @@
                 $query->where('is_online', $eventType === 'online');
             });
         }
+
+        public function scopeForOrganization($query, $organizationId)
+        {
+            return $query->where('organization_id', $organizationId);
+        }
         public function scopeDateFilter($q, $dateFilter)
         {
             $now = now();
@@ -166,14 +171,12 @@
             {   
                 return Attribute::make(
                     get: fn ($value) => $this->resolveImageUrl($value,EVENT_IMAGES), 
-                    set: fn ($value) => $value
                 );
             }
             protected function hostImage(): Attribute
             {
                 return Attribute::make(
                 get: fn ($value) => $this->resolveImageUrl($value,HOST_IMAGES),
-                set: fn ($value) => $value
                 );
 
             }
@@ -181,7 +184,6 @@
             {
             return Attribute::make(
             get: fn ($value) => $this->resolveImageUrl($value,GROUP_IMAGES),
-            set: fn ($value) => $value
             );
         }
 
