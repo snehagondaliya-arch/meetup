@@ -192,10 +192,7 @@
                 // auto refresh every 2 seconds
                 // setInterval(fetchMessages, 2000);
                 
-                // =========================
-                // SEND NEW MESSAGE
-                // =========================
-                
+                // new messages    
                 messageForm.on("submit", function (e) {
                     
                     e.preventDefault();
