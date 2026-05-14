@@ -133,6 +133,7 @@ class EventDataController extends Controller
     public function edit(string $slug)
     {
         $event = Event::with('event_photos')
+            ->forOrganization(auth('organization')->id())
             ->where('slug', $slug)
             ->firstOrFail();
         $categories = Category::all();
