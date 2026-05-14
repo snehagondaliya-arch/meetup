@@ -23,7 +23,7 @@
                 <form action="{{ route('events.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    {{-- ================= BASIC INFO ================= --}}
+                    {{--BASIC INFO  --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Event Basics</strong>
@@ -48,19 +48,6 @@
 
                                 {{-- Organization --}}
                                 <input type="hidden" name="organization_id" value="{{ Auth::guard('organization')->user()->id }}">
-                                {{-- <div class="col-md-6 mb-3">
-                                    <label class="form-label">Organization</label>
-                                    <select name="organization_id"
-                                        class="form-control event-select-s1">
-                                        <option value="">Select Organization</option>
-                                        @foreach($organizations as $organization)
-                                            <option value="{{ $organization->id }}" {{ old('organization_id') == $organization->id ? 'selected' : '' }}>
-                                                {{ $organization->organization_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('organization_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div> --}}
 
                                 {{-- Title --}}
                                 <div class="col-md-6 mb-3">
@@ -82,7 +69,7 @@
                         </div>
                     </div>
 
-                    {{-- ================= SCHEDULE ================= --}}
+                    {{--  SCHEDULE  --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Schedule</strong>
@@ -123,7 +110,7 @@
                         </div>
                     </div>
 
-                    {{-- ================= LOCATION ================= --}}
+                    {{--  LOCATION  --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Location Details</strong>
@@ -155,7 +142,7 @@
                         </div>
                     </div>
 
-                    {{-- ================= MEDIA ================= --}}
+                    {{--  MEDIA  --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Media</strong>
@@ -187,7 +174,7 @@
                         </div>
                     </div>
 
-                    {{-- ================= HOST & SETTINGS ================= --}}
+                    {{--  HOST & SETTINGS  --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Host & Pricing</strong>
