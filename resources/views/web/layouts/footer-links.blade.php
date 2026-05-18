@@ -11,7 +11,6 @@
 
 <!-- Fancybox JS -->
 <script src="{{ asset('assets/libs/fancybox/jquery.fancybox.min.js') }}"></script>
-<script src="{{ asset('assets/js/app.js') }}"></script>
 
 <script src="{{ asset('assets/libs/axios/axios.min.js') }}{{ ASSETS_VERSION}}"></script>
 
@@ -20,11 +19,11 @@
 <script src="{{ asset('assets/libs/leaflet/leaflet.markercluster.js')}}{{ ASSETS_VERSION }}"></script>
 <script src="{{ asset('assets/libs/leaflet/Control.Geocoder.js') }}{{ ASSETS_VERSION }}"></script>
 
-
-
 {{-- alert --}}
 <script src="{{ asset('assets/libs/sweetalert/sweetalert.js') }}"></script>
 
+{{-- custom JS --}}
+<script src="{{ asset('assets/js/app.js') }}"></script>
 <script>    
     $.ajaxSetup({
         headers: {
