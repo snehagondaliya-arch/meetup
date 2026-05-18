@@ -22,6 +22,12 @@
 {{-- alert --}}
 <script src="{{ asset('assets/libs/sweetalert/sweetalert.js') }}"></script>
 
+<script>
+    window.appUrls = {
+        login: "{{ route('organization.login') }}",
+        register: "{{ route('organization.register') }}"
+    };
+</script>
 {{-- custom JS --}}
 <script src="{{ asset('assets/js/app.js') }}"></script>
 <script>    

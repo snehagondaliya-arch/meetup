@@ -1,5 +1,4 @@
 <!-- Start Login-Modal -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
 <div class="modal login-modal fade gt-bg-s3" id="loginBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
     tabindex="-1" aria-labelledby="loginBackdropLabel" aria-hidden="true">
 
@@ -238,73 +237,3 @@
     </div>
 </div>
 <!-- End Login-Modal -->
-<script src="{{ asset('assets/libs/jquery/jquery-3.7.1.min.js') }}{{ ASSETS_VERSION }}"></script>
-<script>
-    $(document).ready(function () {
-        $('#registrationForm').on('submit', function (e) {
-            e.preventDefault(); 
-            $('.error-text').text('');
-            $.ajax({
-                url: "{{ route('organization.register') }}",
-                type: "POST",
-                data: $(this).serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    // $('#registrationForm')[0].reset();
-                    if (response.redirect) {
-                        window.location.href = response.redirect;
-                    }
-                },
-                error: function (xhr) {
-                    let errors = xhr.responseJSON.errors;
-
-                    // Clear previous errors
-                    $('.error-text').text('');
-
-                    $.each(errors, function (key, value) {
-                        $('#' + key + '_error').text(value[0]);
-                    });
-                }
-            });
-        });
-        $('#loginForm').on('submit', function (e) {
-            e.preventDefault();
-            $('.error-text').text('');
-             $.ajax({
-                url: "{{ route('organization.login') }}",
-                type: "POST",
-                data: $(this).serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    // $('#loginForm')[0].reset();
-                    if (response.redirect) {
-                        window.location.href = response.redirect;
-                    }
-                },
-               error: function (xhr) {
-
-                    if (xhr.status === 419) {
-                        $('#login-error').text('Session expired. Refresh page.');
-                        return;
-                    }
-
-                    if (xhr.status === 401 && xhr.responseJSON.message) {
-                        $('#login-error').text(xhr.responseJSON.message);
-                    }
-
-                    if (xhr.status === 422 && xhr.responseJSON.errors) {
-                        $.each(xhr.responseJSON.errors, function (key, value) {
-                            $('#' + key + '_error').text(value[0]);
-                        });
-                    }
-                }
-            });
-        });
-    });
-
-</script>
-

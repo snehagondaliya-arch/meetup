@@ -164,3 +164,72 @@ if (typeof Swiper !== "undefined") {
         });
     }
 }
+
+// =====================
+// Auth Jquery
+// =====================
+    $(document).ready(function () {
+        $('#registrationForm').on('submit', function (e) {
+            e.preventDefault(); 
+            $('.error-text').text('');
+            $.ajax({
+                url: window.appUrls.register,
+                type: "POST",
+                data: $(this).serialize(),
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    // $('#registrationForm')[0].reset();
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                },
+                error: function (xhr) {
+                    let errors = xhr.responseJSON.errors;
+
+                    // Clear previous errors
+                    $('.error-text').text('');
+
+                    $.each(errors, function (key, value) {
+                        $('#' + key + '_error').text(value[0]);
+                    });
+                }
+            });
+        });
+        $('#loginForm').on('submit', function (e) {
+            e.preventDefault();
+            $('.error-text').text('');
+             $.ajax({
+                url: window.appUrls.login,
+                type: "POST",
+                data: $(this).serialize(),
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    // $('#loginForm')[0].reset();
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                },
+               error: function (xhr) {
+
+                    if (xhr.status === 419) {
+                        $('#login-error').text('Session expired. Refresh page.');
+                        return;
+                    }
+
+                    if (xhr.status === 401 && xhr.responseJSON.message) {
+                        $('#login-error').text(xhr.responseJSON.message);
+                    }
+
+                    if (xhr.status === 422 && xhr.responseJSON.errors) {
+                        $.each(xhr.responseJSON.errors, function (key, value) {
+                            $('#' + key + '_error').text(value[0]);
+                        });
+                    }
+                }
+            });
+        });
+    });

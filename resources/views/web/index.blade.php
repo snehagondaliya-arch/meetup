@@ -159,40 +159,75 @@
 @endsection
 @section('js')
 <script>
-$(function () {
+$(document).ready(function () {
 
-    let baseUrl = "{{ url('/') }}";
+    // =====================================================
+    // GLOBALS
+    // =====================================================
 
-    let currentUserId = @json(
+    const baseUrl = "{{ url('/') }}";
+
+    const currentUserId = @json(
         Auth::guard('organization')->check()
-        ? Auth::guard('organization')->id()
-        : Auth::id()
+            ? Auth::guard('organization')->id()
+            : Auth::id()
     );
 
-    let currentUserType = @json(
+    const currentUserType = @json(
         Auth::guard('organization')->check()
-        ? 'App\\Models\\Organization'
-        : 'App\\Models\\User'
+            ? 'App\\Models\\Organization'
+            : 'App\\Models\\User'
+    );
+
+    const isAuthenticated = @json(
+        Auth::guard('organization')->check() ||
+        Auth::guard('web')->check()
     );
 
     let allMessages = [];
+
+    let selectedMonth = new Date().getMonth() + 1;
+    let selectedYear = new Date().getFullYear();
+
+    let category = '';
+    let search = '';
+
+    let map;
+    let markerGroup;
+    let debounceTimer;
+
+    // =====================================================
+    // ELEMENTS
+    // =====================================================
 
     const messagesBox = $("#messages");
     const messageForm = $("#message-form");
     const messageInput = $("#message-input");
 
-    // escape html
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
     function escapeHtml(text) {
         return $('<div>').text(text || '').html();
     }
 
-    // =========================
-    // FETCH MESSAGES
-    // =========================
+    function showLoginModal() {
+        $("#loginBackdrop").modal("show");
+    }
+
+    function ajaxError(title, error) {
+        console.error(`${title}:`, error);
+    }
+
+    // =====================================================
+    // MESSAGE SECTION
+    // =====================================================
+
     function fetchMessages() {
 
         $.ajax({
-            url: baseUrl + "/messages",
+            url: `${baseUrl}/messages`,
             type: "GET",
 
             success: function (response) {
@@ -206,7 +241,7 @@ $(function () {
 
             error: function (xhr, status, error) {
 
-                console.error("Message fetch failed:", error);
+                ajaxError("Message fetch failed", error);
 
                 messagesBox.html(`
                     <div class="error-message">
@@ -217,72 +252,46 @@ $(function () {
         });
     }
 
-    fetchMessages();
-
-    // =========================
-    // SEND MESSAGE
-    // =========================
-    messageForm.on("submit", function (e) {
-
-        e.preventDefault();
-
-        if (!@json(Auth::guard('organization')->check() || Auth::guard('web')->check())) {
-
-            $("#loginBackdrop").modal("show");
-            return;
-        }
-
-        let message = messageInput.val().trim();
-
-        if (message === "") {
-            return;
-        }
+    function sendMessage(message, parentId = null) {
 
         $.ajax({
-
-            url: baseUrl + "/messages",
+            url: `${baseUrl}/messages`,
             type: "POST",
 
             data: {
                 _token: "{{ csrf_token() }}",
                 message: message,
-                parent_id: null
+                parent_id: parentId
             },
 
             success: function () {
 
-                messageInput.val("");
+                messageInput.val('');
                 fetchMessages();
             },
 
             error: function (xhr, status, error) {
-
-                console.error(error);
+                ajaxError("Message send failed", error);
             }
         });
-    });
+    }
 
-    // =========================
-    // BUILD TREE
-    // =========================
     function buildTree(messages) {
 
         let map = {};
         let roots = [];
 
-        $.each(messages, function (index, msg) {
+        messages.forEach(msg => {
 
             msg.replies = [];
             map[msg.id] = msg;
         });
 
-        $.each(messages, function (index, msg) {
+        messages.forEach(msg => {
 
-            if (msg.parent_id) {
+            if (msg.parent_id && map[msg.parent_id]) {
 
-                if (map[msg.parent_id]) {
-                    map[msg.parent_id].replies.push(msg);
-                }
+                map[msg.parent_id].replies.push(msg);
 
             } else {
 
@@ -293,16 +302,13 @@ $(function () {
         return roots;
     }
 
-    // =========================
-    // RENDER MESSAGES
-    // =========================
     function renderMessages() {
 
-        messagesBox.html("");
+        messagesBox.empty();
 
-        if (allMessages.length === 0) {
+        if (!allMessages.length) {
 
-            messagesBox.append(`
+            messagesBox.html(`
                 <div class="no-messages">
                     No messages yet. Start conversation 👋
                 </div>
@@ -311,45 +317,38 @@ $(function () {
             return;
         }
 
-        let tree = buildTree(allMessages);
+        const tree = buildTree(allMessages);
 
-        $.each(tree, function (index, msg) {
-
+        tree.forEach(msg => {
             messagesBox.append(createMessage(msg));
         });
 
         messagesBox.scrollTop(messagesBox[0].scrollHeight);
     }
 
-    // =========================
-    // SINGLE MESSAGE
-    // =========================
     function createMessage(msg, level = 0) {
 
-        let isMe =
+        const isMe =
             Number(msg.messageable_id) === Number(currentUserId) &&
             msg.messageable_type === currentUserType;
 
-        let isOrg =
+        const isOrg =
             (msg.messageable_type || '').includes("Organization");
 
-        let name = isOrg
+        const name = isOrg
             ? (msg.messageable?.organization_name || "Organization")
             : (msg.messageable?.name || "User");
 
-        let firstLetter = name.charAt(0).toUpperCase();
+        const firstLetter = name.charAt(0).toUpperCase();
 
-        let time = '';
-
-        if (msg.created_at) {
-
-            time = new Date(msg.created_at).toLocaleTimeString([], {
+        const time = msg.created_at
+            ? new Date(msg.created_at).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit'
-            });
-        }
+            })
+            : '';
 
-        let html = $(`
+        const html = $(`
             <div class="chat-message ${isMe ? 'me' : 'other'}"
                  style="margin-left:${level * 16}px">
 
@@ -387,7 +386,7 @@ $(function () {
                         </div>
 
                         ${level === 0 ? `
-                            <div class="reply-box" style="display:none;">
+                            <div class="reply-box d-none">
 
                                 <div class="reply-input">
 
@@ -413,83 +412,56 @@ $(function () {
             </div>
         `);
 
-        // toggle reply
-        html.find(".reply-btn").click(function () {
-
-            html.find(".reply-box").toggle();
+        // Reply toggle
+        html.find(".reply-btn").on("click", function () {
+            html.find(".reply-box").toggleClass("d-none");
         });
 
-        // send reply
-        html.find(".send-reply-btn").click(function () {
+        // Send reply
+        html.find(".send-reply-btn").on("click", function () {
 
-            if (!@json(Auth::guard('organization')->check() || Auth::guard('web')->check())) {
-
-                $("#loginBackdrop").modal("show");
+            if (!isAuthenticated) {
+                showLoginModal();
                 return;
             }
 
-            let replyText = html.find(".reply-text").val().trim();
+            const replyText = html.find(".reply-text").val().trim();
 
-            if (replyText === "") {
-                return;
-            }
+            if (!replyText) return;
 
-            $.ajax({
-
-                url: baseUrl + "/messages",
-                type: "POST",
-
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    message: replyText,
-                    parent_id: msg.id
-                },
-
-                success: function () {
-
-                    fetchMessages();
-                },
-
-                error: function (xhr, status, error) {
-
-                    console.error(error);
-                }
-            });
+            sendMessage(replyText, msg.id);
         });
 
-        // replies
-        if (msg.replies && msg.replies.length > 0) {
+        // Replies
+        if (msg.replies?.length) {
 
-            let repliesContainer = html.find(".replies");
+            const repliesContainer = html.find(".replies");
 
             let expanded = false;
 
             function renderReplies() {
 
-                repliesContainer.html("");
+                repliesContainer.empty();
 
                 if (expanded) {
 
-                    $.each(msg.replies, function (index, reply) {
-
+                    msg.replies.forEach(reply => {
                         repliesContainer.append(
                             createMessage(reply, level + 1)
                         );
                     });
                 }
 
-                let toggleBtn = $(`
-                    <div class="view-more" style="cursor:pointer;">
-
+                const toggleBtn = $(`
+                    <div class="view-more">
                         ${expanded
                             ? 'Hide replies'
-                            : 'View replies (' + msg.replies.length + ')'
+                            : `View replies (${msg.replies.length})`
                         }
-
                     </div>
                 `);
 
-                toggleBtn.click(function () {
+                toggleBtn.on("click", function () {
 
                     expanded = !expanded;
                     renderReplies();
@@ -504,23 +476,45 @@ $(function () {
         return html;
     }
 
-    // =========================
+    // =====================================================
+    // MESSAGE FORM
+    // =====================================================
+
+    messageForm.on("submit", function (e) {
+
+        e.preventDefault();
+
+        if (!isAuthenticated) {
+            showLoginModal();
+            return;
+        }
+
+        const message = messageInput.val().trim();
+
+        if (!message) return;
+
+        sendMessage(message);
+    });
+
+    // =====================================================
     // CHAT TOGGLE
-    // =========================
-    $("#chatToggle").click(function () {
+    // =====================================================
+
+    $("#chatToggle").on("click", function () {
         $("#chatBox").toggleClass("show");
     });
 
-    $("#closeChat").click(function () {
+    $("#closeChat").on("click", function () {
         $("#chatBox").removeClass("show");
     });
 
-    // =========================
-    // TIMELINE SCROLL
-    // =========================
+    // =====================================================
+    // TIMELINE
+    // =====================================================
+
     function scrollChipIntoView(el) {
 
-        if (!el || el.length === 0) return;
+        if (!el?.length) return;
 
         el[0].scrollIntoView({
             behavior: 'smooth',
@@ -529,13 +523,34 @@ $(function () {
         });
     }
 
-    let currentDate = new Date();
+    scrollChipIntoView($('.timeline-chip.active'));
 
-    let selectedMonth = currentDate.getMonth() + 1;
-    let selectedYear = currentDate.getFullYear();
+    $('.timeline-chip').on('click', function () {
 
-    let search = '';
-    let category = '';
+        $('.timeline-chip').removeClass('active');
+        $(this).addClass('active');
+
+        selectedMonth = $(this).data('month');
+        selectedYear = $(this).data('year');
+
+        scrollChipIntoView($(this));
+
+        loadData();
+    });
+
+    // =====================================================
+    // SEARCH
+    // =====================================================
+
+    $(document).on('input', '#search', function () {
+
+        search = $(this).val() || '';
+        loadData();
+    });
+
+    // =====================================================
+    // CATEGORY FILTER
+    // =====================================================
 
     $(document).on('click', '.nav-link[data-slug]', function (e) {
 
@@ -550,32 +565,10 @@ $(function () {
         loadData();
     });
 
-    let $activeChip = $('.timeline-chip.active');
+    // =====================================================
+    // HORIZONTAL SCROLL
+    // =====================================================
 
-    scrollChipIntoView($activeChip);
-
-    $('.timeline-chip').on('click', function () {
-
-        $('.timeline-chip').removeClass('active');
-
-        $(this).addClass('active');
-
-        scrollChipIntoView($(this));
-
-        selectedMonth = $(this).data('month');
-        selectedYear = $(this).data('year');
-
-        loadData();
-    });
-
-    // search
-    $(document).on('input', '#search', function () {
-
-        search = $(this).val() || '';
-        loadData();
-    });
-
-    // horizontal scroll
     const scrollContainer = document.getElementById('timelineScroll');
 
     if (scrollContainer) {
@@ -591,26 +584,21 @@ $(function () {
         });
     }
 
-    // =========================
+    // =====================================================
     // MAP
-    // =========================
-    let map;
-    let markerGroup;
-    let debounceTimer;
+    // =====================================================
 
     navigator.geolocation.getCurrentPosition(
 
         function (position) {
 
-            let lat = position.coords.latitude;
-            let lng = position.coords.longitude;
-
-            initializeMap(lat, lng);
+            initializeMap(
+                position.coords.latitude,
+                position.coords.longitude
+            );
         },
 
-        function (error) {
-
-            console.log("Location access denied:", error);
+        function () {
 
             initializeMap(19.0760, 72.8777);
         }
@@ -622,35 +610,10 @@ $(function () {
             map.remove();
         }
 
-        var userIcon = L.divIcon({
-
-            className: "custom-user-marker",
-
-            html: `
-                <div class="user-marker">
-                    <div class="pulse"></div>
-                </div>
-            `,
-
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
-        });
-
         map = L.map('map').setView([lat, lng], 13);
-
-        L.marker([lat, lng], {
-            icon: userIcon
-        }).addTo(map);
-
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 100);
-
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                attribution: '&copy; OpenStreetMap contributors'
-            }
+    
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+                attribution: '&copy; OpenStreetMap contributors'}
         ).addTo(map);
 
         markerGroup = L.markerClusterGroup();
@@ -661,23 +624,21 @@ $(function () {
 
             clearTimeout(debounceTimer);
 
-            // loadData();
-            debounceTimer = setTimeout(loadData, 100);
+            debounceTimer = setTimeout(loadData, 300);
         });
 
         loadData();
     }
 
-    // =========================
-    // LOAD DATA
-    // =========================
+    // =====================================================
+    // LOAD MAP DATA
+    // =====================================================
+
     function loadData() {
 
         if (!map || !markerGroup) return;
 
-        markerGroup.clearLayers();
-
-        let bounds = map.getBounds();
+        const bounds = map.getBounds();
 
         $.ajax({
 
@@ -685,86 +646,63 @@ $(function () {
             type: "GET",
 
             data: {
-                category: category,
+                category,
+                month: selectedMonth,
+                year: selectedYear,
+                search,
                 minLat: bounds.getSouth(),
                 maxLat: bounds.getNorth(),
                 minLng: bounds.getWest(),
-                maxLng: bounds.getEast(),
-                month: selectedMonth,
-                year: selectedYear,
-                search: search
+                maxLng: bounds.getEast()
             },
 
             success: function (response) {
+
+                markerGroup.clearLayers();
 
                 if (!response) return;
 
                 $('#event-container').html(response.events || '');
 
-                if (typeof AOS !== 'undefined') {
-                    AOS.refreshHard();
-                }
+                $('#sidebar-event-container').html(
+                    response.sidebar || ''
+                );
 
-                if (
-                    !response.events_map ||
-                    response.events_map.length === 0
-                ) {
+                const events = response.events_map || [];
 
-                    $('#sidebar-event-container').html(`
-                        <div class="no-data">
-                            No Data Found
-                        </div>
-                    `);
+                $('#total_events').html(`(${events.length})`);
 
-                    $('#total_events').html('(0)');
-
-                    markerGroup.clearLayers();
-
+                if (!events.length) {
                     return;
                 }
 
-                $('#sidebar-event-container').html(response.sidebar || '');
+                events.forEach(function (event) {
 
-                $('#total_events').html(
-                    '(' + response.events_map.length + ')'
-                );
-
-                markerGroup.clearLayers();
-
-                response.events_map.forEach(function (event) {
-
-                    if (
-                        !event.latitude ||
-                        !event.longitude
-                    ) {
+                    if (!event.latitude || !event.longitude) {
                         return;
                     }
 
-                    let popupContent = `
+                    const popupContent = `
                         <a href="${baseUrl}/event-detail/${event.slug ?? '#'}"
                            class="event-card-link">
 
                             <div class="event-card-popup">
 
                                 <img src="${event.image_url ?? ''}"
-                                     alt="${escapeHtml(event.title ?? 'Untitled Event')}"
                                      class="event-img" />
 
                                 <div class="event-body">
 
                                     <h3>
-                                        ${escapeHtml(event.title ?? 'Untitled Event')}
+                                        ${escapeHtml(event.title)}
                                     </h3>
 
                                     <p>
-                                        <strong>📍 Location:</strong>
-                                        ${escapeHtml(event.venue_name ?? 'N/A')}
+                                        📍 ${escapeHtml(event.venue_name)}
                                     </p>
 
                                     <p>
-                                        <strong>🕒 Date:</strong>
-                                        ${event.formatted_date ?? ''}
-                                        ${event.formatted_time ?? ''}
+                                        🕒 ${event.formatted_date ?? ''}
                                     </p>
 
                                 </div>
@@ -774,18 +712,22 @@ $(function () {
                         </a>
                     `;
 
-                    let marker = L.marker([
+                    const marker = L.marker([
                         parseFloat(event.latitude),
                         parseFloat(event.longitude)
                     ]).bindPopup(popupContent);
 
                     markerGroup.addLayer(marker);
                 });
+
+                if (typeof AOS !== 'undefined') {
+                    AOS.refreshHard();
+                }
             },
 
             error: function (xhr, status, error) {
 
-                console.error("Map data load failed:", error);
+                ajaxError("Map data load failed", error);
 
                 $('#sidebar-event-container').html(`
                     <div class="no-data">
@@ -796,6 +738,14 @@ $(function () {
         });
     }
 
+    // =====================================================
+    // INIT
+    // =====================================================
+
+    fetchMessages();
+
 });
+
+
 </script>
 @endsection

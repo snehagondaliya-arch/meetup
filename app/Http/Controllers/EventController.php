@@ -141,12 +141,15 @@ class EventController extends Controller
             $query->whereBetween('latitude', [$request->minLat, $request->maxLat])
                 ->whereBetween('longitude', [$request->minLng, $request->maxLng]);
         }
-
-        $events_map = $query
+        $events_map = [];
+        $query
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            // ->limit(500)
-            ->get();
+            ->chunk(500, function ($events) use (&$events_map) {
+                foreach ($events as $event) {
+                    $events_map[] = $event;
+                }
+            });
 
         return response()->json([
             'events_map' => $events_map,

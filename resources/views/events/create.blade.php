@@ -23,7 +23,7 @@
                 <form action="{{ route('events.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    {{--BASIC INFO  --}}
+                    {{--BASIC INFO --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Event Basics</strong>
@@ -34,20 +34,22 @@
                                 {{-- Category --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Category</label>
-                                        <select class="form-control @error('category_id') is-invalid @enderror event-select-s1" name="category_id">
-                                            <option value="">Select Category</option>
-                                            @foreach($categories as $category)
-                                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                    <select class="form-control @error('category_id') is-invalid @enderror event-select-s1"
+                                        name="category_id">
+                                        <option value="">Select Category</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
 
                                     @error('category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
                                 {{-- Organization --}}
-                                <input type="hidden" name="organization_id" value="{{ Auth::guard('organization')->user()->id }}">
+                                <input type="hidden" name="organization_id"
+                                    value="{{ Auth::guard('organization')->user()->id }}">
 
                                 {{-- Title --}}
                                 <div class="col-md-6 mb-3">
@@ -69,7 +71,7 @@
                         </div>
                     </div>
 
-                    {{--  SCHEDULE  --}}
+                    {{-- SCHEDULE --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Schedule</strong>
@@ -110,7 +112,7 @@
                         </div>
                     </div>
 
-                    {{--  LOCATION  --}}
+                    {{-- LOCATION --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Location Details</strong>
@@ -142,7 +144,7 @@
                         </div>
                     </div>
 
-                    {{--  MEDIA  --}}
+                    {{-- MEDIA --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Media</strong>
@@ -174,7 +176,7 @@
                         </div>
                     </div>
 
-                    {{--  HOST & SETTINGS  --}}
+                    {{-- HOST & SETTINGS --}}
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
                             <strong>Host & Pricing</strong>
@@ -197,7 +199,7 @@
                                     <label class="form-label d-block">Is Online?</label>
                                     <div class="form-check form-check-inline">
                                         <input id="yes" class="form-check-input" type="radio" name="is_online" value="1" {{ old('is_online') == 1 ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="yes" >Yes</label>
+                                        <label class="form-check-label" for="yes">Yes</label>
                                     </div>
 
                                     <div class="form-check form-check-inline">
@@ -216,113 +218,115 @@
                             Save Event
                         </button>
                     </div>
-
                 </form>
-
             </div>
         </div>
     </div>
 @endsection
 @section('js')
     <script>
-    $(document).ready(function () {
+        $(document).ready(function () {
 
-        // Select2
-        $('.event-select-s1').select2({
-            dropdownCssClass: "event-select-s1Dropdown",
-        });
+            // Select2
+            $('.event-select-s1').select2({
+                dropdownCssClass: "event-select-s1Dropdown",
+            });
 
-        // Get current location
-        navigator.geolocation.getCurrentPosition(
-            function (position) {
+            // Get current location
+            navigator.geolocation.getCurrentPosition(
 
-                let lat = position.coords.latitude;
-                let lng = position.coords.longitude;
+                // Success callback
+                function (position) {
 
-                // Initialize map with current location
-                var map = L.map('map').setView([lat, lng], 13);
+                    let lat = position.coords.latitude;
+                    let lng = position.coords.longitude;
 
-                // Tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+                    // Initialize map with current location
+                    var map = L.map('map').setView([lat, lng], 13);
 
-                let marker;
+                    // Tile layer
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
 
-                // Update form fields
-                function updateForm(lat, lng, address = '') {
-                    $('input[name="latitude"]').val(lat);
-                    $('input[name="longitude"]').val(lng);
-                    $('input[name="full_address"]').val(address);
-                }
+                    let marker;
 
-                // Set initial marker
-                marker = L.marker([lat, lng], {
-                    draggable: true
-                }).addTo(map);
+                    // Update form fields
+                    function updateForm(lat, lng, address = '') {
+                        $('input[name="latitude"]').val(lat);
+                        $('input[name="longitude"]').val(lng);
+                        $('input[name="full_address"]').val(address);
+                    }
 
-                // Reverse geocode initial location
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                    .then(res => res.json())
-                    .then(data => {
+                    // Set initial marker
+                    marker = L.marker([lat, lng], {
+                        draggable: true
+                    }).addTo(map);
 
-                        let address = data.display_name || '';
-
-                        marker.bindPopup(address).openPopup();
-
-                        updateForm(lat, lng, address);
-                    });
-
-                // Drag marker event
-                marker.on('dragend', function () {
-
-                    let pos = marker.getLatLng();
-
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                    // Reverse geocode initial location
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
                         .then(res => res.json())
                         .then(data => {
 
-                            let addr = data.display_name || '';
+                            let address = data.display_name || '';
 
-                            marker.bindPopup(addr).openPopup();
+                            marker.bindPopup(address).openPopup();
 
-                            updateForm(pos.lat, pos.lng, addr);
+                            updateForm(lat, lng, address);
                         });
-                });
 
-                // Geocoder search
-                var geocoder = L.Control.geocoder({
-                    defaultMarkGeocode: false,
-                    geocoder: L.Control.Geocoder.photon()
-                })
-                .on('markgeocode', function (e) {
+                    // Drag marker event
+                    marker.on('dragend', function () {
 
-                    let latlng = e.geocode.center;
-                    let address = e.geocode.name;
+                        let pos = marker.getLatLng();
 
-                    map.setView(latlng, 16);
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                            .then(res => res.json())
+                            .then(data => {
 
-                    marker.setLatLng(latlng);
+                                let addr = data.display_name || '';
 
-                    marker.bindPopup(address).openPopup();
+                                marker.bindPopup(addr).openPopup();
 
-                    updateForm(latlng.lat, latlng.lng, address);
-                })
-                .addTo(map);
-            },
+                                updateForm(pos.lat, pos.lng, addr);
+                            });
+                    });
 
-            // Error callback
-            function (error) {
-                console.error("Geolocation error:", error.message);
+                    // Geocoder search
+                    var geocoder = L.Control.geocoder({
+                        defaultMarkGeocode: false,
+                        geocoder: L.Control.Geocoder.photon()
+                    })
+                        .on('markgeocode', function (e) {
 
-                // Fallback map location
-                var map = L.map('map').setView([20.5937, 78.9629], 5);
+                            let latlng = e.geocode.center;
+                            let address = e.geocode.name;
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-            }
-        );
-    });
-</script>
+                            map.setView(latlng, 16);
+
+                            marker.setLatLng(latlng);
+
+                            marker.bindPopup(address).openPopup();
+
+                            updateForm(latlng.lat, latlng.lng, address);
+                        })
+                        .addTo(map);
+                },
+
+                // Error callback
+                function (error) {
+
+                    console.error("Geolocation error:", error.message);
+
+                    // Fallback map location
+                    var map = L.map('map').setView([20.5937, 78.9629], 5);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+                }
+            );
+
+        });
+    </script>
 @endsection

@@ -90,11 +90,11 @@ class ProcessSingleFileJob implements ShouldQueue
 
                             $url = $eventData[$key];
 
-                            // $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
-                            // $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']) ? $extension : 'jpg';
+                            $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
+                            $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']) ? $extension : 'jpg';
 
                             // $filename = md5($url) . '.' . $extension;
-                            $filename = Str::uuid() . '.' . $url->getClientOriginalExtension();
+                            $filename = Str::uuid() . '.' . $extension;
 
                             if (!isset($dispatchedImages[$filename])) {
                                 $imageJobs[] = new DownloadImageJob($url, $folder, $filename);
@@ -141,11 +141,11 @@ class ProcessSingleFileJob implements ShouldQueue
                             if (!$photo)
                                 continue;
 
-                            // $extension = pathinfo(parse_url($photo, PHP_URL_PATH), PATHINFO_EXTENSION);
-                            // $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']) ? $extension : 'jpg';
+                            $extension = pathinfo(parse_url($photo, PHP_URL_PATH), PATHINFO_EXTENSION);
+                            $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']) ? $extension : 'jpg';
 
                             // $filename = md5($photo) . '.' . $extension;
-                            $filename = Str::uuid() . '.' . $photo->getClientOriginalExtension();
+                            $filename = Str::uuid() . '.' . $extension;
 
                             if (!isset($dispatchedImages[$filename])) {
                                 $imageJobs[] = new DownloadImageJob($photo, 'event_photos', $filename);
