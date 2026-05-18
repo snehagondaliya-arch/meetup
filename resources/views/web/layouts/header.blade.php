@@ -48,9 +48,9 @@
         </div>
 
         {{-- Map Icon --}}
-        <a class="nav-link {{ request()->routeIs('map') ? 'active' : '' }}" href="{{ route('map') }}">
+        {{-- <a class="nav-link {{ request()->routeIs('map') ? 'active' : '' }}" href="{{ route('map') }}">
             <i class="fa-solid fa-location-dot location-icon"></i>
-        </a>
+        </a> --}}
 
         {{-- ACTIVE USER (IMPORTANT FIX) --}}
         @php
@@ -100,7 +100,7 @@
                                         <div class="p-3 border-bottom">
                                             <a href="{{ route('events.index') }}" class="btn btn-primary w-100">
                                                 Event List
-                                                <i class="fa-solid fa-plus ms-1"></i>
+                                                {{-- <i class="fa-solid fa-plus ms-1"></i> --}}
                                             </a>
                                         </div>
                                     @endif

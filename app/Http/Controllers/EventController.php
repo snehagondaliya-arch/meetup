@@ -15,16 +15,22 @@ class EventController extends Controller
     {
         $events = Event::query()
             ->byCategory($request->category)
-            ->search($request->search)
-            ->when($request->date_filter, fn($q) => $q->dateFilter($request->date_filter))
-            ->eventType($request->event_type)
-            ->distanceFrom($request->latitude, $request->longitude, $request->distance)
-            ->latestByTitle()
+            ->uniqueTitle()
             ->paginate(8);
-        
-        return $request->ajax()
-            ? view('web.partials.events', compact('events'))->render()
-            : view('web.index', compact('events'));
+        // $events_map = [];
+        $events_map = Event::uniqueTitle()->limit(50)->get();
+        $months = Event::selectRaw('
+                MONTH(start_time) as month,
+                YEAR(start_time) as year
+            ')
+            ->groupBy('month', 'year')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get();
+        return view('web.index', compact('months','events_map','events'));
+        // return $request->ajax()
+        //     ? view('web.partials.events', compact('events'))->render()
+        //     : view('web.index', compact('months','events_map'));
     }
 
     public function faq()
@@ -55,7 +61,7 @@ class EventController extends Controller
     {
         $events = Event::query()
             ->byCategory($request->category)
-            ->latestByTitle()
+            ->uniqueTitle()
             ->paginate(8);
 
         return ($request->ajax())
@@ -79,33 +85,40 @@ class EventController extends Controller
         return view('web.disclaimer');
     }
 
-    public function map()
-    {
-        $events = Event::latestByTitle()->limit(50)->get();
+    // public function map()
+    // {
+    //     $events = Event::uniqueTitle()->limit(50)->get();
+    //     $months = Event::selectRaw('
+    //             MONTH(start_time) as month,
+    //             YEAR(start_time) as year
+    //         ')
+    //         ->groupBy('month', 'year')
+    //         ->orderBy('year')
+    //         ->orderBy('month')
+    //         ->get();
 
-        $months = Event::selectRaw('
-                MONTH(start_time) as month,
-                YEAR(start_time) as year
-            ')
-            ->groupBy('month', 'year')
-            ->orderBy('year')
-            ->orderBy('month')
-            ->get();
-
-        return view('web.map', compact('events', 'months'));
-    }
+    //     return view('web.map', compact('events', 'months'));
+    // }
     public function mapData(Request $request)
-    {
-        $query = Event::latestByTitle()->select([
-            'id',
-            'title',
-            'slug',
-            'latitude',
-            'longitude',
-            'start_time',
-            'image_url',
-            'venue_name',
-        ]);
+    {   
+        $events = Event::query()
+            ->byCategory($request->category)
+            ->uniqueTitle()
+            ->paginate(8);
+         $query = Event::with('category')
+            ->select([
+                'id',
+                'title',
+                'category_id',
+                'slug',
+                'latitude',
+                'longitude',
+                'start_time',
+                'image_url',
+                'venue_name',
+            ])
+            ->uniqueTitle()
+            ->byCategory($request->category);
 
         // Search
         if ($request->search) {
@@ -129,15 +142,17 @@ class EventController extends Controller
                 ->whereBetween('longitude', [$request->minLng, $request->maxLng]);
         }
 
-        $events = $query
+        $events_map = $query
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->limit(200)
+            // ->limit(500)
             ->get();
 
         return response()->json([
-            'events' => $events,
-            'sidebar' => view('web.partials.map-events',compact('events'))->render(),
+            'events_map' => $events_map,
+            'events' => view('web.partials.events',compact('events'))->render(),
+            'sidebar' => view('web.partials.map-events',compact('events_map'))->render(),
         ]);
     }
+  
 }

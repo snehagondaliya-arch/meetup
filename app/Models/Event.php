@@ -62,12 +62,33 @@
             return $this->belongsTo(Organization::class);
         }
 
-        public function scopeByCategory($query, $categorySlug)
+        // public function scopeByCategory($query, $categorySlug)
+        // {
+        //     return $query->when($categorySlug && $categorySlug !== 'all-events', function ($query) use ($categorySlug) {
+        //         $query->whereHas('category', function ($query) use ($categorySlug) {
+        //             $query->where('slug', $categorySlug);
+        //         });
+        //     });
+        // }
+        // public function scopeByCategory($query, $category)
+        // {
+        //     if (!$category || $category === 'all-events') {
+        //         return $query;
+        //     }
+
+        //     return $query->whereHas('category', function ($q) use ($category) {
+        //         $q->where('slug', $category);
+        //     });
+        // }
+
+        public function scopeByCategory($query, $category)
         {
-            return $query->when($categorySlug && $categorySlug !== 'all-events', function ($query) use ($categorySlug) {
-                $query->whereHas('category', function ($query) use ($categorySlug) {
-                    $query->where('slug', $categorySlug);
-                });
+            if (empty($category) || $category === 'all-events') {
+                return $query;
+            }
+
+            return $query->whereHas('category', function ($q) use ($category) {
+                $q->where('slug', $category);
             });
         }
 
@@ -158,10 +179,10 @@
                 ->orderBy('distance');
         }
 
-        public function scopeLatestByTitle($query)
+        public function scopeUniqueTitle($query)
         {
-            return $query->whereIn('id', function ($query) {
-                $query->selectRaw('MIN(id)')
+            return $query->whereIn('id', function ($subquery) {
+                $subquery->selectRaw('MIN(id)')
                     ->from('events')
                     ->groupBy('title');
             });

@@ -9,21 +9,23 @@
 <!-- Swiper JS -->
 <script src="{{ asset('assets/libs/swiper-slider/swiper-bundle.min.js') }}{{ ASSETS_VERSION }}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js{{ ASSETS_VERSION }}"></script>
-
+<!-- Fancybox JS -->
+<script src="{{ asset('assets/libs/fancybox/jquery.fancybox.min.js') }}"></script>
 <script src="{{ asset('assets/js/app.js') }}"></script>
 
+<script src="{{ asset('assets/libs/axios/axios.min.js') }}{{ ASSETS_VERSION}}"></script>
+
 {{-- map --}}
-<script src="https://unpkg.com/leaflet/dist/leaflet.js{{ ASSETS_VERSION }}"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js{{ ASSETS_VERSION }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js{{ ASSETS_VERSION }}"></script>
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-<script src="https://unpkg.com/leaflet-control-search/dist/leaflet-search.min.js"></script>
+<script src="{{ asset('assets/libs/leaflet/dist/leaflet.js') }}{{ ASSETS_VERSION }}"></script>
+<script src="{{ asset('assets/libs/leaflet/leaflet.markercluster.js')}}{{ ASSETS_VERSION }}"></script>
+<script src="{{ asset('assets/libs/leaflet/Control.Geocoder.js') }}{{ ASSETS_VERSION }}"></script>
+
+
 
 {{-- alert --}}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('assets/libs/sweetalert/sweetalert.js') }}"></script>
 
-<script>
+<script>    
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

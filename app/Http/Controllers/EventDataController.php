@@ -19,7 +19,7 @@ class EventDataController extends Controller
     {
         $query = Event::with(['category', 'organization'])
             ->forOrganization(auth('organization')->id())
-            ->latestByTitle();
+            ->uniqueTitle();
 
         if ($request->search) {
             $query->search($request->search);

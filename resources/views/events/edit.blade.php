@@ -297,8 +297,9 @@
                                             type="radio"
                                             name="is_online"
                                             value="1"
+                                            id="yes"
                                             {{ $event->is_online == 1 ? 'checked' : '' }}>
-                                        <label class="form-check-label">Yes</label>
+                                        <label class="form-check-label" for="yes">Yes</label>
                                     </div>
 
                                     <div class="form-check form-check-inline">
@@ -306,8 +307,9 @@
                                             type="radio"
                                             name="is_online"
                                             value="0"
+                                            id="no"
                                             {{ $event->is_online == 0 ? 'checked' : '' }}>
-                                        <label class="form-check-label">No</label>
+                                        <label class="form-check-label" for="no">No</label>
                                     </div>
                                 </div>
 

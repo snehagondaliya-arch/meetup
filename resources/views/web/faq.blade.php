@@ -132,8 +132,3 @@
     </section>
     <!-- End FAQ's Section -->
 @endsection
-@section('js')
-    <script>
-     
-    </script>
-@endsection

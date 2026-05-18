@@ -196,13 +196,13 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label d-block">Is Online?</label>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="is_online" value="1" {{ old('is_online') == 1 ? 'checked' : '' }}>
-                                        <label class="form-check-label">Yes</label>
+                                        <input id="yes" class="form-check-input" type="radio" name="is_online" value="1" {{ old('is_online') == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="yes" >Yes</label>
                                     </div>
 
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="is_online" value="0" {{ old('is_online', 0) == 0 ? 'checked' : '' }}>
-                                        <label class="form-check-label">No</label>
+                                        <input id="no" class="form-check-input" type="radio" name="is_online" value="0" {{ old('is_online', 0) == 0 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="no">No</label>
                                     </div>
                                 </div>
 

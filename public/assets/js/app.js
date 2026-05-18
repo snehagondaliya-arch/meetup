@@ -156,7 +156,7 @@ if (typeof Swiper !== "undefined") {
             navigation: {
                 nextEl: ".upcomingEvent .swiper-button-next",
                 prevEl: ".upcomingEvent .swiper-button-prev"
-            },
+            },  
             breakpoints: {
                 576: { slidesPerView: 2 },
                 992: { slidesPerView: 3 }
@@ -164,4 +164,3 @@ if (typeof Swiper !== "undefined") {
         });
     }
 }
-

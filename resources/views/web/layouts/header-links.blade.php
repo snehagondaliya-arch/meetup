@@ -23,14 +23,15 @@
 <!-- Responsive CSS -->
 <link rel="stylesheet" href="{{ asset('assets/css/responsive.css') }}{{ ASSETS_VERSION }}"> 
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css{{ ASSETS_VERSION }}" />
+{{-- Fancybox CSS --}}
+<link rel="stylesheet" href="{{ asset('assets/libs/fancybox/jquery.fancybox.css') }}">
+
 
 {{-- map --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-search/dist/leaflet-search.min.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<link rel="stylesheet" href="{{ asset('assets/libs/leaflet/dist/leaflet.css') }}{{ ASSETS_VERSION }}" />
+<link rel="stylesheet" href="{{ asset('assets/libs/leaflet/MarkerCluster.css') }}{{ ASSETS_VERSION }}">
+<link rel="stylesheet" href="{{ asset('assets/libs/leaflet/MarkerCluster.Default.css') }}{{ ASSETS_VERSION }}">
+<link rel="stylesheet" href="{{ asset('assets/libs/leaflet/Control.Geocoder.css') }}{{ ASSETS_VERSION }}" />
 
 
 
