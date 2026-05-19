@@ -62,25 +62,6 @@
             return $this->belongsTo(Organization::class);
         }
 
-        // public function scopeByCategory($query, $categorySlug)
-        // {
-        //     return $query->when($categorySlug && $categorySlug !== 'all-events', function ($query) use ($categorySlug) {
-        //         $query->whereHas('category', function ($query) use ($categorySlug) {
-        //             $query->where('slug', $categorySlug);
-        //         });
-        //     });
-        // }
-        // public function scopeByCategory($query, $category)
-        // {
-        //     if (!$category || $category === 'all-events') {
-        //         return $query;
-        //     }
-
-        //     return $query->whereHas('category', function ($q) use ($category) {
-        //         $q->where('slug', $category);
-        //     });
-        // }
-
         public function scopeByCategory($query, $category)
         {
             if (empty($category) || $category === 'all-events') {
@@ -104,85 +85,85 @@
             });
         }
 
-        public function scopeEventType($query, $eventType)
-        {
-            return $query->when($eventType, function ($query) use ($eventType) {
-                $query->where('is_online', $eventType === 'online');
-            });
-        }
+        // public function scopeEventType($query, $eventType)
+        // {
+        //     return $query->when($eventType, function ($query) use ($eventType) {
+        //         $query->where('is_online', $eventType === 'online');
+        //     });
+        // }
 
         public function scopeForOrganization($query, $organizationId)
         {
             return $query->where('organization_id', $organizationId);
         }
-        public function scopeDateFilter($q, $dateFilter)
-        {
-            $now = now();
+        // public function scopeDateFilter($q, $dateFilter)
+        // {
+        //     $now = now();
 
-            return match ($dateFilter) {
-                'starting_soon' => $q->whereBetween('start_time', [
-                    $now->copy(),
-                    $now->copy()->addDays(7),
-                ]),
+        //     return match ($dateFilter) {
+        //         'starting_soon' => $q->whereBetween('start_time', [
+        //             $now->copy(),
+        //             $now->copy()->addDays(7),
+        //         ]),
 
-                'today' => $q->whereBetween('start_time', [
-                    $now->copy()->startOfDay(),
-                    $now->copy()->endOfDay(),
-                ]),
+        //         'today' => $q->whereBetween('start_time', [
+        //             $now->copy()->startOfDay(),
+        //             $now->copy()->endOfDay(),
+        //         ]),
 
-                'tomorrow' => $q->whereBetween('start_time', [
-                    $now->copy()->addDay()->startOfDay(),
-                    $now->copy()->addDay()->endOfDay(),
-                ]),
+        //         'tomorrow' => $q->whereBetween('start_time', [
+        //             $now->copy()->addDay()->startOfDay(),
+        //             $now->copy()->addDay()->endOfDay(),
+        //         ]),
 
-                'this_week' => $q->whereBetween('start_time', [
-                    $now->copy()->startOfWeek(),
-                    $now->copy()->endOfWeek(),
-                ]),
+        //         'this_week' => $q->whereBetween('start_time', [
+        //             $now->copy()->startOfWeek(),
+        //             $now->copy()->endOfWeek(),
+        //         ]),
 
-                'this_weekend' => $q->whereBetween('start_time', [
-                    $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
-                    $now->copy()->startOfWeek()->addDays(6)->endOfDay(),
-                ]),
+        //         'this_weekend' => $q->whereBetween('start_time', [
+        //             $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
+        //             $now->copy()->startOfWeek()->addDays(6)->endOfDay(),
+        //         ]),
 
-                'next_week' => $q->whereBetween('start_time', [
-                    $now->copy()->addWeek()->startOfWeek(),
-                    $now->copy()->addWeek()->endOfWeek(),
-                ]),
+        //         'next_week' => $q->whereBetween('start_time', [
+        //             $now->copy()->addWeek()->startOfWeek(),
+        //             $now->copy()->addWeek()->endOfWeek(),
+        //         ]),
 
-                default => $q,
-            };
-        }
+        //         default => $q,
+        //     };
+        // }
 
-        public function scopeDistanceFrom($query, $latitude, $longitude, $distance)
-        {
-            if (!$latitude || !$longitude || !$distance) {
-                return $query;
-            }
+        // public function scopeDistanceFrom($query, $latitude, $longitude, $distance)
+        // {
+        //     if (!$latitude || !$longitude || !$distance) {
+        //         return $query;
+        //     }
 
-            $distanceInMiles = $distance * 0.621371;
+        //     $distanceInMiles = $distance * 0.621371;
 
-            return $query
-                ->whereNotNull('latitude')
-                ->whereNotNull('longitude')
-                ->where('latitude', '!=', 0)
-                ->where('longitude', '!=', 0)
-                ->selectRaw("events.*,
-                (3959 * acos(
-                    cos(radians(?)) *
-                    cos(radians(latitude)) *
-                    cos(radians(longitude) - radians(?)) +
-                    sin(radians(?)) *
-                    sin(radians(latitude))
-                )) AS distance", [$latitude, $longitude, $latitude])
-                ->having('distance', '<=', $distanceInMiles)
-                ->orderBy('distance');
-        }
+        //     return $query
+        //         ->whereNotNull('latitude')
+        //         ->whereNotNull('longitude')
+        //         ->where('latitude', '!=', 0)
+        //         ->where('longitude', '!=', 0)
+        //         ->selectRaw("events.*,
+        //         (3959 * acos(
+        //             cos(radians(?)) *
+        //             cos(radians(latitude)) *
+        //             cos(radians(longitude) - radians(?)) +
+        //             sin(radians(?)) *
+        //             sin(radians(latitude))
+        //         )) AS distance", [$latitude, $longitude, $latitude])
+        //         ->having('distance', '<=', $distanceInMiles)
+        //         ->orderBy('distance');
+        // }
 
         public function scopeUniqueTitle($query)
         {
             return $query->whereIn('id', function ($subquery) {
-                $subquery->selectRaw('MIN(id)')
+                $subquery->selectRaw('MAX(id)')
                     ->from('events')
                     ->groupBy('title');
             });

@@ -2099,3 +2099,53 @@ span.select2-selection__arrow::before {
 .organisation-auth-tabs .nav-link:hover {
     color: #27b3a8;
 }
+
+.event-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    background: #fff;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.event-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.event-item img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 14px;
+}
+
+.event-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.event-category {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #7c3aed;
+    margin-bottom: 6px;
+    opacity: 0.85;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.meta {
+    font-size: 14px;
+    color: #6b7280;
+}

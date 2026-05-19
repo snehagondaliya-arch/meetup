@@ -18,7 +18,7 @@ class EventController extends Controller
             ->uniqueTitle()
             ->paginate(8);
         // $events_map = [];
-        $events_map = Event::uniqueTitle()->limit(50)->get();
+        $events_map = Event::with('category')->uniqueTitle()->limit(50)->get();
         $months = Event::selectRaw('
                 MONTH(start_time) as month,
                 YEAR(start_time) as year
@@ -145,8 +145,9 @@ class EventController extends Controller
         }
         $events_map = [];
         $query
-            // ->whereNotNull('latitude')
-            // ->whereNotNull('longitude')
+            ->with('category')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->chunk(500, function ($events) use (&$events_map) {
                 foreach ($events as $event) {
                     $events_map[] = $event;
