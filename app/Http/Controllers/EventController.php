@@ -23,6 +23,8 @@ class EventController extends Controller
                 MONTH(start_time) as month,
                 YEAR(start_time) as year
             ')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->groupBy('month', 'year')
             ->orderBy('year')
             ->orderBy('month')
@@ -143,8 +145,8 @@ class EventController extends Controller
         }
         $events_map = [];
         $query
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
+            // ->whereNotNull('latitude')
+            // ->whereNotNull('longitude')
             ->chunk(500, function ($events) use (&$events_map) {
                 foreach ($events as $event) {
                     $events_map[] = $event;
