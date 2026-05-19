@@ -14,6 +14,7 @@ use App\Http\Controllers\OrganizationAuthController;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+// php artisan queue:work --queue=images,default --memory=512
 Route::get('/import', [ImportJsonController::class, 'start'])->name('import');
 
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple')->name('social.redirect');

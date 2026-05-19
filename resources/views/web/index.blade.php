@@ -657,13 +657,30 @@ $(document).ready(function () {
             },
 
             success: function (response) {
-
+                
+                $('#event-container').html(response.events || '');
+                if (typeof AOS !== 'undefined') {
+                    AOS.refreshHard();
+                }
                 markerGroup.clearLayers();
 
-                if (!response) return;
+                if (
+                    !response.events_map ||
+                    response.events_map.length === 0
+                ) {
 
-                $('#event-container').html(response.events || '');
+                    $('#sidebar-event-container').html(`
+                        <div class="no-data">
+                            No Data Found
+                        </div>
+                    `);
 
+                    $('#total_events').html('(0)');
+
+                    markerGroup.clearLayers();
+
+                    return;
+                }
                 $('#sidebar-event-container').html(
                     response.sidebar || ''
                 );
@@ -720,9 +737,6 @@ $(document).ready(function () {
                     markerGroup.addLayer(marker);
                 });
 
-                if (typeof AOS !== 'undefined') {
-                    AOS.refreshHard();
-                }
             },
 
             error: function (xhr, status, error) {
