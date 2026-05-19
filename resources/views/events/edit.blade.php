@@ -349,7 +349,11 @@
                 }
 
                 editMap = L.map('editMap').setView([lat, lng], 13);
-
+                // L.tileLayer(
+                //         'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+                //         {
+                //             subdomains:['mt0','mt1','mt2','mt3']
+                //         }).addTo(editMap);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap'
                 }).addTo(editMap);
