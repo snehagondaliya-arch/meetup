@@ -245,6 +245,11 @@
                     var map = L.map('map').setView([lat, lng], 13);
 
                     // Tile layer
+                    // L.tileLayer(
+                    //     'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+                    //     {
+                    //         subdomains:['mt0','mt1','mt2','mt3']
+                    //     }).addTo(map);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; OpenStreetMap contributors'
                     }).addTo(map);
