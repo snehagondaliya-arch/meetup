@@ -11,26 +11,26 @@ use Illuminate\Support\Facades\Hash;
 
 class OrganizationAuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $validated = $request->validate([
-            'organization_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:organizations,email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        public function register(Request $request)
+        {
+            $validated = $request->validate([
+                'organization_name' => 'required|string|max:255',
+                'email' => 'required|email|unique:organizations,email',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
 
-        $organization = Organization::create([
-            'organization_name' => $validated['organization_name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-        Auth::guard('organization')->login($organization);
+            $organization = Organization::create([
+                'organization_name' => $validated['organization_name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+            Auth::guard('organization')->login($organization);
 
-        return response()->json([
-            'redirect' => route('index'),
-            'message' => 'success'
-        ]);
-    }
+            return response()->json([
+                'redirect' => route('index'),
+                'message' => 'success'
+            ]);
+        }
     public function login(Request $request)
     {
         $credentials = $request->validate([

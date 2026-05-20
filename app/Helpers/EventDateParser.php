@@ -14,7 +14,6 @@ class EventDateParser
         // Remove timezone from string for clean parsing
         if ($tzAbbr && preg_match('/\b' . preg_quote($tzAbbr, '/') . '\b$/', $text)) {
             $text = preg_replace('/\b' . preg_quote($tzAbbr, '/') . '\b$/', '', $text);
-
         }
 
         // Detect if range exists

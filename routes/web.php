@@ -57,7 +57,7 @@ Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclai
 Route::get('/messages', [MessageController::class, 'fetchMessages']);
 Route::post('/messages', [MessageController::class, 'sendMessage']);
 
-Route::resource('contact', ContactController::class);
+Route::resource('contact', ContactController::class)->only(['index','store']);
 
 Route::get('/map', [EventController::class, 'map'])->name('map');
 

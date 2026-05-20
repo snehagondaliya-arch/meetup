@@ -98,7 +98,7 @@
                                 {{-- Timezone --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Timezone</label>
-                                    <select name="timezone" class="form-control event-select-s1">
+                                    <select name="timezone" class="form-control @error('timezone') is-invalid @enderror event-select-s1">
                                         <option value="">Select Timezone</option>
                                         @foreach (DateTimeZone::listIdentifiers() as $tz)
                                             <option value="{{ $tz }}" {{ old('timezone') == $tz ? 'selected' : '' }}>
@@ -106,6 +106,7 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('timezone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
                             </div>
@@ -127,7 +128,8 @@
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Venue Name</label>
-                                    <input type="text" name="venue_name" class="form-control">
+                                    <input type="text" name="venue_name" value="{{ old('venue_name') }}" class="form-control @error('venue_name') is-invalid @enderror">
+                                    @error('venue_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
                                 {{-- <div class="col-12 mb-3">
@@ -186,7 +188,8 @@
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Host Name</label>
-                                    <input type="text" name="host_name" value="{{ old('host_name') }}" class="form-control">
+                                    <input type="text" name="host_name" value="{{ old('host_name') }}" class="form-control @error('host_name') is-invalid @enderror">
+                                    @error('host_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
                                 <div class="col-md-6 mb-3">

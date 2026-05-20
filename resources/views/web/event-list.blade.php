@@ -63,6 +63,8 @@
 @endsection
     @section('js')
         <script>
+            let category = '';
+
             $(document).on('click', '.side-menu-nav .nav-link', function (e) {
                 e.preventDefault();
 
@@ -73,6 +75,7 @@
 
                 loadData();
             });
+
             function loadData() {
                 $.ajax({
                     url: "{{ route('event-list') }}",

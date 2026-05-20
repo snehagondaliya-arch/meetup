@@ -1,249 +1,249 @@
 <?php
 
-    namespace App\Models;
+namespace App\Models;
 
-    use App\Models\Category;
-    use App\Models\EventPhotos;
-    use Carbon\Carbon;
-    use App\Traits\HasImageUrl;
-    use Illuminate\Database\Eloquent\Casts\Attribute;
-    use Illuminate\Database\Eloquent\Model;
+use App\Models\Category;
+use App\Models\EventPhotos;
+use Carbon\Carbon;
+use App\Traits\HasImageUrl;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 
-    class Event extends Model
+class Event extends Model
+{
+    use HasImageUrl;
+    protected $table = 'events';
+    public const STATUS_UPCOMING = 'Upcoming';
+    public const STATUS_LIVE_NOW = 'Live Now';
+    public const STATUS_EXPIRED = 'Expired';
+
+    public const ONLINE = 'Online';
+    public const OFFLINE = 'Offline';
+
+    protected $appends = ['formatted_date', 'formatted_time'];
+    protected $fillable = [
+        'category_id',
+        'organization_id',
+        'title',
+        'slug',
+        'host_name',
+        'host_image',
+        'start_time',
+        'end_time',
+        'timezone',
+        'venue_name',
+        'full_address',
+        'latitude',
+        'longitude',
+        'image_url',
+        'group_image',
+        'description',
+        'price',
+        'is_online',
+    ];
+
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
+
+    public function category()
     {
-        use HasImageUrl;
-        protected $table = 'events';
-        public const STATUS_UPCOMING = 'Upcoming';
-        public const STATUS_LIVE_NOW = 'Live Now';
-        public const STATUS_EXPIRED = 'Expired';
+        return $this->belongsTo(Category::class);
+    }
 
-        public const ONLINE = 'Online';
-        public const OFFLINE = 'Offline';
+    public function event_photos()
+    {
+        return $this->hasMany(EventPhotos::class);
+    }
 
-        protected $appends = ['formatted_date', 'formatted_time'];
-        protected $fillable = [
-            'category_id',
-            'organization_id',
-            'title',
-            'slug',
-            'host_name',
-            'host_image',
-            'start_time',
-            'end_time',
-            'timezone',
-            'venue_name',
-            'full_address',
-            'latitude',
-            'longitude',
-            'image_url',
-            'group_image',
-            'description',
-            'price',
-            'is_online',
-        ];
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
-        protected $casts = [
-            'start_time' => 'datetime',
-            'end_time' => 'datetime',
-        ];
-
-        public function category()
-        {
-            return $this->belongsTo(Category::class);
+    public function scopeByCategory($query, $category)
+    {
+        if (empty($category) || $category === 'all-events') {
+            return $query;
         }
 
-        public function event_photos()
-        {
-            return $this->hasMany(EventPhotos::class);
-        }
+        return $query->whereHas('category', function ($q) use ($category) {
+            $q->where('slug', $category);
+        });
+    }
 
-        public function organization()
-        {
-            return $this->belongsTo(Organization::class);
-        }
+    public function scopeSearch($query, $search)
+    {
+        return $query->when($search, function ($query) use ($search) {
+            $like = '%' . $search . '%';
 
-        public function scopeByCategory($query, $category)
-        {
-            if (empty($category) || $category === 'all-events') {
-                return $query;
-            }
-
-            return $query->whereHas('category', function ($q) use ($category) {
-                $q->where('slug', $category);
+            $query->where(function ($query) use ($like) {
+                $query->where('title', 'like', $like)
+                    ->orWhere('venue_name', 'like', $like);
             });
-        }
+        });
+    }
 
-        public function scopeSearch($query, $search)
-        {
-            return $query->when($search, function ($query) use ($search) {
-                $like = '%' . $search . '%';
+    // public function scopeEventType($query, $eventType)
+    // {
+    //     return $query->when($eventType, function ($query) use ($eventType) {
+    //         $query->where('is_online', $eventType === 'online');
+    //     });
+    // }
 
-                $query->where(function ($query) use ($like) {
-                    $query->where('title', 'like', $like)
-                        ->orWhere('venue_name', 'like', $like);
-                });
-            });
-        }
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->where('organization_id', $organizationId);
+    }
+    // public function scopeDateFilter($q, $dateFilter)
+    // {
+    //     $now = now();
 
-        // public function scopeEventType($query, $eventType)
-        // {
-        //     return $query->when($eventType, function ($query) use ($eventType) {
-        //         $query->where('is_online', $eventType === 'online');
-        //     });
-        // }
+    //     return match ($dateFilter) {
+    //         'starting_soon' => $q->whereBetween('start_time', [
+    //             $now->copy(),
+    //             $now->copy()->addDays(7),
+    //         ]),
 
-        public function scopeForOrganization($query, $organizationId)
-        {
-            return $query->where('organization_id', $organizationId);
-        }
-        // public function scopeDateFilter($q, $dateFilter)
-        // {
-        //     $now = now();
+    //         'today' => $q->whereBetween('start_time', [
+    //             $now->copy()->startOfDay(),
+    //             $now->copy()->endOfDay(),
+    //         ]),
 
-        //     return match ($dateFilter) {
-        //         'starting_soon' => $q->whereBetween('start_time', [
-        //             $now->copy(),
-        //             $now->copy()->addDays(7),
-        //         ]),
+    //         'tomorrow' => $q->whereBetween('start_time', [
+    //             $now->copy()->addDay()->startOfDay(),
+    //             $now->copy()->addDay()->endOfDay(),
+    //         ]),
 
-        //         'today' => $q->whereBetween('start_time', [
-        //             $now->copy()->startOfDay(),
-        //             $now->copy()->endOfDay(),
-        //         ]),
+    //         'this_week' => $q->whereBetween('start_time', [
+    //             $now->copy()->startOfWeek(),
+    //             $now->copy()->endOfWeek(),
+    //         ]),
 
-        //         'tomorrow' => $q->whereBetween('start_time', [
-        //             $now->copy()->addDay()->startOfDay(),
-        //             $now->copy()->addDay()->endOfDay(),
-        //         ]),
+    //         'this_weekend' => $q->whereBetween('start_time', [
+    //             $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
+    //             $now->copy()->startOfWeek()->addDays(6)->endOfDay(),
+    //         ]),
 
-        //         'this_week' => $q->whereBetween('start_time', [
-        //             $now->copy()->startOfWeek(),
-        //             $now->copy()->endOfWeek(),
-        //         ]),
+    //         'next_week' => $q->whereBetween('start_time', [
+    //             $now->copy()->addWeek()->startOfWeek(),
+    //             $now->copy()->addWeek()->endOfWeek(),
+    //         ]),
 
-        //         'this_weekend' => $q->whereBetween('start_time', [
-        //             $now->copy()->startOfWeek()->addDays(5)->startOfDay(),
-        //             $now->copy()->startOfWeek()->addDays(6)->endOfDay(),
-        //         ]),
+    //         default => $q,
+    //     };
+    // }
 
-        //         'next_week' => $q->whereBetween('start_time', [
-        //             $now->copy()->addWeek()->startOfWeek(),
-        //             $now->copy()->addWeek()->endOfWeek(),
-        //         ]),
+    // public function scopeDistanceFrom($query, $latitude, $longitude, $distance)
+    // {
+    //     if (!$latitude || !$longitude || !$distance) {
+    //         return $query;
+    //     }
 
-        //         default => $q,
-        //     };
-        // }
+    //     $distanceInMiles = $distance * 0.621371;
 
-        // public function scopeDistanceFrom($query, $latitude, $longitude, $distance)
-        // {
-        //     if (!$latitude || !$longitude || !$distance) {
-        //         return $query;
-        //     }
+    //     return $query
+    //         ->whereNotNull('latitude')
+    //         ->whereNotNull('longitude')
+    //         ->where('latitude', '!=', 0)
+    //         ->where('longitude', '!=', 0)
+    //         ->selectRaw("events.*,
+    //         (3959 * acos(
+    //             cos(radians(?)) *
+    //             cos(radians(latitude)) *
+    //             cos(radians(longitude) - radians(?)) +
+    //             sin(radians(?)) *
+    //             sin(radians(latitude))
+    //         )) AS distance", [$latitude, $longitude, $latitude])
+    //         ->having('distance', '<=', $distanceInMiles)
+    //         ->orderBy('distance');
+    // }
 
-        //     $distanceInMiles = $distance * 0.621371;
+    public function scopeUniqueTitle($query)
+    {
+        return $query->whereIn('id', function ($subquery) {
+            $subquery->selectRaw('MAX(id)')
+                ->from('events')
+                ->groupBy('title');
+        });
+    }
 
-        //     return $query
-        //         ->whereNotNull('latitude')
-        //         ->whereNotNull('longitude')
-        //         ->where('latitude', '!=', 0)
-        //         ->where('longitude', '!=', 0)
-        //         ->selectRaw("events.*,
-        //         (3959 * acos(
-        //             cos(radians(?)) *
-        //             cos(radians(latitude)) *
-        //             cos(radians(longitude) - radians(?)) +
-        //             sin(radians(?)) *
-        //             sin(radians(latitude))
-        //         )) AS distance", [$latitude, $longitude, $latitude])
-        //         ->having('distance', '<=', $distanceInMiles)
-        //         ->orderBy('distance');
-        // }
-
-        public function scopeUniqueTitle($query)
-        {
-            return $query->whereIn('id', function ($subquery) {
-                $subquery->selectRaw('MAX(id)')
-                    ->from('events')
-                    ->groupBy('title');
-            });
-        }
-
-            protected function imageUrl(): Attribute
-            {   
-                return Attribute::make(
-                    get: fn ($value) => $this->resolveImageUrl($value,EVENT_IMAGES), 
-                );
-            }
-            protected function hostImage(): Attribute
-            {
-                return Attribute::make(
-                get: fn ($value) => $this->resolveImageUrl($value,HOST_IMAGES),
-                );
-
-            }
-            protected function groupImage(): Attribute
-            {
-            return Attribute::make(
-            get: fn ($value) => $this->resolveImageUrl($value,GROUP_IMAGES),
-            );
-        }
-
-        public function getStatusAttribute()
-        {
-            $now = Carbon::now();
-
-            if ($this->start_time > $now) {
-                return self::STATUS_UPCOMING;
-            }
-
-            if ($this->start_time <= $now && $this->end_time !== null && $this->end_time >= $now) {
-                return self::STATUS_LIVE_NOW;
-            }
-
-            return self::STATUS_EXPIRED;
-        }
-
-        public function getStartLocalAttribute()
-        {
-            return $this->start_time
-                ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
-                : null;
-        }
-
-        public function getEndLocalAttribute()
-        {
-            return $this->end_time
-                ? Carbon::parse($this->end_time)->setTimezone($this->timezone ?? 'UTC')
-                : null;
-
-        }
-        public function getFormattedDateAttribute()
-        {
-            if (!$this->start_local) {
-                return null;
-            }
-
-            return $this->start_local->format('d/m/y');
-        }
-        public function getFormattedTimeAttribute()
-        {
-            if (!$this->start_local) {
-                return null;
-            }
-
-            return $this->start_local->format('h:i A');
-        }
-
-        public function getFormattedDateTimeAttribute()
-        {
-            if (!$this->start_local || !$this->end_local) {
-                return null;
-            }
-            return $this->start_local->format('l, M d, g:i A') . ' to ' .
-                $this->end_local->format('g:i A') . ' ' .
-                $this->start_local->format('T');
-        }
-
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $this->resolveImageUrl($value, EVENT_IMAGES),
+        );
+    }
+    protected function hostImage(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $this->resolveImageUrl($value, HOST_IMAGES),
+        );
 
     }
+    protected function groupImage(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $this->resolveImageUrl($value, GROUP_IMAGES),
+        );
+    }
+
+    public function getStatusAttribute()
+    {
+        $now = Carbon::now();
+
+        if ($this->start_time > $now) {
+            return self::STATUS_UPCOMING;
+        }
+
+        if ($this->start_time <= $now && $this->end_time !== null && $this->end_time >= $now) {
+            return self::STATUS_LIVE_NOW;
+        }
+
+        return self::STATUS_EXPIRED;
+    }
+
+    public function getStartLocalAttribute()
+    {
+        return $this->start_time
+            ? Carbon::parse($this->start_time)->setTimezone($this->timezone ?? 'UTC')
+            : null;
+    }
+
+    public function getEndLocalAttribute()
+    {
+        return $this->end_time
+            ? Carbon::parse($this->end_time)->setTimezone($this->timezone ?? 'UTC')
+            : null;
+
+    }
+    public function getFormattedDateAttribute()
+    {
+        if (!$this->start_local) {
+            return null;
+        }
+
+        return $this->start_local->format('d/m/y');
+    }
+    public function getFormattedTimeAttribute()
+    {
+        if (!$this->start_local) {
+            return null;
+        }
+
+        return $this->start_local->format('h:i A');
+    }
+
+    public function getFormattedDateTimeAttribute()
+    {
+        if (!$this->start_local || !$this->end_local) {
+            return null;
+        }
+        return $this->start_local->format('l, M d, g:i A') . ' to ' .
+            $this->end_local->format('g:i A') . ' ' .
+            $this->start_local->format('T');
+    }
+
+
+}

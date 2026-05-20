@@ -43,6 +43,7 @@
                                                         <h3 class="fs-18px gt-text-title mb-0">{{ $event->host_name}}<span class="text-muted"> Super Organizers</span></h3>
                                                     </div>
                                                 </div>
+                                                @if($event->formatted_date_time)
                                                 <div class="rounded-12 gt-bg-s2 p-3">
                                                     <div class="d-flex align-items-center gap-2 border-bottom mb-3 pb-3">
                                                         <div class="fs-22px">
@@ -54,6 +55,7 @@
                                                             </h3>
                                                         </div>
                                                     </div>
+                                                @endif
                                                     @if($event->is_online == 1)
                                                     <div class="d-flex align-items-center gap-2">
                                                         <div class="fs-22px">

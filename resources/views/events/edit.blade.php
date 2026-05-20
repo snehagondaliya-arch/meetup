@@ -49,8 +49,9 @@
                                     <input type="text"
                                         id="title"
                                         name="title"
-                                        class="form-control"
+                                        class="form-control @error('title') is-invalid @enderror"
                                         value="{{ old('title', $event->title) }}">
+                                    @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
                                 </div>
 
@@ -81,8 +82,9 @@
                                     <input type="datetime-local"
                                         id="start_time"
                                         name="start_time"
-                                        class="form-control"
+                                        class="form-control @error('start_time') is-invalid @enderror"
                                         value="{{ old('start_time', \Carbon\Carbon::parse($event->start_time)->format('Y-m-d\TH:i')) }}">
+                                    @error('start_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
                                 </div>
 
@@ -94,9 +96,9 @@
                                     <input type="datetime-local"
                                         id="end_time"
                                         name="end_time"
-                                        class="form-control"
+                                        class="form-control @error('start_time') is-invalid @enderror"
                                         value="{{ old('end_time', \Carbon\Carbon::parse($event->end_time)->format('Y-m-d\TH:i')) }}">
-
+                                    @error('end_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
                                 {{-- Timezone --}}
@@ -106,8 +108,8 @@
 
                                     <select id="timezone"
                                             name="timezone"
-                                            class="form-control event-select-s1">
-
+                                            class="form-control @error('timezone') is-invalid @enderror event-select-s1">
+                                        <option value="">Select timezone</option>
                                         @foreach (DateTimeZone::listIdentifiers() as $tz)
 
                                             <option value="{{ $tz }}"
@@ -120,6 +122,7 @@
                                         @endforeach
 
                                     </select>
+                                    @error('timezone') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
                                 </div>
 
@@ -156,9 +159,11 @@
                                     <input type="text"
                                             id="venue_name"
                                             name="venue_name"
-                                            class="form-control"
+                                            class="form-control @error('venue_name') is-invalid @enderror"
                                             value="{{ old('venue_name', $event->venue_name) }}">
+                                         @error('venue_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                                 </div>
+                                   
 
                                 {{-- <div class="col-12 mb-3">
                                     <label class="form-label">Full Address</label>
@@ -277,8 +282,9 @@
                                    <input type="text"
                                         id="host_name"
                                         name="host_name"
-                                        class="form-control"
+                                        class="form-control @error('host_name') is-invalid @enderror"
                                         value="{{ old('host_name', $event->host_name) }}">
+                                    @error('host_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
                                 <div class="col-md-6 mb-3">

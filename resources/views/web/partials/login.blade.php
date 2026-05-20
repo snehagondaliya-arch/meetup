@@ -152,7 +152,7 @@
 
                                                 <input type="text" class="form-control" name="email"
                                                     placeholder="Enter email">
-                                                <span class="text-danger error-text" id="email_error"></span>
+                                                <span class="text-danger error-text" id="login_email_error"></span>
                                                 
                                             </div>
 
@@ -161,7 +161,7 @@
                                                 <label class="form-label">Password</label>
                                                 <input type="password" class="form-control" name="password"
                                                     placeholder="Enter password">
-                                                <span class="text-danger error-text" id="password_error"></span>
+                                                <span class="text-danger error-text" id="login_password_error"></span>
                                             </div>
 
                                             <!-- Submit -->
@@ -177,48 +177,62 @@
 
                                     <!-- Register Form -->
                                     <div class="tab-pane fade" id="org-register" role="tabpanel">
+                                      <form id="registrationForm">
+                                        @csrf
 
-                                        <form id="registrationForm">
-                                            @csrf
-                                            <!-- Organisation Name -->
-                                            <div class="mb-3">
-                                                <label class="form-label">Organisation Name</label>
+                                        <!-- Organisation Name -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Organisation Name</label>
 
-                                                <input type="text" class="form-control" name="organization_name"
-                                                    placeholder="Enter organisation name"
-                                                    value="{{ old('organization_name') }}">
-                                               <span class="text-danger error-text" id="organization_name_error"></span>
-                                            </div>
+                                            <input type="text"
+                                                class="form-control"
+                                                name="organization_name"
+                                                placeholder="Enter organisation name">
 
-                                            <!-- Email -->
-                                            <div class="mb-3">
-                                                <label class="form-label">Email</label>
+                                           <small class="text-danger error-text d-block" id="reg_organization_name_error"></small>
+                                        </div>
 
-                                                <input type="text" class="form-control" name="email"
-                                                    placeholder="Enter email" value="{{ old('email') }}">
-                                                <span class="text-danger error-text" id="email_error"></span>
-                                            </div>
+                                        <!-- Email -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Email</label>
 
-                                            <!-- Password -->
-                                            <div class="mb-4">
-                                                <label class="form-label">Password</label>
+                                            <input type="text"
+                                                class="form-control"
+                                                name="email"
+                                                placeholder="Enter email">
 
-                                                <input type="password" class="form-control" name="password"
-                                                    placeholder="Create password">
-                                                 <span class="text-danger error-text" id="password_error"></span>
-                                            </div>
-                                            <div class="mb-4">
-                                                <label class="form-label">Confirm Password</label>
-                                                <input type="password" class="form-control" name="password_confirmation"
-                                                    placeholder="Confirm Password">
-                                            </div>
+                                            <small class="text-danger error-text d-block" id="reg_email_error"></small>
+                                        </div>
 
-                                            <!-- Submit -->
-                                            <button type="submit" class="btn theme-auth-btn w-100 rounded-8 py-2">
-                                                Register
-                                            </button>
+                                        <!-- Password -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Password</label>
 
-                                        </form>
+                                            <input type="password"
+                                                class="form-control"
+                                                name="password"
+                                                placeholder="Create password">
+
+                                         <small class="text-danger error-text d-block" id="reg_password_error"></small>
+                                        </div>
+
+                                        <!-- Confirm Password -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Confirm Password</label>
+
+                                            <input type="password"
+                                                class="form-control"
+                                                name="password_confirmation"
+                                                placeholder="Confirm Password">
+
+                                            <small class="text-danger error-text d-block" id="reg_password_confirmation_error"></small>
+                                        </div>
+
+                                        <button type="submit"
+                                                class="btn theme-auth-btn w-100 rounded-8 py-2">
+                                            Register
+                                        </button>
+                                    </form>
 
                                     </div>
 

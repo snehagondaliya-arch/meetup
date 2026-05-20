@@ -1,4 +1,4 @@
-@foreach ($events as $event)
+@forelse($events as $event)
     <div class="col-xxl-3 col-lg-4 col-sm-6">
         <div class="card event-card-s2" data-aos="zoom-in" data-aos-duration="800">
             <a href="{{ route('event-detail', $event->slug) }}"></a>
@@ -45,4 +45,10 @@
         </div>
 
     </div>
-@endforeach
+@empty
+    <div class="col-12">
+        <div class="text-center py-5">  
+            <h4>No Data Found</h4>
+        </div>
+    </div>
+@endforelse

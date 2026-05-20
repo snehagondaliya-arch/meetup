@@ -170,30 +170,36 @@ if (typeof Swiper !== "undefined") {
 // =====================
     $(document).ready(function () {
         $('#registrationForm').on('submit', function (e) {
-            e.preventDefault(); 
-            $('.error-text').text('');
+
+            e.preventDefault();
+
+            $('.error-text').html('');
+
             $.ajax({
                 url: window.appUrls.register,
                 type: "POST",
                 data: $(this).serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
+
                 success: function (response) {
-                    // $('#registrationForm')[0].reset();
+
                     if (response.redirect) {
                         window.location.href = response.redirect;
                     }
                 },
+
                 error: function (xhr) {
-                    let errors = xhr.responseJSON.errors;
 
-                    // Clear previous errors
-                    $('.error-text').text('');
+                    $('.error-text').html('');
 
-                    $.each(errors, function (key, value) {
-                        $('#' + key + '_error').text(value[0]);
-                    });
+                    if (xhr.status === 422) {
+
+                        let errors = xhr.responseJSON.errors;
+
+                        $.each(errors, function (key, value) {
+
+                           $('#reg_' + key + '_error').text(value[0]);
+                        });
+                    }
                 }
             });
         });
@@ -208,13 +214,11 @@ if (typeof Swiper !== "undefined") {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function (response) {
-                    // $('#loginForm')[0].reset();
                     if (response.redirect) {
                         window.location.href = response.redirect;
                     }
                 },
                error: function (xhr) {
-
                     if (xhr.status === 419) {
                         $('#login-error').text('Session expired. Refresh page.');
                         return;
@@ -226,7 +230,7 @@ if (typeof Swiper !== "undefined") {
 
                     if (xhr.status === 422 && xhr.responseJSON.errors) {
                         $.each(xhr.responseJSON.errors, function (key, value) {
-                            $('#' + key + '_error').text(value[0]);
+                            $('#login_' + key + '_error').text(value[0]);
                         });
                     }
                 }

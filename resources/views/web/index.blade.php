@@ -662,8 +662,18 @@ $(document).ready(function () {
             },
 
             success: function (response) {
-                
-                $('#event-container').html(response.events || '');
+                if (!response.events) {
+                    $('#event-container').html(`
+                       <div class="col-12">
+                            <div class="text-center py-5">
+                                <h4>No Data Found</h4>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    $('#event-container').html(response.events);
+                }
+
                 if (typeof AOS !== 'undefined') {
                     AOS.refreshHard();
                 }
