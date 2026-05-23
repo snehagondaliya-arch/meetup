@@ -161,31 +161,499 @@
 <script>
 $(document).ready(function () {
 
+
+        const baseUrl = "{{ url('/') }}";
+
+        const currentUserId = @json(
+            Auth::guard('organization')->check()
+                ? Auth::guard('organization')->id()
+                : Auth::id()
+        );
+
+        const currentUserType = @json(
+            Auth::guard('organization')->check()
+                ? 'App\\Models\\Organization'
+                : 'App\\Models\\User'
+        );
+
+        const isAuthenticated = @json(
+            Auth::guard('organization')->check() ||
+            Auth::guard('web')->check()
+        );
+
+        let allMessages = [];
+
+        let lastMessageId = 0;
+
+        const messagesBox = $("#messages");
+        const messageForm = $("#message-form");
+        const messageInput = $("#message-input");
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        function escapeHtml(text) {
+            return $('<div>').text(text || '').html();
+        }
+
+        function showLoginModal() {
+            $("#loginBackdrop").modal("show");
+        }
+
+        function ajaxError(title, error) {
+            console.error(title, error);
+        }
+
+        function isNearBottom() {
+
+            const el = messagesBox[0];
+
+            return (
+                el.scrollHeight - el.scrollTop - el.clientHeight < 100
+            );
+        }
+
+
+        // =====================================================
+        // FETCH MESSAGES
+        // =====================================================
+
+        function fetchMessages(initial = false) {
+
+            $.ajax({
+
+                url: `${baseUrl}/messages`,
+
+                type: "GET",
+
+                data: {
+                    after_id: initial ? 0 : lastMessageId
+                },
+
+                success: function(response) {
+
+                    if (!Array.isArray(response)) return;
+
+                    if (initial) {
+
+                        allMessages = response;
+
+                        if (response.length) {
+
+                            lastMessageId = Math.max(
+                                ...response.map(m => m.id)
+                            );
+                        }
+
+                        renderMessages();
+
+                        return;
+                    }
+
+                    if (response.length) {
+
+                        response.forEach(newMsg => {
+
+                            const exists = allMessages.some(
+                                oldMsg => oldMsg.id === newMsg.id
+                            );
+
+                            if (!exists) {
+                                allMessages.push(newMsg);
+                            }
+                        });
+
+                        lastMessageId = Math.max(
+                            lastMessageId,
+                            ...response.map(m => m.id)
+                        );
+
+                        renderMessages();
+                    }
+                },
+
+                error: function(xhr, status, error) {
+
+                    ajaxError("Fetch error:", error);
+                }
+            });
+        }
+
+
+        // =====================================================
+        // SEND MESSAGE
+        // =====================================================
+
+        function sendMessage(message, parentId = null) {
+
+            $.ajax({
+
+                url: `${baseUrl}/messages`,
+
+                type: "POST",
+
+                data: {
+
+                    _token: "{{ csrf_token() }}",
+
+                    message: message,
+
+                    parent_id: parentId
+                },
+
+                success: function(response) {
+
+                    messageInput.val('');
+
+                    const exists = allMessages.some(
+                        msg => msg.id === response.id
+                    );
+
+                    if (!exists) {
+
+                        allMessages.push(response);
+
+                        lastMessageId = Math.max(
+                            lastMessageId,
+                            response.id
+                        );
+
+                        renderMessages();
+                    }
+                },
+
+                error: function(xhr, status, error) {
+
+                    ajaxError("Send error:", error);
+                }
+            });
+        }
+
+
+        // =====================================================
+        // BUILD TREE
+        // =====================================================
+
+        function buildTree(messages) {
+
+            let map = {};
+
+            let roots = [];
+
+            messages.forEach(msg => {
+
+                msg.replies = [];
+
+                map[msg.id] = msg;
+            });
+
+            messages.forEach(msg => {
+
+                if (msg.parent_id && map[msg.parent_id]) {
+
+                    map[msg.parent_id].replies.push(msg);
+
+                } else {
+
+                    roots.push(msg);
+                }
+            });
+
+            return roots;
+        }
+
+
+        // =====================================================
+        // RENDER MESSAGES
+        // =====================================================
+
+        function renderMessages() {
+
+            const shouldScroll = isNearBottom();
+
+            messagesBox.empty();
+
+            if (!allMessages.length) {
+
+                messagesBox.html(`
+                    <div class="no-messages">
+                        No messages yet 👋
+                    </div>
+                `);
+
+                return;
+            }
+
+            const tree = buildTree(allMessages);
+
+            tree.forEach(msg => {
+
+                messagesBox.append(
+                    createMessage(msg)
+                );
+            });
+
+            if (shouldScroll) {
+
+                messagesBox.scrollTop(
+                    messagesBox[0].scrollHeight
+                );
+            }
+        }
+
+
+        // =====================================================
+        // CREATE MESSAGE
+        // =====================================================
+
+        function createMessage(msg, level = 0) {
+
+            const isMe =
+                Number(msg.messageable_id) === Number(currentUserId)
+                &&
+                msg.messageable_type === currentUserType;
+
+            const isOrg =
+                (msg.messageable_type || '')
+                .includes("Organization");
+
+            const name = isOrg
+                ? (msg.messageable?.organization_name || "Organization")
+                : (msg.messageable?.name || "User");
+
+            const firstLetter = name.charAt(0).toUpperCase();
+
+            const time = msg.created_at
+                ? new Date(msg.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                : '';
+
+            const html = $(`
+
+                <div class="chat-message ${isMe ? 'me' : 'other'}"
+                    style="margin-left:${level * 16}px">
+
+                    <div class="msg-row">
+
+                        <div class="avatar">
+                            ${escapeHtml(firstLetter)}
+                        </div>
+
+                        <div class="msg-content">
+
+                            <div class="msg-header">
+
+                                <span class="msg-name">
+                                    ${escapeHtml(name)}
+                                </span>
+
+                                <span class="msg-time">
+                                    ${time}
+                                </span>
+
+                            </div>
+
+                            <div class="msg-line">
+
+                                <div class="msg-text">
+                                    ${escapeHtml(msg.message)}
+                                </div>
+
+                                ${level === 0 ? `
+                                    <span class="reply-btn">
+                                        ↩ Reply
+                                    </span>
+                                ` : ''}
+
+                            </div>
+
+                            ${level === 0 ? `
+
+                                <div class="reply-box d-none">
+
+                                    <div class="reply-input">
+
+                                        <input type="text"
+                                            class="reply-text"
+                                            placeholder="Write a reply..." />
+
+                                        <button class="send-reply-btn">
+                                            Send
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            ` : ''}
+
+                            <div class="replies"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            `);
+
+
+            // =========================================
+            // TOGGLE REPLY
+            // =========================================
+
+            html.find(".reply-btn").on("click", function () {
+
+                html.find(".reply-box")
+                    .toggleClass("d-none");
+            });
+
+
+            // =========================================
+            // SEND REPLY
+            // =========================================
+
+            html.find(".send-reply-btn")
+                .on("click", function () {
+
+                if (!isAuthenticated) {
+
+                    showLoginModal();
+
+                    return;
+                }
+
+                const replyText = html
+                    .find(".reply-text")
+                    .val()
+                    .trim();
+
+                if (!replyText) return;
+
+                sendMessage(replyText, msg.id);
+            });
+
+
+            // =========================================
+            // REPLIES
+            // =========================================
+
+            if (msg.replies?.length) {
+
+                const repliesContainer =
+                    html.find(".replies");
+
+                let expanded = false;
+
+                function renderReplies() {
+
+                    repliesContainer.empty();
+
+                    if (expanded) {
+
+                        msg.replies.forEach(reply => {
+
+                            repliesContainer.append(
+                                createMessage(reply, level + 1)
+                            );
+                        });
+                    }
+
+                    const toggleBtn = $(`
+
+                        <div class="view-more">
+
+                            ${expanded
+                                ? 'Hide replies'
+                                : `View replies (${msg.replies.length})`
+                            }
+
+                        </div>
+                    `);
+
+                    toggleBtn.on("click", function () {
+
+                        expanded = !expanded;
+
+                        renderReplies();
+                    });
+
+                    repliesContainer.append(toggleBtn);
+                }
+
+                renderReplies();
+            }
+
+            return html;
+        }
+
+
+        // =====================================================
+        // FORM SUBMIT
+        // =====================================================
+
+        messageForm.on("submit", function(e) {
+
+            e.preventDefault();
+
+            if (!isAuthenticated) {
+
+                showLoginModal();
+
+                return;
+            }
+
+            const message =
+                messageInput.val().trim();
+
+            if (!message) return;
+
+            sendMessage(message);
+        });
+
+
+        // =====================================================
+        // CHAT TOGGLE
+        // =====================================================
+
+        $("#chatToggle").on("click", function() {
+
+            $("#chatBox")
+                .toggleClass("show");
+        });
+
+        $("#closeChat").on("click", function() {
+
+            $("#chatBox")
+                .removeClass("show");
+        });
+
+
+        // =====================================================
+        // INITIAL LOAD
+        // =====================================================
+
+        fetchMessages(true);
+
+
+        // =====================================================
+        // REALTIME POLLING
+        // =====================================================
+
+        setInterval(() => {
+
+            fetchMessages();
+
+        }, 2000);
+
+
+
     // =====================================================
-    // GLOBALS
+    // TIMELINE
     // =====================================================
-
-    const baseUrl = "{{ url('/') }}";
-
-    const currentUserId = @json(
-        Auth::guard('organization')->check()
-            ? Auth::guard('organization')->id()
-            : Auth::id()
-    );
-
-    const currentUserType = @json(
-        Auth::guard('organization')->check()
-            ? 'App\\Models\\Organization'
-            : 'App\\Models\\User'
-    );
-
-    const isAuthenticated = @json(
-        Auth::guard('organization')->check() ||
-        Auth::guard('web')->check()
-    );
-
-    let allMessages = [];
-
     let selectedMonth = new Date().getMonth() + 1;
     let selectedYear = new Date().getFullYear();
 
@@ -195,322 +663,6 @@ $(document).ready(function () {
     let map;
     let markerGroup;
     let debounceTimer;
-
-    // =====================================================
-    // ELEMENTS
-    // =====================================================
-
-    const messagesBox = $("#messages");
-    const messageForm = $("#message-form");
-    const messageInput = $("#message-input");
-
-    // =====================================================
-    // HELPERS
-    // =====================================================
-
-    function escapeHtml(text) {
-        return $('<div>').text(text || '').html();
-    }
-
-    function showLoginModal() {
-        $("#loginBackdrop").modal("show");
-    }
-
-    function ajaxError(title, error) {
-        console.error(`${title}:`, error);
-    }
-
-    // =====================================================
-    // MESSAGE SECTION
-    // =====================================================
-
-    function fetchMessages() {
-
-        $.ajax({
-            url: `${baseUrl}/messages`,
-            type: "GET",
-
-            success: function (response) {
-
-                allMessages = Array.isArray(response)
-                    ? response
-                    : [];
-
-                renderMessages();
-            },
-
-            error: function (xhr, status, error) {
-
-                ajaxError("Message fetch failed", error);
-
-                messagesBox.html(`
-                    <div class="error-message">
-                        Failed to load messages.
-                    </div>
-                `);
-            }
-        });
-    }
-
-    function sendMessage(message, parentId = null) {
-
-        $.ajax({
-            url: `${baseUrl}/messages`,
-            type: "POST",
-
-            data: {
-                _token: "{{ csrf_token() }}",
-                message: message,
-                parent_id: parentId
-            },
-
-            success: function () {
-
-                messageInput.val('');
-                fetchMessages();
-            },
-
-            error: function (xhr, status, error) {
-                ajaxError("Message send failed", error);
-            }
-        });
-    }
-
-    function buildTree(messages) {
-
-        let map = {};
-        let roots = [];
-
-        messages.forEach(msg => {
-
-            msg.replies = [];
-            map[msg.id] = msg;
-        });
-
-        messages.forEach(msg => {
-
-            if (msg.parent_id && map[msg.parent_id]) {
-
-                map[msg.parent_id].replies.push(msg);
-
-            } else {
-
-                roots.push(msg);
-            }
-        });
-
-        return roots;
-    }
-
-    function renderMessages() {
-
-        messagesBox.empty();
-
-        if (!allMessages.length) {
-
-            messagesBox.html(`
-                <div class="no-messages">
-                    No messages yet. Start conversation 👋
-                </div>
-            `);
-
-            return;
-        }
-
-        const tree = buildTree(allMessages);
-
-        tree.forEach(msg => {
-            messagesBox.append(createMessage(msg));
-        });
-
-        messagesBox.scrollTop(messagesBox[0].scrollHeight);
-    }
-
-    function createMessage(msg, level = 0) {
-
-        const isMe =
-            Number(msg.messageable_id) === Number(currentUserId) &&
-            msg.messageable_type === currentUserType;
-
-        const isOrg =
-            (msg.messageable_type || '').includes("Organization");
-
-        const name = isOrg
-            ? (msg.messageable?.organization_name || "Organization")
-            : (msg.messageable?.name || "User");
-
-        const firstLetter = name.charAt(0).toUpperCase();
-
-        const time = msg.created_at
-            ? new Date(msg.created_at).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit'
-            })
-            : '';
-
-        const html = $(`
-            <div class="chat-message ${isMe ? 'me' : 'other'}"
-                 style="margin-left:${level * 16}px">
-
-                <div class="msg-row">
-
-                    <div class="avatar">
-                        ${escapeHtml(firstLetter)}
-                    </div>
-
-                    <div class="msg-content">
-
-                        <div class="msg-header">
-
-                            <span class="msg-name">
-                                ${escapeHtml(name)}
-                            </span>
-
-                            <span class="msg-time">
-                                ${time}
-                            </span>
-
-                        </div>
-
-                        <div class="msg-line">
-
-                            <div class="msg-text">
-                                ${escapeHtml(msg.message)}
-                            </div>
-
-                            ${level === 0
-                                ? `<span class="reply-btn">↩ Reply</span>`
-                                : ''
-                            }
-
-                        </div>
-
-                        ${level === 0 ? `
-                            <div class="reply-box d-none">
-
-                                <div class="reply-input">
-
-                                    <input type="text"
-                                           class="reply-text"
-                                           placeholder="Write a reply..." />
-
-                                    <button class="send-reply-btn">
-                                        Send
-                                    </button>
-
-                                </div>
-
-                            </div>
-                        ` : ''}
-
-                        <div class="replies"></div>
-
-                    </div>
-
-                </div>
-
-            </div>
-        `);
-
-        // Reply toggle
-        html.find(".reply-btn").on("click", function () {
-            html.find(".reply-box").toggleClass("d-none");
-        });
-
-        // Send reply
-        html.find(".send-reply-btn").on("click", function () {
-
-            if (!isAuthenticated) {
-                showLoginModal();
-                return;
-            }
-
-            const replyText = html.find(".reply-text").val().trim();
-
-            if (!replyText) return;
-
-            sendMessage(replyText, msg.id);
-        });
-
-        // Replies
-        if (msg.replies?.length) {
-
-            const repliesContainer = html.find(".replies");
-
-            let expanded = false;
-
-            function renderReplies() {
-
-                repliesContainer.empty();
-
-                if (expanded) {
-
-                    msg.replies.forEach(reply => {
-                        repliesContainer.append(
-                            createMessage(reply, level + 1)
-                        );
-                    });
-                }
-
-                const toggleBtn = $(`
-                    <div class="view-more">
-                        ${expanded
-                            ? 'Hide replies'
-                            : `View replies (${msg.replies.length})`
-                        }
-                    </div>
-                `);
-
-                toggleBtn.on("click", function () {
-
-                    expanded = !expanded;
-                    renderReplies();
-                });
-
-                repliesContainer.append(toggleBtn);
-            }
-
-            renderReplies();
-        }
-
-        return html;
-    }
-
-    // =====================================================
-    // MESSAGE FORM
-    // =====================================================
-
-    messageForm.on("submit", function (e) {
-
-        e.preventDefault();
-
-        if (!isAuthenticated) {
-            showLoginModal();
-            return;
-        }
-
-        const message = messageInput.val().trim();
-
-        if (!message) return;
-
-        sendMessage(message);
-    });
-
-    // =====================================================
-    // CHAT TOGGLE
-    // =====================================================
-
-    $("#chatToggle").on("click", function () {
-        $("#chatBox").toggleClass("show");
-    });
-
-    $("#closeChat").on("click", function () {
-        $("#chatBox").removeClass("show");
-    });
-
-    // =====================================================
-    // TIMELINE
-    // =====================================================
 
     function scrollChipIntoView(el) {
 
@@ -611,12 +763,7 @@ $(document).ready(function () {
         }
 
         map = L.map('map').setView([lat, lng], 13);
-        // L.tileLayer(
-        //     'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-        //     {
-        //         subdomains:['mt0','mt1','mt2','mt3']
-        //     }).addTo(map);
-    
+        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
                 attribution: '&copy; OpenStreetMap contributors'}
         ).addTo(map);
@@ -674,9 +821,9 @@ $(document).ready(function () {
                     $('#event-container').html(response.events);
                 }
 
-                if (typeof AOS !== 'undefined') {
+                // if (typeof AOS !== 'undefined') {
                     AOS.refreshHard();
-                }
+                // }
                 markerGroup.clearLayers();
 
                 if (

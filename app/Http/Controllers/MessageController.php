@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Organization;
 use App\Models\User;
@@ -21,22 +20,34 @@ class MessageController extends Controller
         $isOrg = Auth::guard('organization')->check();
 
         $message = Message::create([
-            'messageable_id' => $isOrg ? Auth::guard('organization')->id() : Auth::id(),
-            'messageable_type' => $isOrg ? Organization::class : User::class,
+            'messageable_id' => $isOrg
+                ? Auth::guard('organization')->id()
+                : Auth::id(),
+
+            'messageable_type' => $isOrg
+                ? Organization::class
+                : User::class,
+
             'message' => $request->message,
+
             'parent_id' => $request->parent_id
         ]);
 
         return response()->json(
-             $message->load('messageable')
+            $message->load('messageable')
         );
     }
 
-    public function fetchMessages()
+    public function fetchMessages(Request $request)
     {
-        $messages = Message::with(['messageable',
-            'replies.messageable'])
-            ->orderBy('created_at', 'asc')
+        $afterId = $request->after_id ?? 0;
+    
+        $messages = Message::with([
+                'messageable',
+                'replies.messageable'
+            ])
+            ->where('id', '>', $afterId)
+            ->orderBy('id', 'asc')
             ->get();
 
         return response()->json($messages);
