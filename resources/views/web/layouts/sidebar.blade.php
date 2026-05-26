@@ -11,7 +11,7 @@
                                     <a href="#" class="nav-link {{ $index === 0 ? 'active' : '' }}"
                                         data-slug="{{ $category->slug }}">
                                         <i class="fa-solid fa-{{ $category->icon }}"></i>
-                                        <span>{{ $category->name }}</span>
+                                        <span class="line-clamp-1">{{ $category->name }}</span>
                                     </a>
                                 </li>
                             @endforeach

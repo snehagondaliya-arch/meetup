@@ -54,7 +54,7 @@ Route::get('/term-condition', [EventController::class, 'termCondition'])->name('
 
 Route::get('/disclaimer', [EventController::class, 'disclaimer'])->name('disclaimer');
 
-Route::get('/messages', [MessageController::class, 'fetchMessages']);
+Route::get('/messages', [MessageController::class, 'fetchMessages'])->name('messages');
 Route::post('/messages', [MessageController::class, 'sendMessage']);
 
 Route::resource('contact', ContactController::class)->only(['index','store']);
@@ -64,11 +64,9 @@ Route::get('/map', [EventController::class, 'map'])->name('map');
 Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');
 
 // organization auth
-Route::post('/organization/register', [OrganizationAuthController::class, 'register'])
-    ->name('organization.register');
+Route::post('/organization/register', [OrganizationAuthController::class, 'register'])->name('organization.register');
 
-Route::post('/organization/login', [OrganizationAuthController::class, 'login'])
-    ->name('organization.login');
+Route::post('/organization/login', [OrganizationAuthController::class, 'login'])->name('organization.login');
 
 Route::middleware('auth:organization')->prefix('organization')->group(function () {
     Route::resource('events', EventDataController::class)->except(['show']);

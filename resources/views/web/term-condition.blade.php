@@ -7,7 +7,7 @@
     <div class="container max-w-1000px">
         <div class="row">
             <div class="col-12">
-                <div class="section-title-s1 mb-md-5 mb-4">
+                <div class="section-title-s1 mb-3">
                     <div>
                         <span class="badge-s1">Events</span>
                     </div>

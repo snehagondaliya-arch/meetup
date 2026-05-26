@@ -6,7 +6,7 @@
             <div class="event-banner card-header bg-transparent border-0 p-3 position-relative rounded-12">
                 <img class="rounded-12" src="{{ $event->image_url }}" alt="Event Banner">
 
-                <div class="info-badge d-flex align-items-center fw-500 fs-14px text-muted line-clamp-1 py-1 px-2">
+                <div class="info-badge d-flex align-items-center fw-500 fs-14px gt-text-title line-clamp-1 py-1 px-2">
                     {{ $event->status }}
                 </div>
             </div>
@@ -15,14 +15,13 @@
                 <div class="d-flex flex-column justify-content-between gap-3 h-100">
                     <div>
                         <div class="gt-bg-s2 rounded-12 p-2 d-flex justify-content-between gap-2 mb-3">
-                            <p class="mb-0 d-flex align-items-center fw-500 fs-14px text-muted line-clamp-1">
-                                <i class="fa-regular fa-user me-1"></i>
-                                Hosted By:
-                                <span class="gt-text-title ms-1">{{ $event->host_name }}</span>
+                            <p class="mb-0 d-flex align-items-center fw-500 fs-14px text-muted">
+                                <span class="d-flex align-items-center whitespace-nowrap"><i class="fa-regular fa-user me-1"></i> Hosted By:</span>
+                                <span class="gt-text-title line-clamp-1 ms-1">{{ $event->host_name }}</span>
                             </p>
                         </div>
 
-                        <h3 class="gt-text-title change-fs-18px-16px mb-2">
+                        <h3 class="gt-text-title line-clamp-2 change-fs-18px-16px mb-2">
                             {{ $event->title }}
                         </h3>
 

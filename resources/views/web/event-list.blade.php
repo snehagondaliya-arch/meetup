@@ -42,7 +42,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="gt-bg-s2 p-md-5 p-4 rounded-12">
-                            <div class="section-title-s1 mb-md-5 mb-4">
+                            <div class="section-title-s1 mb-3">
                                 <div>
                                     <span class="badge-s2">Get Started</span>
                                 </div>

@@ -16,34 +16,29 @@
                         Home
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('event-list') ? 'active' : '' }}"
                         href="{{ route('event-list') }}">
                         Event
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('faq') ? 'active' : '' }}" href="{{ route('faq') }}">
                         Faq's
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('disclaimer') ? 'active' : '' }}"
                         href="{{ route('disclaimer') }}">
                         Disclaimer
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('contact.*') ? 'active' : '' }}"
                         href="{{ route('contact.index') }}">
                         Contact Us
                     </a>
                 </li>
-
             </ul>
         </div>
 
@@ -75,7 +70,7 @@
 
                             <div class="card m-0">
 
-                                <div class="card-body p-0"> 
+                                <div class="card-body p-0">
 
                                     {{-- User Info --}}
                                     <div class="d-flex align-items-center p-3 border-bottom">
@@ -133,10 +128,11 @@
             @endif
 
             {{-- Mobile toggle --}}
-            <button class="navbar-toggler border-0 shadow-none" type="button" id="categoryButton">
-                <span></span><span></span><span></span>
-            </button>
-
+            @if (!trim($__env->yieldContent('no-sidebar')))
+                <button class="navbar-toggler header-s1toggle-btn topbar-click-menu shadow-none border-0" type="button" id="categoryButton">
+                    <span></span><span></span><span></span>
+                </button>
+            @endif
         </div>
     </div>
 </nav>

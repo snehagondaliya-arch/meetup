@@ -2,7 +2,7 @@
 @section('title',config('app.name'))
 @section('no-sidebar', true)
 @section('content')
-                <!-- Start Event-detail-card Section --> 
+                <!-- Start Event-detail-card Section -->
                 <section class="event-section section-s1padding">
                     <div class="container">
                         <!-- Section-Title & Breadcrumb -->
@@ -31,7 +31,7 @@
                                         </div>
                                         <div class="col-xxl-8 col-xl-6">
                                             <div class="event-detail-content">
-                                                <div class="section-title-s1 mb-2 mx-0">
+                                                <div class="section-title-s1 mb-2 mx-0 text-start">
                                                     <h2 class="event-title text-start">{{ $event->title }}</h2>
                                                 </div>
                                                 <div class="rounded-12 gt-bg-s3 p-3 d-flex gap-2 mb-3">
@@ -39,18 +39,18 @@
                                                         <i class="fa-solid fa-user-tie fs-22px gt-text-theme"></i>
                                                     </div>
                                                     <div class="d-flex flex-column justify-content-center">
-                                                        <h3 class="fs-18px gt-text-title mb-1">Hosted By <span class="text-muted">{{ $event->host_name }}</span></h3>
-                                                        <h3 class="fs-18px gt-text-title mb-0">{{ $event->host_name}}<span class="text-muted"> Super Organizers</span></h3>
+                                                        <h3 class="change-fs-18px-16px gt-text-title mb-1">Hosted By <span class="text-muted">{{ $event->host_name }}</span></h3>
+                                                        <h3 class="change-fs-18px-16px gt-text-title mb-0">{{ $event->host_name}}<span class="text-muted"> Super Organizers</span></h3>
                                                     </div>
                                                 </div>
                                                 @if($event->formatted_date_time)
                                                 <div class="rounded-12 gt-bg-s2 p-3">
-                                                    <div class="d-flex align-items-center gap-2 border-bottom mb-3 pb-3">
+                                                    <div class="d-flex align-items-center gap-2">
                                                         <div class="fs-22px">
                                                             <i class="fa-regular fa-calendar gt-text-theme"></i>
                                                         </div>
                                                         <div>
-                                                           <h3 class="fs-18px gt-text-title mb-0">
+                                                           <h3 class="change-fs-18px-16px gt-text-title mb-0">
                                                                 {{ $event->formatted_date_time }}
                                                             </h3>
                                                         </div>
@@ -62,11 +62,11 @@
                                                             <i class="fa-solid fa-video gt-text-theme"></i>
                                                         </div>
                                                         <div>
-                                                            <h3 class="fs-18px gt-text-title mb-0">Online event</h3>
+                                                            <h3 class="change-fs-18px-16px gt-text-title mb-0">Online event</h3>
                                                         </div>
                                                     </div>
                                                     @endif
-                                                </div>  
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-12">
@@ -100,7 +100,7 @@
                                                                             <div class="card gt-bg-s3 border-0">
                                                                                 <div class="card-body d-flex flex-column align-items-center p-md-4 p-3">
                                                                                     <div class="hw-50px rounded-12 gt-bg-s3 mb-2">
-                                                                                        <img width="100%" height="100%" src="{{ $event->host_image}}" onerror="this.onerror=null;this.src='{{ asset(PLACEHOLDER_IMAGE) }}';"alt="Hosted By">
+                                                                                        <img width="100%" height="100%" class="rounded-12" src="{{ $event->host_image}}" onerror="this.onerror=null;this.src='{{ asset(PLACEHOLDER_IMAGE) }}';"alt="Hosted By">
                                                                                     </div>
                                                                                     <div class="text-center">
                                                                                         <h3 class="fs-16px fw-600 gt-text-title mb-1">{{ $event->host_name }}</h3>
@@ -127,7 +127,7 @@
                                                                     <div class="google-map-content rounded-12 mb-3">
                                                                         <iframe src="https://maps.google.com/maps?q={{ $event->latitude ?? 0.000 }},{{ $event->longitude ?? 0.000}}&z=15&output=embed" width="100%" height="380" class="rounded-12" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                                                     </div>
-                                                       
+
                                                                     <div class="d-flex gap-2 align-items-xl-center">
                                                                         <div class="fs-22px">
                                                                             <i class="fa-solid fa-location-dot gt-text-theme"></i>
@@ -136,7 +136,7 @@
                                                                             <h3 class="fs-18px gt-text-title mb-1">{{ $event->formatted_date_time }}</h3>
                                                                             <p class="mb-0 text-muted">{{ $event->venue_name }}, {{ $event->full_address }}</p>
                                                                        </div>
-                                                                    </div>  
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -150,7 +150,7 @@
                                                                         <h2 class="mb-0">Photos</h2>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-12">    
+                                                                <div class="col-12">
                                                                     <div class="photos-content position-relative">
                                                                         <div class="swiper photoGallerySlider">
                                                                             <div class="swiper-wrapper w-auto">
@@ -186,8 +186,8 @@
                        </div>
                     </div>
                 </section>
-                <!-- End Event-detail-card Section --> 
-                <!-- Start Event-Card Section --> 
+                <!-- End Event-detail-card Section -->
+                <!-- Start Event-Card Section -->
                 <section class="event-section section-s1padding pt-0">
                     <div class="container">
                         <div class="row">
@@ -202,7 +202,7 @@
                             @include('web.partials.events')
                         </div>
                     </div>
-                </section>    
+                </section>
 @endsection
 @section('js')
 <script>

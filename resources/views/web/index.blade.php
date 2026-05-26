@@ -32,72 +32,62 @@
     <div class="main-page-content">
 
         <!-- Search Section -->
-        <section>
+        <section class="pt-0 mt-4">
             <div class="container">
-                <div class="row row-gap-3">
-                    <div class="col-12">
+                <div class="map-content-s1">
+                    <div class="row row-gap-3 h-100">
+                        <div class="col-xl-8 col-xxl-9">
+                            <div class="map-view d-flex position-relative">
+                                <!-- MAP -->
+                                <div id="map" class="w-100 rounded-12" style="z-index: 50"></div>
+                                <!-- TIMELINE FILTER -->
+                                <div class="timeline-wrapper">
 
-                        <div class="d-flex position-relative" style="height: 80vh;">
+                                    <div class="timeline-container shadow">
 
-                            <!-- MAP -->
-                            <div id="map" class="w-75"></div>
+                                        {{-- <div class="timeline-arrow" id="scrollLeft">‹</div> --}}
 
-                            <!-- TIMELINE FILTER -->
-                            <div class="timeline-wrapper">
+                                        <div id="timelineScroll" class="timeline-scroll">
+                                            @foreach($months as $item)
+                                                <div class="timeline-chip {{ ($item->month == $currentMonth && $item->year == $currentYear) ? 'active' : '' }}"
+                                                    data-month="{{ $item->month }}" data-year="{{ $item->year }}">
 
-                                <div class="timeline-container shadow">
+                                                    {{ $monthNames[$item->month] }} {{ $item->year }}
+                                                </div>
+                                            @endforeach
+                                        </div>
 
-                                    {{-- <div class="timeline-arrow" id="scrollLeft">‹</div> --}}
+                                        {{-- <div class="timeline-arrow" id="scrollRight">›</div> --}}
 
-                                    <div id="timelineScroll" class="timeline-scroll">
-                                        @foreach($months as $item)
-                                            <div class="timeline-chip {{ ($item->month == $currentMonth && $item->year == $currentYear) ? 'active' : '' }}"
-                                                data-month="{{ $item->month }}" data-year="{{ $item->year }}">
-
-                                                {{ $monthNames[$item->month] }} {{ $item->year }}
-                                            </div>
-                                        @endforeach
                                     </div>
-
-                                    {{-- <div class="timeline-arrow" id="scrollRight">›</div> --}}
 
                                 </div>
-
                             </div>
-
-                            <!-- SIDEBAR -->
-                            <div class="w-25 bg-white border-start overflow-auto">
-
-                                <div class="p-3">
-                                    <h5 class="fw-semibold mb-3">Upcoming Events</h5>
-                                    <hr>
-
-                                    <!-- Search -->
-                                    <div class="mb-3">
-                                        <input type="text" id="search" class="form-control rounded-3"
-                                            placeholder="Search by location, event name...">
+                        </div>
+                        <div class="col-xl-4 col-xxl-3">
+                            <div class="map-info d-flex">
+                                <!-- SIDEBAR -->
+                                <div class="w-100 bg-white border rounded-12 overflow-hidden py-3 h-100">
+                                    <div class="px-3">
+                                        <h5 class="fw-semibold mb-3">Upcoming Events</h5>
+                                        <hr>
+                                        <div>
+                                            <input type="text" id="search" class="form-control rounded-3"
+                                                placeholder="Search by location, event name...">
+                                        </div>
                                     </div>
-
-                                    <!-- Filter -->
-                                    <div class="small text-muted mb-3">
+                                    <div class="small text-muted p-3">
                                         <a href="{{ url()->current() }}" class="text-decoration-none">
                                             All Events
                                         </a>
                                         <span id="total_events"></span>
                                     </div>
-
-                                    <!-- Sidebar Events -->
-                                     <!-- Sidebar Events -->
-                                    <div id="sidebar-event-container">
+                                    <div class="mapmenu-event-list-content pt-1 px-3 overflow-y-auto d-flex gap-2 justify-content-start align-items-xl-center flex-column" id="sidebar-event-container">
                                         @include('web.partials.map-events')
                                     </div>
                                 </div>
-
                             </div>
-                            <!-- END SIDEBAR -->
-
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -109,7 +99,7 @@
             <!-- Header -->
             <div class="chat-header">
                 <h6 class="mb-0">Messages</h6>
-                <span id="closeChat" class="close-btn">&times;</span>
+                <span id="closeChat" class="close-btn"><i class="fa-solid fa-xmark fs-5"></i></span>
             </div>
 
             <!-- Body -->
@@ -221,6 +211,8 @@ $(document).ready(function () {
         // =====================================================
 
         function fetchMessages(initial = false) {
+            console.log(`${baseUrl}/messages`);
+            console.log(`{{ route('messages') }}`);
 
             $.ajax({
 
@@ -435,7 +427,7 @@ $(document).ready(function () {
             const html = $(`
 
                 <div class="chat-message ${isMe ? 'me' : 'other'}"
-                    style="margin-left:${level * 16}px">
+                    style="margin-left:${level * 0}px">
 
                     <div class="msg-row">
 
@@ -552,7 +544,13 @@ $(document).ready(function () {
 
                     repliesContainer.empty();
 
+                    // remove class first
+                    html.removeClass("show-reply");
+
                     if (expanded) {
+
+                        // add class in main parent chat-message
+                        html.addClass("show-reply");
 
                         msg.replies.forEach(reply => {
 
@@ -563,14 +561,11 @@ $(document).ready(function () {
                     }
 
                     const toggleBtn = $(`
-
                         <div class="view-more">
-
                             ${expanded
                                 ? 'Hide replies'
                                 : `View replies (${msg.replies.length})`
                             }
-
                         </div>
                     `);
 
@@ -643,11 +638,11 @@ $(document).ready(function () {
         // REALTIME POLLING
         // =====================================================
 
-        setInterval(() => {
+        // setInterval(() => {
 
-            fetchMessages();
+        //     fetchMessages();
 
-        }, 2000);
+        // }, 2000);
 
 
 
@@ -763,7 +758,7 @@ $(document).ready(function () {
         }
 
         map = L.map('map').setView([lat, lng], 13);
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
                 attribution: '&copy; OpenStreetMap contributors'}
         ).addTo(map);
@@ -779,7 +774,7 @@ $(document).ready(function () {
             debounceTimer = setTimeout(loadData, 300);
         });
 
-        loadData();
+        // loadData();
     }
 
     // =====================================================
@@ -787,6 +782,7 @@ $(document).ready(function () {
     // =====================================================
 
     function loadData() {
+        console.log("Here");
 
         if (!map || !markerGroup) return;
 
@@ -832,7 +828,8 @@ $(document).ready(function () {
                 ) {
 
                     $('#sidebar-event-container').html(`
-                        <div class="no-data">
+                        <div class="mapmenu-event-no-data p-3">
+                            <span class="fs-4"><i class="fa-regular fa-calendar-xmark"></i></span>
                             No Data Found
                         </div>
                     `);
@@ -906,7 +903,8 @@ $(document).ready(function () {
                 ajaxError("Map data load failed", error);
 
                 $('#sidebar-event-container').html(`
-                    <div class="no-data">
+                    <div class="mapmenu-event-no-data p-3">
+                        <span class="fs-4"><i class="fa-solid fa-rotate-right"></i></span>
                         Failed to load data
                     </div>
                 `);
@@ -918,7 +916,7 @@ $(document).ready(function () {
     // INIT
     // =====================================================
 
-    fetchMessages();
+    // fetchMessages();
 
 });
 
