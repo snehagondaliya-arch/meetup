@@ -93,7 +93,7 @@ class EventController extends Controller
     public function mapData(Request $request)
     {
         $query = $this->baseQuery($request);
-        $events = (clone $query)->paginate(8);
+        // $events = (clone $query)->paginate(8);
 
         if ($request->search) {
             $query->search($request->search);
@@ -129,7 +129,7 @@ class EventController extends Controller
 
         return response()->json([
             'events_map' => $events_map,
-            'events' => view('web.partials.events',compact('events'))->render(),
+            // 'events' => view('web.partials.events',compact('events'))->render(),
             'sidebar' => view('web.partials.map-events',compact('events_map'))->render(),
         ]);
     }

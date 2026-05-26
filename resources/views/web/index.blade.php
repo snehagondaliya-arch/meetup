@@ -211,12 +211,10 @@ $(document).ready(function () {
         // =====================================================
 
         function fetchMessages(initial = false) {
-            console.log(`${baseUrl}/messages`);
-            console.log(`{{ route('messages') }}`);
 
             $.ajax({
 
-                url: `${baseUrl}/messages`,
+                url: "{{ route('fetchMessages') }}",
 
                 type: "GET",
 
@@ -282,7 +280,7 @@ $(document).ready(function () {
 
             $.ajax({
 
-                url: `${baseUrl}/messages`,
+                url: "{{ route('sendMessage') }}",
 
                 type: "POST",
 
@@ -638,11 +636,11 @@ $(document).ready(function () {
         // REALTIME POLLING
         // =====================================================
 
-        // setInterval(() => {
+        setInterval(() => {
 
-        //     fetchMessages();
+            fetchMessages();
 
-        // }, 2000);
+        }, 2000);
 
 
 
@@ -774,7 +772,7 @@ $(document).ready(function () {
             debounceTimer = setTimeout(loadData, 300);
         });
 
-        // loadData();
+        loadData();
     }
 
     // =====================================================
@@ -782,7 +780,7 @@ $(document).ready(function () {
     // =====================================================
 
     function loadData() {
-        console.log("Here");
+        // console.log("Here");
 
         if (!map || !markerGroup) return;
 
@@ -805,20 +803,20 @@ $(document).ready(function () {
             },
 
             success: function (response) {
-                if (!response.events) {
-                    $('#event-container').html(`
-                       <div class="col-12">
-                            <div class="text-center py-5">
-                                <h4>No Data Found</h4>
-                            </div>
-                        </div>
-                    `);
-                } else {
-                    $('#event-container').html(response.events);
-                }
+                // if (!response.events) {
+                //     $('#event-container').html(`
+                //        <div class="col-12">
+                //             <div class="text-center py-5">
+                //                 <h4>No Data Found</h4>
+                //             </div>
+                //         </div>
+                //     `);
+                // } else {
+                //     $('#event-container').html(response.events);
+                // }
 
                 // if (typeof AOS !== 'undefined') {
-                    AOS.refreshHard();
+                    // AOS.refreshHard();
                 // }
                 markerGroup.clearLayers();
 
