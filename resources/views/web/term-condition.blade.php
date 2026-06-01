@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title',config('app.name'))
-@section('no-sidebar', true)
+
 @section('content')
 <!-- Start Contact-Us Section -->
 <section class="disclaimer-section section-s1padding">

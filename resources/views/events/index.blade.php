@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', config('app.name'))
-@section('no-sidebar', true)
+
 @section('content')
     <div class="container py-5">
         @if (session('success'))

@@ -24,7 +24,7 @@
 <body>
     <main class="d-flex flex-column min-h-100vh ">
         @include('web.layouts.header')
-        @if (!trim($__env->yieldContent('no-sidebar')))
+        @if(View::hasSection('sidebar'))
             @include('web.layouts.sidebar')
         @endif
         <div>

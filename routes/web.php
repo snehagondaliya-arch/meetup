@@ -44,7 +44,7 @@ Route::get('/faq', [EventController::class, 'faq'])->name('faq');
 
 Route::get('/about', [EventController::class, 'about'])->name('about');
 
-Route::get('/event-detail/{slug}', [EventController::class, 'eventDetail'])->name('event-detail');
+Route::get('/event-detail/{slug?}', [EventController::class, 'eventDetail'])->name('event-detail');
 
 Route::get('/event-list', [EventController::class, 'eventList'])->name('event-list');
 

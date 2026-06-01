@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title',config('app.name'))
-@section('no-sidebar', true)
+
 @section('content')
                 <!-- Start Event-detail-card Section -->
                 <section class="event-section section-s1padding">

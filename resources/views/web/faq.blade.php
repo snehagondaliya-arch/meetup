@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', config('app.name'))
-@section('no-sidebar', true)
+
 @section('content')
     <!-- Start FAQ's Section -->
     <section class="faq-section section-s1padding">

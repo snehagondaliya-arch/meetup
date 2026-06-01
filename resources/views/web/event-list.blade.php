@@ -1,6 +1,7 @@
 @extends('layouts.master')
 @section('title', config('app.name'))
-@section('no-sidebar', false)
+@section('sidebar')
+@endsection
 @section('content')
     <div class="main-page-content">
         <!-- Start Event-Card Section -->

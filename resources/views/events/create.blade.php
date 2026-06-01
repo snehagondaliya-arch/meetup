@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title', config('app.name'))
-@section('no-sidebar', true)
+
 
 @section('content')
     <div class="container mt-4 mb-4">

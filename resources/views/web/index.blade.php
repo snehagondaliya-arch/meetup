@@ -1,9 +1,7 @@
 @extends('layouts.master')
 @section('title', config('app.name'))
-@section('no-sidebar', false)
-{{-- vite --}}
-{{-- @vite('resources/js/app.js') --}}
-
+@section('sidebar')
+@endsection
 @section('content')
 
     @php
@@ -150,7 +148,6 @@
 @section('js')
 <script>
 $(document).ready(function () {
-
 
         const baseUrl = "{{ url('/') }}";
 
@@ -636,11 +633,11 @@ $(document).ready(function () {
         // REALTIME POLLING
         // =====================================================
 
-        setInterval(() => {
+        // setInterval(() => {
 
-            fetchMessages();
+        //     fetchMessages();
 
-        }, 2000);
+        // }, 2000);
 
 
 
@@ -849,15 +846,15 @@ $(document).ready(function () {
                 if (!events.length) {
                     return;
                 }
-
                 events.forEach(function (event) {
 
                     if (!event.latitude || !event.longitude) {
                         return;
                     }
-
+                    // const baseEventUrl = "{{ route('event-detail') }}";
+                    // const url = event.slug ? `{{ route('event-detail') }}/${event.slug}` : baseEventUrl;
                     const popupContent = `
-                        <a href="${baseUrl}/event-detail/${event.slug ?? '#'}"
+                        <a href="{{ route('event-detail') }}/${event.slug}"
                            class="event-card-link">
 
                             <div class="event-card-popup">
