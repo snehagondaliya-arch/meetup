@@ -170,7 +170,6 @@ $(document).ready(function () {
 
         let allMessages = [];
 
-        let lastMessageId = 0;
 
         const messagesBox = $("#messages");
         const messageForm = $("#message-form");
@@ -207,7 +206,7 @@ $(document).ready(function () {
         // FETCH MESSAGES
         // =====================================================
 
-        function fetchMessages(initial = false) {
+        function fetchMessages() {
 
             $.ajax({
 
@@ -215,29 +214,9 @@ $(document).ready(function () {
 
                 type: "GET",
 
-                data: {
-                    after_id: initial ? 0 : lastMessageId
-                },
-
                 success: function(response) {
 
                     if (!Array.isArray(response)) return;
-
-                    if (initial) {
-
-                        allMessages = response;
-
-                        if (response.length) {
-
-                            lastMessageId = Math.max(
-                                ...response.map(m => m.id)
-                            );
-                        }
-
-                        renderMessages();
-
-                        return;
-                    }
 
                     if (response.length) {
 
@@ -251,14 +230,9 @@ $(document).ready(function () {
                                 allMessages.push(newMsg);
                             }
                         });
-
-                        lastMessageId = Math.max(
-                            lastMessageId,
-                            ...response.map(m => m.id)
-                        );
-
-                        renderMessages();
+                        
                     }
+                    renderMessages();
                 },
 
                 error: function(xhr, status, error) {
@@ -302,10 +276,10 @@ $(document).ready(function () {
 
                         allMessages.push(response);
 
-                        lastMessageId = Math.max(
-                            lastMessageId,
-                            response.id
-                        );
+                        // lastMessageId = Math.max(
+                        //     lastMessageId,
+                        //     response.id
+                        // );
 
                         renderMessages();
                     }
@@ -626,7 +600,7 @@ $(document).ready(function () {
         // INITIAL LOAD
         // =====================================================
 
-        fetchMessages(true);
+        fetchMessages();
 
 
         // =====================================================

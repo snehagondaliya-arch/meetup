@@ -40,13 +40,13 @@ class MessageController extends Controller
 
     public function fetchMessages(Request $request)
     {
-        $afterId = $request->after_id ?? 0;
+        // $afterId = $request->after_id ?? 0;
     
         $messages = Message::with([
                 'messageable',
                 'replies.messageable'
             ])
-            ->where('id', '>', $afterId)
+            // ->where('id', '>', $afterId)
             ->orderBy('id', 'asc')
             ->get();
 

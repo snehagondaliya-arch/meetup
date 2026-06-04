@@ -65,7 +65,6 @@ Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');
 
 // organization auth
 Route::post('/organization/register', [OrganizationAuthController::class, 'register'])->name('organization.register');
-
 Route::post('/organization/login', [OrganizationAuthController::class, 'login'])->name('organization.login');
 
 Route::middleware('auth:organization')->prefix('organization')->group(function () {

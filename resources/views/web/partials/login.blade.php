@@ -56,7 +56,7 @@
 
                                 <!-- Google Login -->
                                 <div class="text-center mb-3">
-                                    <a href="auth/google/redirect" class="btn btn-primary w-100" id="loginBtn">
+                                    <a href="{{ route('social.redirect', ['provider' => 'google']) }}" class="btn btn-primary w-100" id="loginBtn">
 
                                         <span class="bg-white py-1 px-2 rounded-8 me-2">
 
