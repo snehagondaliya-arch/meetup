@@ -122,6 +122,7 @@ class EventController extends Controller
                 'latitude',
                 'longitude',
                 'start_time',
+                'timezone',
                 'image_url',
                 'venue_name',
             ])

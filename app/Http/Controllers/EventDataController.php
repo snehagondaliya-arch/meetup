@@ -118,7 +118,11 @@ class EventDataController extends Controller
 
     public function update(StoreEventRequest $request, $slug)
     {
-        $event = Event::with('event_photos')->where('slug', $slug)->firstOrFail();
+        
+        $event = Event::with('event_photos')
+            ->forOrganization(auth('organization')->id())
+            ->where('slug', $slug)
+            ->firstOrFail();
 
         // Validation
         $event->fill($request->validated());
@@ -160,7 +164,9 @@ class EventDataController extends Controller
 
     public function destroy($id)
     {
-        $event = Event::with('event_photos')->findOrFail($id);
+        $event = Event::with('event_photos')
+            ->forOrganization(auth('organization')->id())
+            ->findOrFail($id);
 
         $this->deleteFile(EVENT_IMAGES, $event->getRawOriginal('image_url'));
         $this->deleteFile(GROUP_IMAGES, $event->getRawOriginal('group_image'));

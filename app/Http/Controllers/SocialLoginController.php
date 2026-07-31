@@ -11,7 +11,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialLoginController extends Controller
 {
-    protected $allowedProviders = ['google', 'apple'];
+    protected $allowedProviders = ['google'];
 
     public function redirect($provider)
     {

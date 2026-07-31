@@ -206,6 +206,7 @@ if (typeof Swiper !== "undefined") {
         $('#loginForm').on('submit', function (e) {
             e.preventDefault();
             $('.error-text').text('');
+            $('#login-error').text('');
              $.ajax({
                 url: window.appUrls.login,
                 type: "POST",
@@ -221,6 +222,10 @@ if (typeof Swiper !== "undefined") {
                error: function (xhr) {
                     if (xhr.status === 419) {
                         $('#login-error').text('Session expired. Refresh page.');
+                        return;
+                    }
+                    if (xhr.status === 429) {
+                        $('#login-error').text('Too many login attempts. Please try again in 1 minute.');
                         return;
                     }
 

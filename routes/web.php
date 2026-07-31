@@ -14,10 +14,14 @@ use App\Http\Controllers\OrganizationAuthController;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+
+
+/* use-below-command-for-queue-then-only-its-work-like-file1-download-images-file2-download-images-and-so-on...... **/
 // php artisan queue:work --queue=images,default --memory=512
+
 Route::get('/import', [ImportJsonController::class, 'start'])->name('import');
 
-Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google|apple')->name('social.redirect');
+Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->where('provider', 'google')->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback']);
 
 Route::post('/logout', function () {
@@ -59,13 +63,11 @@ Route::post('/messages', [MessageController::class, 'sendMessage'])->name('sendM
 
 Route::resource('contact', ContactController::class)->only(['index','store']);
 
-Route::get('/map', [EventController::class, 'map'])->name('map');
-
 Route::get('/map-data', [EventController::class, 'mapData'])->name('map.data');
 
 // organization auth
-Route::post('/organization/register', [OrganizationAuthController::class, 'register'])->name('organization.register');
-Route::post('/organization/login', [OrganizationAuthController::class, 'login'])->name('organization.login');
+Route::post('/organization/register', [OrganizationAuthController::class, 'register'])->name('organization.register');  
+Route::post('/organization/login', [OrganizationAuthController::class, 'login'])->name('organization.login')->middleware('throttle:5,1');
 
 Route::middleware('auth:organization')->prefix('organization')->group(function () {
     Route::resource('events', EventDataController::class)->except(['show']);

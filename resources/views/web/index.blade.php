@@ -3,7 +3,6 @@
 @section('sidebar')
 @endsection
 @section('content')
-
     @php
         if (session('show_login_modal')) {
             abort(403);
@@ -661,7 +660,10 @@ $(document).ready(function () {
     $(document).on('input', '#search', function () {
 
         search = $(this).val() || '';
-        loadData();
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(loadData, 300);
     });
 
     // =====================================================
