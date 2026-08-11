@@ -66,7 +66,7 @@ class ProcessSingleFileJob implements ShouldQueue
                     ['name' => $categoryName]
                 );
 
-                foreach ($categorydata['event`s'] as $eventData) {
+                foreach ($categorydata['events'] as $eventData) {
 
                     if (empty($eventData['event_url']))
                         continue;
