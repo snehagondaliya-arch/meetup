@@ -79,7 +79,8 @@
                                         </a>
                                         <span id="total_events"></span>
                                     </div>
-                                    <div class="mapmenu-event-list-content pt-1 px-3 overflow-y-auto d-flex gap-2 justify-content-start align-items-xl-center flex-column" id="sidebar-event-container">
+                                    <div class="mapmenu-event-list-content pt-1 px-3 overflow-y-auto d-flex gap-2 justify-content-start align-items-xl-center flex-column"
+                                        id="sidebar-event-container">
                                         @include('web.partials.map-events')
                                     </div>
                                 </div>
@@ -144,753 +145,754 @@
         <!-- End Main Content -->
 
 @endsection
-@section('js')
-<script>
-$(document).ready(function () {
+    @section('js')
+        <script>
+            $(document).ready(function () {
 
-        const baseUrl = "{{ url('/') }}";
+                const baseUrl = "{{ url('/') }}";
 
-        const currentUserId = @json(
-            Auth::guard('organization')->check()
-                ? Auth::guard('organization')->id()
-                : Auth::id()
-        );
+                const currentUserId = @json(
+                    Auth::guard('organization')->check()
+                    ? Auth::guard('organization')->id()
+                    : Auth::id()
+                );
 
-        const currentUserType = @json(
-            Auth::guard('organization')->check()
-                ? 'App\\Models\\Organization'
-                : 'App\\Models\\User'
-        );
+                const currentUserType = @json(
+                    Auth::guard('organization')->check()
+                    ? 'App\\Models\\Organization'
+                    : 'App\\Models\\User'
+                );
 
-        const isAuthenticated = @json(
-            Auth::guard('organization')->check() ||
-            Auth::guard('web')->check()
-        );
+                const isAuthenticated = @json(
+                    Auth::guard('organization')->check() ||
+                    Auth::guard('web')->check()
+                );
 
-        let allMessages = [];
-
-
-        const messagesBox = $("#messages");
-        const messageForm = $("#message-form");
-        const messageInput = $("#message-input");
+                let allMessages = [];
 
 
-        // =====================================================
-        // HELPERS
-        // =====================================================
-
-        function escapeHtml(text) {
-            return $('<div>').text(text || '').html();
-        }
-
-        function showLoginModal() {
-            $("#loginBackdrop").modal("show");
-        }
-
-        function ajaxError(title, error) {
-            console.error(title, error);
-        }
-
-        function isNearBottom() {
-
-            const el = messagesBox[0];
-
-            return (
-                el.scrollHeight - el.scrollTop - el.clientHeight < 100
-            );
-        }
+                const messagesBox = $("#messages");
+                const messageForm = $("#message-form");
+                const messageInput = $("#message-input");
 
 
-        // =====================================================
-        // FETCH MESSAGES
-        // =====================================================
+                // =====================================================
+                // HELPERS
+                // =====================================================
 
-        function fetchMessages() {
+                function escapeHtml(text) {
+                    return $('<div>').text(text || '').html();
+                }
 
-            $.ajax({
+                function showLoginModal() {
+                    $("#loginBackdrop").modal("show");
+                }
 
-                url: "{{ route('fetchMessages') }}",
+                function ajaxError(title, error) {
+                    console.error(title, error);
+                }
 
-                type: "GET",
+                function isNearBottom() {
 
-                success: function(response) {
+                    const el = messagesBox[0];
 
-                    if (!Array.isArray(response)) return;
+                    return (
+                        el.scrollHeight - el.scrollTop - el.clientHeight < 100
+                    );
+                }
 
-                    if (response.length) {
 
-                        response.forEach(newMsg => {
+                // =====================================================
+                // FETCH MESSAGES
+                // =====================================================
+
+                function fetchMessages() {
+
+                    $.ajax({
+
+                        url: "{{ route('fetchMessages') }}",
+
+                        type: "GET",
+
+                        success: function (response) {
+
+                            if (!Array.isArray(response)) return;
+
+                            if (response.length) {
+
+                                response.forEach(newMsg => {
+
+                                    const exists = allMessages.some(
+                                        oldMsg => oldMsg.id === newMsg.id
+                                    );
+
+                                    if (!exists) {
+                                        allMessages.push(newMsg);
+                                    }
+                                });
+
+                            }
+                            renderMessages();
+                        },
+
+                        error: function (xhr, status, error) {
+
+                            ajaxError("Fetch error:", error);
+                        }
+                    });
+                }
+
+
+                // =====================================================
+                // SEND MESSAGE
+                // =====================================================
+
+                function sendMessage(message, parentId = null) {
+
+                    $.ajax({
+
+                        url: "{{ route('sendMessage') }}",
+
+                        type: "POST",
+
+                        data: {
+
+                            _token: "{{ csrf_token() }}",
+
+                            message: message,
+
+                            parent_id: parentId
+                        },
+
+                        success: function (response) {
+
+                            messageInput.val('');
 
                             const exists = allMessages.some(
-                                oldMsg => oldMsg.id === newMsg.id
+                                msg => msg.id === response.id
                             );
 
                             if (!exists) {
-                                allMessages.push(newMsg);
+
+                                allMessages.push(response);
+
+                                // lastMessageId = Math.max(
+                                //     lastMessageId,
+                                //     response.id
+                                // );
+
+                                renderMessages();
                             }
-                        });
-                        
-                    }
-                    renderMessages();
-                },
+                        },
 
-                error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
 
-                    ajaxError("Fetch error:", error);
+                            ajaxError("Send error:", error);
+                        }
+                    });
                 }
-            });
-        }
 
 
-        // =====================================================
-        // SEND MESSAGE
-        // =====================================================
+                // =====================================================
+                // BUILD TREE
+                // =====================================================
 
-        function sendMessage(message, parentId = null) {
+                function buildTree(messages) {
 
-            $.ajax({
+                    let map = {};
 
-                url: "{{ route('sendMessage') }}",
+                    let roots = [];
 
-                type: "POST",
+                    messages.forEach(msg => {
 
-                data: {
+                        msg.replies = [];
 
-                    _token: "{{ csrf_token() }}",
+                        map[msg.id] = msg;
+                    });
 
-                    message: message,
+                    messages.forEach(msg => {
 
-                    parent_id: parentId
-                },
+                        if (msg.parent_id && map[msg.parent_id]) {
 
-                success: function(response) {
+                            map[msg.parent_id].replies.push(msg);
 
-                    messageInput.val('');
+                        } else {
 
-                    const exists = allMessages.some(
-                        msg => msg.id === response.id
-                    );
+                            roots.push(msg);
+                        }
+                    });
 
-                    if (!exists) {
-
-                        allMessages.push(response);
-
-                        // lastMessageId = Math.max(
-                        //     lastMessageId,
-                        //     response.id
-                        // );
-
-                        renderMessages();
-                    }
-                },
-
-                error: function(xhr, status, error) {
-
-                    ajaxError("Send error:", error);
+                    return roots;
                 }
-            });
-        }
 
 
-        // =====================================================
-        // BUILD TREE
-        // =====================================================
+                // =====================================================
+                // RENDER MESSAGES
+                // =====================================================
 
-        function buildTree(messages) {
+                function renderMessages() {
 
-            let map = {};
+                    const shouldScroll = isNearBottom();
 
-            let roots = [];
+                    messagesBox.empty();
 
-            messages.forEach(msg => {
+                    if (!allMessages.length) {
 
-                msg.replies = [];
-
-                map[msg.id] = msg;
-            });
-
-            messages.forEach(msg => {
-
-                if (msg.parent_id && map[msg.parent_id]) {
-
-                    map[msg.parent_id].replies.push(msg);
-
-                } else {
-
-                    roots.push(msg);
-                }
-            });
-
-            return roots;
-        }
-
-
-        // =====================================================
-        // RENDER MESSAGES
-        // =====================================================
-
-        function renderMessages() {
-
-            const shouldScroll = isNearBottom();
-
-            messagesBox.empty();
-
-            if (!allMessages.length) {
-
-                messagesBox.html(`
-                    <div class="no-messages">
-                        No messages yet 👋
-                    </div>
-                `);
-
-                return;
-            }
-
-            const tree = buildTree(allMessages);
-
-            tree.forEach(msg => {
-
-                messagesBox.append(
-                    createMessage(msg)
-                );
-            });
-
-            if (shouldScroll) {
-
-                messagesBox.scrollTop(
-                    messagesBox[0].scrollHeight
-                );
-            }
-        }
-
-
-        // =====================================================
-        // CREATE MESSAGE
-        // =====================================================
-
-        function createMessage(msg, level = 0) {
-
-            const isMe =
-                Number(msg.messageable_id) === Number(currentUserId)
-                &&
-                msg.messageable_type === currentUserType;
-
-            const isOrg =
-                (msg.messageable_type || '')
-                .includes("Organization");
-
-            const name = isOrg
-                ? (msg.messageable?.organization_name || "Organization")
-                : (msg.messageable?.name || "User");
-
-            const firstLetter = name.charAt(0).toUpperCase();
-
-            const time = msg.created_at
-                ? new Date(msg.created_at).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-                : '';
-
-            const html = $(`
-
-                <div class="chat-message ${isMe ? 'me' : 'other'}"
-                    style="margin-left:${level * 0}px">
-
-                    <div class="msg-row">
-
-                        <div class="avatar">
-                            ${escapeHtml(firstLetter)}
+                        messagesBox.html(`
+                        <div class="no-messages">
+                            No messages yet 👋
                         </div>
+                    `);
 
-                        <div class="msg-content">
+                        return;
+                    }
 
-                            <div class="msg-header">
+                    const tree = buildTree(allMessages);
 
-                                <span class="msg-name">
-                                    ${escapeHtml(name)}
-                                </span>
+                    tree.forEach(msg => {
 
-                                <span class="msg-time">
-                                    ${time}
-                                </span>
+                        messagesBox.append(
+                            createMessage(msg)
+                        );
+                    });
 
+                    if (shouldScroll) {
+
+                        messagesBox.scrollTop(
+                            messagesBox[0].scrollHeight
+                        );
+                    }
+                }
+
+
+                // =====================================================
+                // CREATE MESSAGE
+                // =====================================================
+
+                function createMessage(msg, level = 0) {
+
+                    const isMe =
+                        Number(msg.messageable_id) === Number(currentUserId)
+                        &&
+                        msg.messageable_type === currentUserType;
+
+                    const isOrg =
+                        (msg.messageable_type || '')
+                            .includes("Organization");
+
+                    const name = isOrg
+                        ? (msg.messageable?.organization_name || "Organization")
+                        : (msg.messageable?.name || "User");
+
+                    const firstLetter = name.charAt(0).toUpperCase();
+
+                    const time = msg.created_at
+                        ? new Date(msg.created_at).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                        : '';
+
+                    const html = $(`
+
+                    <div class="chat-message ${isMe ? 'me' : 'other'}"
+                        style="margin-left:${level * 0}px">
+
+                        <div class="msg-row">
+
+                            <div class="avatar">
+                                ${escapeHtml(firstLetter)}
                             </div>
 
-                            <div class="msg-line">
+                            <div class="msg-content">
 
-                                <div class="msg-text">
-                                    ${escapeHtml(msg.message)}
+                                <div class="msg-header">
+
+                                    <span class="msg-name">
+                                        ${escapeHtml(name)}
+                                    </span>
+
+                                    <span class="msg-time">
+                                        ${time}
+                                    </span>
+
+                                </div>
+
+                                <div class="msg-line">
+
+                                    <div class="msg-text">
+                                        ${escapeHtml(msg.message)}
+                                    </div>
+
+                                    ${level === 0 ? `
+                                        <span class="reply-btn">
+                                            ↩ Reply
+                                        </span>
+                                    ` : ''}
+
                                 </div>
 
                                 ${level === 0 ? `
-                                    <span class="reply-btn">
-                                        ↩ Reply
-                                    </span>
+
+                                    <div class="reply-box d-none">
+
+                                        <div class="reply-input">
+
+                                            <input type="text"
+                                                class="reply-text"
+                                                placeholder="Write a reply..." />
+
+                                            <button class="send-reply-btn">
+                                                Send
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
                                 ` : ''}
+
+                                <div class="replies"></div>
 
                             </div>
 
-                            ${level === 0 ? `
+                        </div>
 
-                                <div class="reply-box d-none">
+                    </div>
+                `);
 
-                                    <div class="reply-input">
 
-                                        <input type="text"
-                                            class="reply-text"
-                                            placeholder="Write a reply..." />
+                    // =========================================
+                    // TOGGLE REPLY
+                    // =========================================
 
-                                        <button class="send-reply-btn">
-                                            Send
-                                        </button>
+                    html.find(".reply-btn").on("click", function () {
+
+                        html.find(".reply-box")
+                            .toggleClass("d-none");
+                    });
+
+
+                    // =========================================
+                    // SEND REPLY
+                    // =========================================
+
+                    html.find(".send-reply-btn")
+                        .on("click", function () {
+
+                            if (!isAuthenticated) {
+
+                                showLoginModal();
+
+                                return;
+                            }
+
+                            const replyText = html
+                                .find(".reply-text")
+                                .val()
+                                .trim();
+
+                            if (!replyText) return;
+
+                            sendMessage(replyText, msg.id);
+                        });
+
+
+                    // =========================================
+                    // REPLIES
+                    // =========================================
+
+                    if (msg.replies?.length) {
+
+                        const repliesContainer =
+                            html.find(".replies");
+
+                        let expanded = false;
+
+                        function renderReplies() {
+
+                            repliesContainer.empty();
+
+                            // remove class first
+                            html.removeClass("show-reply");
+
+                            if (expanded) {
+
+                                // add class in main parent chat-message
+                                html.addClass("show-reply");
+
+                                msg.replies.forEach(reply => {
+
+                                    repliesContainer.append(
+                                        createMessage(reply, level + 1)
+                                    );
+                                });
+                            }
+
+                            const toggleBtn = $(`
+                            <div class="view-more">
+                                ${expanded
+                                    ? 'Hide replies'
+                                    : `View replies (${msg.replies.length})`
+                                }
+                            </div>
+                        `);
+
+                            toggleBtn.on("click", function () {
+
+                                expanded = !expanded;
+
+                                renderReplies();
+                            });
+
+                            repliesContainer.append(toggleBtn);
+                        }
+
+                        renderReplies();
+                    }
+
+                    return html;
+                }
+
+
+                // =====================================================
+                // FORM SUBMIT
+                // =====================================================
+
+                messageForm.on("submit", function (e) {
+
+                    e.preventDefault();
+
+                    if (!isAuthenticated) {
+
+                        showLoginModal();
+
+                        return;
+                    }
+
+                    const message =
+                        messageInput.val().trim();
+
+                    if (!message) return;
+
+                    sendMessage(message);
+                });
+
+
+                // =====================================================
+                // CHAT TOGGLE
+                // =====================================================
+
+                $("#chatToggle").on("click", function () {
+
+                    $("#chatBox")
+                        .toggleClass("show");
+                });
+
+                $("#closeChat").on("click", function () {
+
+                    $("#chatBox")
+                        .removeClass("show");
+                });
+
+
+                // =====================================================
+                // INITIAL LOAD
+                // =====================================================
+
+                fetchMessages();
+
+
+                // =====================================================
+                // REALTIME POLLING
+                // =====================================================
+
+                // setInterval(() => {
+
+                //     fetchMessages();
+
+                // }, 2000);
+
+
+
+                // =====================================================
+                // TIMELINE
+                // =====================================================
+                let selectedMonth = new Date().getMonth() + 1;
+                let selectedYear = new Date().getFullYear();
+
+                let category = '';
+                let search = '';
+
+                let map;
+                let markerGroup;
+                let debounceTimer;
+
+                function scrollChipIntoView(el) {
+
+                    if (!el?.length) return;
+
+                    el[0].scrollIntoView({
+                        behavior: 'smooth',
+                        inline: 'center',
+                        block: 'nearest'
+                    });
+                }
+
+                scrollChipIntoView($('.timeline-chip.active'));
+
+                $('.timeline-chip').on('click', function () {
+
+                    $('.timeline-chip').removeClass('active');
+                    $(this).addClass('active');
+
+                    selectedMonth = $(this).data('month');
+                    selectedYear = $(this).data('year');
+
+                    scrollChipIntoView($(this));
+
+                    loadData();
+                });
+
+                // =====================================================
+                // SEARCH
+                // =====================================================
+
+                $(document).on('input', '#search', function () {
+
+                    search = $(this).val() || '';
+
+                    clearTimeout(debounceTimer);
+
+                    debounceTimer = setTimeout(loadData, 300);
+                });
+
+                // =====================================================
+                // CATEGORY FILTER
+                // =====================================================
+
+                $(document).on('click', '.nav-link[data-slug]', function (e) {
+
+                    e.preventDefault();
+
+                    category = $(this).data('slug');
+
+                    $('.nav-link[data-slug]').removeClass('active');
+
+                    $(this).addClass('active');
+
+                    loadData();
+                });
+
+                // =====================================================
+                // HORIZONTAL SCROLL
+                // =====================================================
+
+                const scrollContainer = document.getElementById('timelineScroll');
+
+                if (scrollContainer) {
+
+                    scrollContainer.addEventListener('wheel', function (e) {
+
+                        e.preventDefault();
+
+                        this.scrollBy({
+                            left: e.deltaY,
+                            behavior: 'smooth'
+                        });
+                    });
+                }
+
+                // =====================================================
+                // MAP
+                // =====================================================
+
+                navigator.geolocation.getCurrentPosition(
+
+                    function (position) {
+
+                        initializeMap(
+                            position.coords.latitude,
+                            position.coords.longitude
+                        );
+                    },
+
+                    function () {
+
+                        initializeMap(19.0760, 72.8777);
+                    }
+                );
+
+                function initializeMap(lat, lng) {
+
+                    if (map) {
+                        map.remove();
+                    }
+
+                    map = L.map('map').setView([lat, lng], 13);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }
+                    ).addTo(map);
+
+                    markerGroup = L.markerClusterGroup();
+
+                    map.addLayer(markerGroup);
+
+                    map.on('moveend', function () {
+
+                        clearTimeout(debounceTimer);
+
+                        debounceTimer = setTimeout(loadData, 300);
+                    });
+
+                    loadData();
+                }
+
+                // =====================================================
+                // LOAD MAP DATA
+                // =====================================================
+
+                function loadData() {
+                    // console.log("Here");
+
+                    if (!map || !markerGroup) return;
+
+                    const bounds = map.getBounds();
+
+                    $.ajax({
+
+                        url: "{{ route('map.data') }}",
+                        type: "GET",
+
+                        data: {
+                            category,
+                            month: selectedMonth,
+                            year: selectedYear,
+                            search,
+                            minLat: bounds.getSouth(),
+                            maxLat: bounds.getNorth(),
+                            minLng: bounds.getWest(),
+                            maxLng: bounds.getEast()
+                        },
+
+                        success: function (response) {
+                            // if (!response.events) {
+                            //     $('#event-container').html(`
+                            //        <div class="col-12">
+                            //             <div class="text-center py-5">
+                            //                 <h4>No Data Found</h4>
+                            //             </div>
+                            //         </div>
+                            //     `);
+                            // } else {
+                            //     $('#event-container').html(response.events);
+                            // }
+
+                            // if (typeof AOS !== 'undefined') {
+                            // AOS.refreshHard();
+                            // }
+                            markerGroup.clearLayers();
+
+                            if (
+                                !response.events_map ||
+                                response.events_map.length === 0
+                            ) {
+
+                                $('#sidebar-event-container').html(`
+                            <div class="mapmenu-event-no-data p-3">
+                                <span class="fs-4"><i class="fa-regular fa-calendar-xmark"></i></span>
+                                No Data Found
+                            </div>
+                        `);
+
+                                $('#total_events').html('(0)');
+
+                                markerGroup.clearLayers();
+
+                                return;
+                            }
+                            $('#sidebar-event-container').html(
+                                response.sidebar || ''
+                            );
+
+                            const events = response.events_map || [];
+
+                            $('#total_events').html(`(${events.length})`);
+
+                            if (!events.length) {
+                                return;
+                            }
+                            events.forEach(function (event) {
+
+                                if (!event.latitude || !event.longitude) {
+                                    return;
+                                }
+                                // const baseEventUrl = "{{ route('event-detail') }}";
+                                // const url = event.slug ? `{{ route('event-detail') }}/${event.slug}` : baseEventUrl;
+                                const popupContent = `
+                            <a href="{{ route('event-detail') }}/${event.slug}"
+                               class="event-card-link">
+
+                                <div class="event-card-popup">
+
+                                    <img src="${event.image_url ?? ''}"
+                                         class="event-img" />
+
+                                    <div class="event-body">
+
+                                        <h3>
+                                            ${escapeHtml(event.title)}
+                                        </h3>
+
+                                        <p>
+                                            📍 ${escapeHtml(event.venue_name)}
+                                        </p>
+
+                                        <p>
+                                            🕒 ${event.formatted_date ?? ''}
+                                        </p>
 
                                     </div>
 
                                 </div>
 
-                            ` : ''}
+                            </a>
+                        `;
 
-                            <div class="replies"></div>
+                                const marker = L.marker([
+                                    parseFloat(event.latitude),
+                                    parseFloat(event.longitude)
+                                ]).bindPopup(popupContent);
 
-                        </div>
+                                markerGroup.addLayer(marker);
+                            });
 
-                    </div>
+                        },
 
-                </div>
-            `);
+                        error: function (xhr, status, error) {
 
+                            ajaxError("Map data load failed", error);
 
-            // =========================================
-            // TOGGLE REPLY
-            // =========================================
-
-            html.find(".reply-btn").on("click", function () {
-
-                html.find(".reply-box")
-                    .toggleClass("d-none");
-            });
-
-
-            // =========================================
-            // SEND REPLY
-            // =========================================
-
-            html.find(".send-reply-btn")
-                .on("click", function () {
-
-                if (!isAuthenticated) {
-
-                    showLoginModal();
-
-                    return;
-                }
-
-                const replyText = html
-                    .find(".reply-text")
-                    .val()
-                    .trim();
-
-                if (!replyText) return;
-
-                sendMessage(replyText, msg.id);
-            });
-
-
-            // =========================================
-            // REPLIES
-            // =========================================
-
-            if (msg.replies?.length) {
-
-                const repliesContainer =
-                    html.find(".replies");
-
-                let expanded = false;
-
-                function renderReplies() {
-
-                    repliesContainer.empty();
-
-                    // remove class first
-                    html.removeClass("show-reply");
-
-                    if (expanded) {
-
-                        // add class in main parent chat-message
-                        html.addClass("show-reply");
-
-                        msg.replies.forEach(reply => {
-
-                            repliesContainer.append(
-                                createMessage(reply, level + 1)
-                            );
-                        });
-                    }
-
-                    const toggleBtn = $(`
-                        <div class="view-more">
-                            ${expanded
-                                ? 'Hide replies'
-                                : `View replies (${msg.replies.length})`
-                            }
-                        </div>
-                    `);
-
-                    toggleBtn.on("click", function () {
-
-                        expanded = !expanded;
-
-                        renderReplies();
-                    });
-
-                    repliesContainer.append(toggleBtn);
-                }
-
-                renderReplies();
-            }
-
-            return html;
-        }
-
-
-        // =====================================================
-        // FORM SUBMIT
-        // =====================================================
-
-        messageForm.on("submit", function(e) {
-
-            e.preventDefault();
-
-            if (!isAuthenticated) {
-
-                showLoginModal();
-
-                return;
-            }
-
-            const message =
-                messageInput.val().trim();
-
-            if (!message) return;
-
-            sendMessage(message);
-        });
-
-
-        // =====================================================
-        // CHAT TOGGLE
-        // =====================================================
-
-        $("#chatToggle").on("click", function() {
-
-            $("#chatBox")
-                .toggleClass("show");
-        });
-
-        $("#closeChat").on("click", function() {
-
-            $("#chatBox")
-                .removeClass("show");
-        });
-
-
-        // =====================================================
-        // INITIAL LOAD
-        // =====================================================
-
-        fetchMessages();
-
-
-        // =====================================================
-        // REALTIME POLLING
-        // =====================================================
-
-        // setInterval(() => {
-
-        //     fetchMessages();
-
-        // }, 2000);
-
-
-
-    // =====================================================
-    // TIMELINE
-    // =====================================================
-    let selectedMonth = new Date().getMonth() + 1;
-    let selectedYear = new Date().getFullYear();
-
-    let category = '';
-    let search = '';
-
-    let map;
-    let markerGroup;
-    let debounceTimer;
-
-    function scrollChipIntoView(el) {
-
-        if (!el?.length) return;
-
-        el[0].scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center',
-            block: 'nearest'
-        });
-    }
-
-    scrollChipIntoView($('.timeline-chip.active'));
-
-    $('.timeline-chip').on('click', function () {
-
-        $('.timeline-chip').removeClass('active');
-        $(this).addClass('active');
-
-        selectedMonth = $(this).data('month');
-        selectedYear = $(this).data('year');
-
-        scrollChipIntoView($(this));
-
-        loadData();
-    });
-
-    // =====================================================
-    // SEARCH
-    // =====================================================
-
-    $(document).on('input', '#search', function () {
-
-        search = $(this).val() || '';
-
-        clearTimeout(debounceTimer);
-
-        debounceTimer = setTimeout(loadData, 300);
-    });
-
-    // =====================================================
-    // CATEGORY FILTER
-    // =====================================================
-
-    $(document).on('click', '.nav-link[data-slug]', function (e) {
-
-        e.preventDefault();
-
-        category = $(this).data('slug');
-
-        $('.nav-link[data-slug]').removeClass('active');
-
-        $(this).addClass('active');
-
-        loadData();
-    });
-
-    // =====================================================
-    // HORIZONTAL SCROLL
-    // =====================================================
-
-    const scrollContainer = document.getElementById('timelineScroll');
-
-    if (scrollContainer) {
-
-        scrollContainer.addEventListener('wheel', function (e) {
-
-            e.preventDefault();
-
-            this.scrollBy({
-                left: e.deltaY,
-                behavior: 'smooth'
-            });
-        });
-    }
-
-    // =====================================================
-    // MAP
-    // =====================================================
-
-    navigator.geolocation.getCurrentPosition(
-
-        function (position) {
-
-            initializeMap(
-                position.coords.latitude,
-                position.coords.longitude
-            );
-        },
-
-        function () {
-
-            initializeMap(19.0760, 72.8777);
-        }
-    );
-
-    function initializeMap(lat, lng) {
-
-        if (map) {
-            map.remove();
-        }
-
-        map = L.map('map').setView([lat, lng], 13);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-                attribution: '&copy; OpenStreetMap contributors'}
-        ).addTo(map);
-
-        markerGroup = L.markerClusterGroup();
-
-        map.addLayer(markerGroup);
-
-        map.on('moveend', function () {
-
-            clearTimeout(debounceTimer);
-
-            debounceTimer = setTimeout(loadData, 300);
-        });
-
-        loadData();
-    }
-
-    // =====================================================
-    // LOAD MAP DATA
-    // =====================================================
-
-    function loadData() {
-        // console.log("Here");
-
-        if (!map || !markerGroup) return;
-
-        const bounds = map.getBounds();
-
-        $.ajax({
-
-            url: "{{ route('map.data') }}",
-            type: "GET",
-
-            data: {
-                category,
-                month: selectedMonth,
-                year: selectedYear,
-                search,
-                minLat: bounds.getSouth(),
-                maxLat: bounds.getNorth(),
-                minLng: bounds.getWest(),
-                maxLng: bounds.getEast()
-            },
-
-            success: function (response) {
-                // if (!response.events) {
-                //     $('#event-container').html(`
-                //        <div class="col-12">
-                //             <div class="text-center py-5">
-                //                 <h4>No Data Found</h4>
-                //             </div>
-                //         </div>
-                //     `);
-                // } else {
-                //     $('#event-container').html(response.events);
-                // }
-
-                // if (typeof AOS !== 'undefined') {
-                    // AOS.refreshHard();
-                // }
-                markerGroup.clearLayers();
-
-                if (
-                    !response.events_map ||
-                    response.events_map.length === 0
-                ) {
-
-                    $('#sidebar-event-container').html(`
+                            $('#sidebar-event-container').html(`
                         <div class="mapmenu-event-no-data p-3">
-                            <span class="fs-4"><i class="fa-regular fa-calendar-xmark"></i></span>
-                            No Data Found
+                            <span class="fs-4"><i class="fa-solid fa-rotate-right"></i></span>
+                            Failed to load data
                         </div>
                     `);
-
-                    $('#total_events').html('(0)');
-
-                    markerGroup.clearLayers();
-
-                    return;
+                        }
+                    });
                 }
-                $('#sidebar-event-container').html(
-                    response.sidebar || ''
-                );
 
-                const events = response.events_map || [];
+                // =====================================================
+                // INIT
+                // =====================================================
 
-                $('#total_events').html(`(${events.length})`);
+                // fetchMessages();
 
-                if (!events.length) {
-                    return;
-                }
-                events.forEach(function (event) {
-
-                    if (!event.latitude || !event.longitude) {
-                        return;
-                    }
-                    // const baseEventUrl = "{{ route('event-detail') }}";
-                    // const url = event.slug ? `{{ route('event-detail') }}/${event.slug}` : baseEventUrl;
-                    const popupContent = `
-                        <a href="{{ route('event-detail') }}/${event.slug}"
-                           class="event-card-link">
-
-                            <div class="event-card-popup">
-
-                                <img src="${event.image_url ?? ''}"
-                                     class="event-img" />
-
-                                <div class="event-body">
-
-                                    <h3>
-                                        ${escapeHtml(event.title)}
-                                    </h3>
-
-                                    <p>
-                                        📍 ${escapeHtml(event.venue_name)}
-                                    </p>
-
-                                    <p>
-                                        🕒 ${event.formatted_date ?? ''}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </a>
-                    `;
-
-                    const marker = L.marker([
-                        parseFloat(event.latitude),
-                        parseFloat(event.longitude)
-                    ]).bindPopup(popupContent);
-
-                    markerGroup.addLayer(marker);
-                });
-
-            },
-
-            error: function (xhr, status, error) {
-
-                ajaxError("Map data load failed", error);
-
-                $('#sidebar-event-container').html(`
-                    <div class="mapmenu-event-no-data p-3">
-                        <span class="fs-4"><i class="fa-solid fa-rotate-right"></i></span>
-                        Failed to load data
-                    </div>
-                `);
-            }
-        });
-    }
-
-    // =====================================================
-    // INIT
-    // =====================================================
-
-    // fetchMessages();
-
-});
+            });
 
 
-</script>
-@endsection
+        </script>
+    @endsection

@@ -138,17 +138,17 @@ class EventDataController extends Controller
 
         $this->updateImage($request, $event, 'host_image', HOST_IMAGES, 'hosts');
       
-        // SAVE EVENT
+        // SAVE-EVENT
         $event->save();
 
-        // EVENT PHOTOS
+        // EVENT-PHOTOS
         if ($request->hasFile('event_photos')) {
-            // delete old
+            // delete-old
             foreach ($event->event_photos as $photo) {
                 $this->deleteFile(EVENT_PHOTOS, $photo->getRawOriginal('event_photos'));
                 $photo->delete();
             }
-            // add new
+            // add-new
             foreach ($request->file('event_photos') as $file) {
                 EventPhotos::create([
                     'event_id' => $event->id,
@@ -172,7 +172,7 @@ class EventDataController extends Controller
         $this->deleteFile(GROUP_IMAGES, $event->getRawOriginal('group_image'));
         $this->deleteFile(HOST_IMAGES, $event->getRawOriginal('host_image'));
 
-        // Delete event image
+        // Delete-event-image
         foreach ($event->event_photos as $photo) {
             $this->deleteFile(EVENT_PHOTOS, $photo->getRawOriginal('event_photos'));
         }

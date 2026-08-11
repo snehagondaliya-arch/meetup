@@ -60,13 +60,13 @@ class ProcessSingleFileJob implements ShouldQueue
                 $categorySlug = Str::slug($categoryName);
 
                 // if-data-exits-in-cache-it-will-not-create-entry-on-database
-                // ??= if-you-get-null-on-left-then-execute-right-side-and-then-and-assign-that-value–on-left-side
+                // ??= if-you-get-null-on-left-then-execute-right-side-and-then-assign-that-value–on-left-side
                 $category = $categoryCache[$categorySlug] ??= Category::firstOrCreate(
                     ['slug' => $categorySlug],
                     ['name' => $categoryName]
                 );
 
-                foreach ($categorydata['events'] as $eventData) {
+                foreach ($categorydata['event`s'] as $eventData) {
 
                     if (empty($eventData['event_url']))
                         continue;
